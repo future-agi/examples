@@ -172,25 +172,44 @@ class EcommerceAgentPrototype:
         """
         scenarios = {
             "basic": [
-                "Bluetooth Headphones .",
-                "Show me the products under $50.",
-                "I want to order the Bluetooth Headphones.",
-                "Yes, please place the order."
+                "show me Bluetooth Headphones .",
+                "show me the products under $50.",
+                "Find me a wireless keyboard under $100.",
+                "Generate an image of a modern office setup.",
+                "Change the color of the office chair to blue.",
+                "Find me a gaming mouse with RGB lighting.",
+                "Show me the best rated laptops.",
+                "Generate an image of a office chair.",
+                "Create a picture of a book shelves.",
+                "Search for noise-cancelling headphones."
             ],
-            "image_recommendation": [
-                {"message": "Can you recommend a product based on this image?", "image": "test_images/living_room.jpg"},
-                "Show me more details about the first recommendation."
+            "search_queries": [
+                "Find me a wireless keyboard",
+                "Show me black running shoes under $100",
+                "Search for organic skincare products",
+                "I'm looking for a waterproof backpack",
+                "Find me a smartwatch with heart rate monitoring"
             ],
-            "order_flow": [
-                "I need a new smartphone stand",
-                "How much is the adjustable stand?",
-                "I'd like to order it please",
-                "Yes, confirm my order",
-                "What's the status of my order?"
+            "image_queries": [
+                "Generate an image of a modern minimalist living room with a blue sofa",
+                "Create a picture of a tropical beach sunset",
+                "Show me how a pink silk dress would look at a garden wedding",
+                "Generate an image of a cozy reading nook with bookshelves",
+                "Create a picture of a modern kitchen with marble countertops"
             ],
-            "cancel_order": [
-                "I'd like to cancel my recent order",
-                "Yes, I'm sure I want to cancel"
+            "general_queries": [
+                "How would a red leather jacket look with black jeans?",
+                "What are the best gifts for a tech enthusiast?",
+                "Can you suggest some home office setup ideas?",
+                "What are the latest trends in smart home devices?",
+                "How can I style a denim jacket for a casual look?"
+            ],
+            "mixed_queries": [
+                "Find me a wireless speaker",
+                "Generate an image of how it would look on my desk",
+                "What are the best color options for my home office?",
+                "Show me similar products in different price ranges",
+                "Can you recommend some accessories to go with it?"
             ]
         }
         
