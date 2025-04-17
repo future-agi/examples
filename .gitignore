@@ -56,7 +56,8 @@ ENV/
 .venv
 .env
 pythonenv*
-
+.example
+example/
 # Gradio
 gradio_cached_examples/
 flagged/
