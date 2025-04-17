@@ -12,7 +12,7 @@ from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagT
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="ecommerce_observe",
+    project_name="ecom_agent_observe-2",
     session_name="ecom_agent_observe",
 )
 

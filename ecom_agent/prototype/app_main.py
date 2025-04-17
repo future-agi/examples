@@ -9,10 +9,76 @@ from opentelemetry import trace
 from fi_instrumentation import register
 from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues
 
+eval_tag = [
+    EvalTag(
+        eval_name=EvalName.TOXICITY,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "raw.input"
+        },
+        custom_eval_name="Toxicity"
+    ),
+    EvalTag(
+        eval_name=EvalName.TONE,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "raw.input"
+        },
+        custom_eval_name="Tone"
+    ),
+    EvalTag(
+        eval_name=EvalName.SEXIST,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "raw.input"
+        },
+        custom_eval_name="Sexist"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVALUATE_LLM_FUNCTION_CALLING,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.TOOL,
+        config={},
+        mapping={
+            "input": "raw.input",
+            "output": "raw.output"
+        },
+        custom_eval_name="LLM Function Calling"
+    ),
+    EvalTag(
+        eval_name=EvalName.CONVERSATION_RESOLUTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "output": "raw.output"
+        },
+        custom_eval_name="Conversation Resolution"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVAL_IMAGE_INSTRUCTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "raw.input",
+            "image_url": "image.url"
+        },
+        custom_eval_name="Image Instruction"
+    ),
+]
+
 trace_provider = register(
-    project_type=ProjectType.OBSERVE,
-    project_name="ecom_agent",
-    session_name="ecom_agent_observe",
+    project_type=ProjectType.EXPERIMENT,
+    project_name="ecom_agent_experiment-1",
+    project_version_name="v1",
+    eval_tags=eval_tag
 )
 
 trace.set_tracer_provider(trace_provider)

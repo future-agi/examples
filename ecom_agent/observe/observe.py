@@ -13,7 +13,7 @@ from opentelemetry import trace
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="ecommerce_observe",
+    project_name="ecom_agent_observe-1",
     session_name="ecom_agent_observe",
 )
 
