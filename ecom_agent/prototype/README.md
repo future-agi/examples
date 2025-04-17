@@ -104,6 +104,12 @@ Run the application using:
 python run.py
 ```
 
+### Running the Test Script
+
+```
+python prototype.py --scenario basic
+```
+
 This will start the Gradio interface, which will be accessible at `http://localhost:7860` by default.
 
 ## Usage Guide
