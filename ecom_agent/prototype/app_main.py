@@ -276,9 +276,9 @@ def create_interface():
             # Show rendered image if available
             if rendered_image_path:
                 logger.info(f"Showing rendered image: {rendered_image_path}")
-                return "", history, gr.update(visible=True), rendered_image_path
+                return "", new_history, gr.update(visible=True), rendered_image_path
             else:
-                return "", history, gr.update(visible=False), None
+                return "", new_history, gr.update(visible=False), None
         
         def view_memory():
             logger.debug("View memory function called")
