@@ -23,13 +23,17 @@ class OpenAIHelper:
             attributes={
                 SpanAttributes.INPUT_VALUE: json.dumps(messages),
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
-                "llm.input_messages.0.message.role": "user",
-                "llm.input_messages.0.message.content": json.dumps(messages),
                 SpanAttributes.RAW_INPUT: json.dumps(messages),
                 SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Basic chat completion with OpenAI"""
             try:
+
+                for i, message in enumerate(messages):
+                    if message.get("role") and message.get("content"):
+                        span.set_attribute(f"llm.input_messages.{i}.message.role", message["role"])
+                        span.set_attribute(f"llm.input_messages.{i}.message.content", message["content"])
+
                 response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -114,13 +118,17 @@ class OpenAIHelper:
             attributes={
                 SpanAttributes.INPUT_VALUE: json.dumps(messages),
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
-                "llm.input_messages.0.message.role": "user",
-                "llm.input_messages.0.message.content": json.dumps(messages),
                 SpanAttributes.RAW_INPUT: json.dumps(messages),
                 SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Basic function calling completion with OpenAI"""
             try:
+                
+                for i, message in enumerate(messages):
+                    if message.get("role") and message.get("content"):
+                        span.set_attribute(f"llm.input_messages.{i}.message.role", message["role"])
+                        span.set_attribute(f"llm.input_messages.{i}.message.content", message["content"])
+
                 response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
