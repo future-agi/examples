@@ -275,8 +275,18 @@ class SkillIntegration:
 
                         return {"type": "error", "error": f"Skill '{skill_name}' implementation not found."}
 
-                    result = skill_instance.execute(query, context)
-                    logger.info(f"Skill '{skill_name}' executed.")
+                    with tracer.start_as_current_span(skill_name, 
+                        attributes={
+                            SpanAttributes.INPUT_VALUE: query,
+                            SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.TOOL.value,
+                            SpanAttributes.RAW_INPUT: query,
+                        }) as span:
+
+                        span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
+                        span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
+                        
+                        result = skill_instance.execute(query, context)
+                        logger.info(f"Skill '{skill_name}' executed.")
 
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
 
