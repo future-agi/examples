@@ -8,13 +8,79 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import argparse
 from fi_instrumentation import register
-from fi_instrumentation.fi_types import ProjectType
+from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind
 from opentelemetry import trace
+
+eval_tag = [
+    EvalTag(
+        eval_name=EvalName.TOXICITY,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Toxicity"
+    ),
+    EvalTag(
+        eval_name=EvalName.TONE,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Tone"
+    ),
+    EvalTag(
+        eval_name=EvalName.SEXIST,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Sexist"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVALUATE_LLM_FUNCTION_CALLING,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.TOOL,
+        config={},
+        mapping={
+            "input": "input.value",
+            "output": "output.value"
+        },
+        custom_eval_name="LLM Function Calling"
+    ),
+    EvalTag(
+        eval_name=EvalName.CONVERSATION_RESOLUTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "output": "output.value"
+        },
+        custom_eval_name="Conversation Resolution"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVAL_IMAGE_INSTRUCTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value",
+            "image_url": "image.url"
+        },
+        custom_eval_name="Image Instruction"
+    ),
+]
 
 trace_provider = register(
     project_type=ProjectType.EXPERIMENT,
     project_name="ecom_agent",
     project_version_name="v1",
+    eval_tags=eval_tag
 )
 
 trace.set_tracer_provider(trace_provider)
