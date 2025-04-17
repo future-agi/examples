@@ -204,11 +204,9 @@ class IntegratedEcommerceAgent:
 
 def create_interface():
     """Create the Gradio interface for the integrated e-commerce agent"""
-    # Initialize the agent
     agent = IntegratedEcommerceAgent()
     logger.info("Creating Gradio interface")
     
-    # Define Gradio interface
     with gr.Blocks(title="E-commerce Assistant") as demo:
         gr.Markdown("# E-commerce Assistant")
         gr.Markdown("Ask questions, search for products, place orders, and more!")
@@ -233,44 +231,99 @@ def create_interface():
                 rendered_image = gr.Image(label="Rendered Product", visible=False)
         
         def user_query(message, image):
-            logger.debug(f"User query function called with message: {message}")
-            if not message and not image: # Allow image-only queries
-                 logger.warning("Empty query and no image submitted")
-                 # Return current history without adding anything
-                 return "", agent.get_conversation_history(), gr.update(visible=False), None
+            logger.debug(f"User query function called with message: '{message}' and image: {image}")
+            
+            if not message and not image:
+                logger.warning("Empty query and no image submitted")
+                # Return the current history formatted for Gradio
+                return "", format_history_for_gradio(agent.get_conversation_history()), gr.update(visible=False), None
 
-            # Process the image path if provided
-            image_path = None
-            if image:
-                # Ensure the image path is absolute
-                image_path = os.path.abspath(image)
+            image_path = os.path.abspath(image) if image else None
+            if image_path:
                 logger.info(f"Processing image at path: {image_path}")
             
-            # Use a default query if only an image is provided
             query_text = message if message else "Analyze this image."
 
             response, rendered_image_path = agent.process_query(query_text, image_path)
-            logger.debug(f"Response generated: {response[:50]}...")
+            logger.debug(f"Agent response: '{response[:50]}...', Rendered image: {rendered_image_path}")
             
-            # Get the full conversation history
-            updated_history = agent.get_conversation_history()
-            
-            # Show rendered image if available
+            # Format the complete history for Gradio display
+            gradio_display_history = format_history_for_gradio(agent.get_conversation_history())
+
+            # Handle rendered image display (separate component)
+            rendered_update = gr.update(visible=False)
             if rendered_image_path:
                 logger.info(f"Showing rendered image: {rendered_image_path}")
-                # Add the rendered image to the assistant's last message if not already present
-                if updated_history and updated_history[-1]['role'] == 'assistant':
-                    if 'image' not in updated_history[-1] or updated_history[-1]['image'] != rendered_image_path:
-                         # This part might need adjustment depending on how process_query returns rendered images
-                         # Assuming process_query already added it correctly to history. If not, uncomment below:
-                         # updated_history[-1]['image'] = rendered_image_path
-                         pass # Assuming process_query handles adding image to history
+                rendered_update = gr.update(visible=True, value=rendered_image_path)
+            
+            # Return empty input, formatted history, and rendered image update
+            return "", gradio_display_history, rendered_update, rendered_image_path
 
-                return "", updated_history, gr.update(visible=True, value=rendered_image_path), rendered_image_path
-            else:
-                # Return empty string for user input, the updated history, and hide the rendered image component
-                return "", updated_history, gr.update(visible=False), None
-        
+        def format_history_for_gradio(history: list[dict]) -> list[dict]:
+            """Formats the internal history list for Gradio Chatbot(type='messages').
+               Ensures output is List[Dict[str, str]] with keys 'role' and 'content'.
+               Images are embedded in content using Markdown.
+            """
+            gradio_history = []
+            for i, msg in enumerate(history):
+                role = msg.get('role')
+                content_text = msg.get('content', '')
+                image_path = msg.get('image')
+
+                # Validate role
+                if not role or role not in ["user", "assistant"]:
+                    logger.warning(f"Skipping history message with invalid/missing role (index {i}): {msg}")
+                    continue
+                    
+                # Ensure content_text is a string
+                if not isinstance(content_text, str):
+                     logger.warning(f"Converting non-string content to string (index {i}): {content_text}")
+                     content_text = str(content_text).strip()
+                else:
+                     content_text = content_text.strip()
+
+                # Prepare final content string
+                final_content = content_text
+                if image_path and isinstance(image_path, str):
+                    try:
+                        # Check if path exists for logging, but don't error out here
+                        if not os.path.exists(image_path):
+                             logger.warning(f"Image path does not exist (index {i}): {image_path}")
+                             
+                        # Create Markdown for image
+                        # Use a generic alt text for simplicity
+                        alt_text = "Image"
+                        image_markdown = f"![{alt_text}]({image_path})"
+                        
+                        # Prepend image markdown to text content
+                        if final_content: # Add image markdown before text
+                            final_content = f"{image_markdown}\n\n{final_content}"
+                        else: # Only image markdown
+                            final_content = image_markdown
+                            
+                    except Exception as e:
+                        logger.error(f"Error processing image path '{image_path}' for Markdown (index {i}): {e}")
+                        # If image processing fails, add error note to text
+                        error_note = f"[Error displaying image: {os.path.basename(image_path or '')}]"
+                        if final_content:
+                             final_content = f"{error_note}\n\n{final_content}"
+                        else:
+                             final_content = error_note
+                             
+                elif image_path: # Log if image path is not a string
+                     logger.warning(f"Image path in history is not a string (index {i}): {image_path}")
+
+                # Ensure final content is not None before appending
+                if final_content is None:
+                     logger.error(f"Final content became None unexpectedly (index {i}). Skipping message: {msg}")
+                     continue
+                     
+                # Append the strictly formatted dictionary
+                gradio_history.append({"role": role, "content": final_content})
+
+            logger.debug(f"Final Gradio history format for messages: {gradio_history}")
+            return gradio_history
+
         def view_memory():
             logger.debug("View memory function called")
             return agent.memory.get_all()
@@ -278,29 +331,16 @@ def create_interface():
         def clear_conversation():
             logger.debug("Clear conversation function called")
             agent.clear_conversation()
-            # Return empty lists for chatbot and memory display
-            return [], []
+            return [], [] # Return empty list for chatbot
         
         # Set up event handlers
         submit_btn.click(
             user_query,
             inputs=[user_input, image_input],
-            # Update chatbot output to receive the full history
             outputs=[user_input, chatbot, rendered_image, rendered_image] 
         )
-        
-        view_memory_btn.click(
-            view_memory,
-            inputs=[],
-            outputs=[memory_display]
-        )
-        
-        clear_btn.click(
-            clear_conversation,
-            inputs=[],
-            # Update chatbot and memory display on clear
-            outputs=[chatbot, memory_display] 
-        )
+        view_memory_btn.click(view_memory, inputs=[], outputs=[memory_display])
+        clear_btn.click(clear_conversation, inputs=[], outputs=[chatbot, memory_display])
     
     logger.info("Gradio interface created")
     return demo

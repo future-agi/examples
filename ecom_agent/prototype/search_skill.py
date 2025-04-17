@@ -20,8 +20,8 @@ class SearchSkill:
         """Load or create a simulated product database"""
         try:
             # Try to load existing database
-            if os.path.exists("product_database.json"):
-                with open("product_database.json", "r") as f:
+            if os.path.exists("ecom_agent/prototype/product_database.json"):
+                with open("ecom_agent/prototype/product_database.json", "r") as f:
                     return json.load(f)
         except Exception as e:
             logger.error(f"Error loading product database: {str(e)}")

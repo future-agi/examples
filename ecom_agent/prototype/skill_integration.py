@@ -87,9 +87,12 @@ class SkillIntegration:
         """Use OpenAI's function calling to determine which skill to use"""
         try:
             # Prepare the prompt with image context if available
-            prompt = query
+            prompt_parts = [f"User query: {query}"]
             if context.get("image_path"):
-                prompt = f"User query: {query}\nContext: User has provided an image at {context['image_path']}"
+                prompt_parts.append("Context: User has provided an image.")
+            prompt = "\n".join(prompt_parts)
+            
+            logger.info(f"Determining skill for prompt: {prompt}")
             
             # Use OpenAIHelper for function calling
             response = self.openai_helper.function_completion(
@@ -98,53 +101,67 @@ class SkillIntegration:
             )
             
             if not response["success"]:
-                return {
-                    "success": True,
-                    "skill": "chat",
-                    "confidence": 0.5
-                }
+                logger.warning(f"Function calling failed: {response.get('error')}. Defaulting to chat.")
+                # Default to chat on failure
+                return {"success": True, "skill": "chat", "confidence": 0.5}
             
             tool_calls = response["tool_calls"]
             if not tool_calls:
-                return {
-                    "success": True,
-                    "skill": "chat",
-                    "confidence": 0.5
-                }
+                logger.warning("No tool calls returned by function calling. Defaulting to chat.")
+                 # Default to chat if no function called
+                return {"success": True, "skill": "chat", "confidence": 0.5}
             
             # Parse the function arguments
             import json
-            args = json.loads(tool_calls[0].function.arguments)
-            skill_name = args["skill_name"]
-            confidence = args["confidence"]
-            
-            # If an image is provided, prefer image-related skills
+            try:
+                args = json.loads(tool_calls[0].function.arguments)
+                llm_skill_name = args.get("skill_name", "chat") # Get LLM's suggestion
+                confidence = args.get("confidence", 0.5)
+            except Exception as e:
+                logger.error(f"Error processing function arguments: {e}. Defaulting to chat.")
+                llm_skill_name = "chat"
+                confidence = 0.5
+
+            logger.info(f"LLM determined skill: {llm_skill_name} with confidence: {confidence}")
+
+            # --- Reworked Image Context Logic --- 
+            final_skill_name = llm_skill_name # Start with LLM's choice
+
             if context.get("image_path"):
-                if "image" in query.lower() or "picture" in query.lower() or "photo" in query.lower():
-                    if "edit" in query.lower() or "modify" in query.lower() or "change" in query.lower():
-                        skill_name = "image_editing"
-                    else:
-                        skill_name = "image_generation"
+                 # CASE 1: Explicit request for image generation?
+                 if "generate" in query.lower() or "create" in query.lower():
+                     if "image" in query.lower() or "picture" in query.lower() or "photo" in query.lower():
+                          logger.info("Image present and query requests generation -> Using image_generation skill.")
+                          final_skill_name = "image_generation"
+                 # CASE 2: Explicit request for image editing?
+                 elif "edit" in query.lower() or "modify" in query.lower() or "change" in query.lower():
+                     if "image" in query.lower() or "picture" in query.lower() or "photo" in query.lower():
+                          logger.info("Image present and query requests editing -> Using image_editing skill.")
+                          final_skill_name = "image_editing"
+                 # CASE 3: Image present, but NO explicit gen/edit request? 
+                 # -> Default to chat (for vision analysis), regardless of LLM's initial text-based thought.
+                 elif final_skill_name != "image_generation" and final_skill_name != "image_editing": 
+                      logger.info(f"Image present, no explicit gen/edit keywords. Overriding LLM skill '{llm_skill_name}' to chat for vision analysis.")
+                      final_skill_name = "chat"
+                 # CASE 4: Image present, and LLM *already* suggested gen/edit (but keywords weren't explicit enough for CASE 1/2). 
+                 # -> Let's respect LLM in this edge case for now, but log it.
+                 else:
+                      logger.info(f"Image present. LLM suggested '{llm_skill_name}' without explicit keywords matching. Proceeding with LLM choice.")
+                      pass # Keep final_skill_name as llm_skill_name
             
-            if skill_name not in self.skills:
-                return {
-                    "success": True,
-                    "skill": "chat",
-                    "confidence": 0.5
-                }
+            # --- End Reworked Logic --- 
             
-            return {
-                "success": True,
-                "skill": skill_name,
-                "confidence": confidence
-            }
+            # Final validation and return
+            if final_skill_name not in self.skills:
+                logger.warning(f"Determined skill '{final_skill_name}' not valid. Defaulting to chat.")
+                final_skill_name = "chat"
+            
+            logger.info(f"Final determined skill: {final_skill_name}")
+            return {"success": True, "skill": final_skill_name, "confidence": confidence}
             
         except Exception as e:
-            return {
-                "success": True,
-                "skill": "chat",
-                "confidence": 0.5
-            }
+            logger.error(f"Error in _determine_skill: {e}", exc_info=True)
+            return {"success": True, "skill": "chat", "confidence": 0.5}
     
     def route_query(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Route a query to the appropriate skill using AI"""
@@ -153,41 +170,65 @@ class SkillIntegration:
             skill_determination = self._determine_skill(query, context)
             
             if not skill_determination["success"]:
-                return {
-                    "type": "skill_determination_error",
-                    "error": f"Failed to determine skill: {skill_determination['error']}"
-                }
-            
-            skill_name = skill_determination["skill"]
-            
-            # Handle chat responses directly through the LLM
+                logger.error(f"Skill determination failed: {skill_determination.get('error', 'Unknown error')}")
+                # Fallback to basic chat if skill determination fails
+                skill_name = "chat"
+            else:
+                skill_name = skill_determination["skill"]
+                logger.info(f"Routing to skill: {skill_name}")
+
+            # Handle chat responses (potentially with vision)
             if skill_name == "chat":
-                chat_response = self.openai_helper.chat_completion(
-                    messages=[
-                        {"role": "system", "content": "You are a helpful e-commerce assistant. Respond naturally to the user's message while maintaining a friendly and professional tone."},
-                        {"role": "user", "content": query}
-                    ]
-                )
+                image_path = context.get("image_path")
+                
+                if image_path:
+                    logger.info(f"Handling chat with image context: {image_path}")
+                    # Use vision completion if image is present
+                    chat_response = self.openai_helper.vision_completion(
+                        image_path=image_path,
+                        prompt=query # Send the user's text query as the prompt
+                        # We could add system prompt here if vision_completion supported full message list
+                        # For now, it seems simpler: just the image and the user's text query.
+                    )
+                else:
+                    logger.info("Handling chat without image context")
+                    # Use standard chat completion if no image
+                    chat_response = self.openai_helper.chat_completion(
+                        messages=[
+                            {"role": "system", "content": "You are a helpful e-commerce assistant. Respond naturally to the user's message while maintaining a friendly and professional tone."},
+                            # Pass the current query along with conversation history potentially?
+                            # Let's just pass the current query for now for simplicity.
+                            {"role": "user", "content": query}
+                        ]
+                    )
                 
                 if not chat_response["success"]:
+                    logger.error(f"Chat/Vision completion failed: {chat_response.get('error')}")
                     return {
                         "type": "chat_error",
-                        "error": chat_response["error"]
+                        "error": chat_response.get("error", "Unknown chat completion error")
                     }
                 
+                logger.info(f"Chat/Vision response generated successfully.")
                 return {
                     "type": "chat_response",
                     "response": chat_response["content"]
                 }
             
-            # Execute the appropriate skill
-            skill_instance = self.skills[skill_name]
+            # Execute other skills
+            logger.info(f"Executing skill: {skill_name}")
+            skill_instance = self.skills.get(skill_name)
+            if not skill_instance:
+                 logger.error(f"Skill instance for '{skill_name}' not found. Defaulting to error.")
+                 return {"type": "error", "error": f"Skill '{skill_name}' implementation not found."}
+
             result = skill_instance.execute(query, context)
-            
+            logger.info(f"Skill '{skill_name}' executed.")
             return result
             
         except Exception as e:
+            logger.error(f"Error routing query: {e}", exc_info=True)
             return {
                 "type": "error",
-                "error": str(e)
+                "error": f"An unexpected error occurred during query routing: {str(e)}"
             }
