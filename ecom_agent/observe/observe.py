@@ -11,14 +11,14 @@ from fi_instrumentation import register
 from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind
 from opentelemetry import trace
 
-trace_provider = register(
-    project_type=ProjectType.OBSERVE,
-    project_name="ecom_agent_observe-1",
-    session_name="ecom_agent_observe",
-)
+# trace_provider = register(
+#     project_type=ProjectType.OBSERVE,
+#     project_name="ecom_agent_observe-1",
+#     session_name="ecom_agent_observe",
+# )
 
-trace.set_tracer_provider(trace_provider)
-tracer = trace.get_tracer(__name__)
+# trace.set_tracer_provider(trace_provider)
+# tracer = trace.get_tracer(__name__)
 
 # Configure logging
 logging.basicConfig(
