@@ -3,6 +3,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from openai_integration import OpenAIHelper
 
 logger = logging.getLogger("ecommerce_agent.search_skill")
 
@@ -14,6 +15,7 @@ class SearchSkill:
         self.reflection_system = reflection_system
         self.planner_system = planner_system
         self.product_database = self._load_product_database()
+        self.openai_helper = OpenAIHelper()
         logger.info("SearchSkill initialized")
     
     def _load_product_database(self) -> List[Dict[str, Any]]:
@@ -163,55 +165,82 @@ class SearchSkill:
         return products
     
     def execute(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute the search skill"""
-        logger.info(f"Executing search skill with query: {query}")
-        
-        # Create a plan if planner is available
-        plan = None
+        """Execute search: Analyze image -> Identify relevant categories via LLM -> 
+           IF categories found: Return all products in those categories.
+           ELSE: Fallback to term/filter search across all categories.
+        """
+        logger.info(f"Executing search skill with query: '{query}'")
+        image_path = context.get("image_path")
+        image_analysis_content = None
+        # Reset planner variables for clarity
+        plan = None 
         task_id = None
-        if self.planner_system:
-            task_id = f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-            plan = self.planner_system.create_plan(task_id, f"Search for products: {query}", context)
-            logger.debug(f"Created plan with task_id: {task_id}")
+
+        # Optional Image Analysis
+        if image_path:
+            logger.info(f"Image provided ({image_path}), analyzing for search context...")
+            analysis_prompt = f"Describe the searchable attributes (product type, color, style, material, etc.) visible in this image. User query for context: {query}"
+            analysis_result = self.openai_helper.vision_completion(image_path, analysis_prompt)
+            if analysis_result["success"]:
+                image_analysis_content = analysis_result["content"]
+                logger.info(f"Image analysis successful: {image_analysis_content[:100]}...")
+            else:
+                logger.error(f"Image analysis failed: {analysis_result['error']}")
+
+        # --- Category Identification --- 
+        # Step 1: Get Unique Categories from DB
+        all_categories = sorted(list(set(p['category'] for p in self.product_database if 'category' in p)))
+        logger.debug(f"Available categories: {all_categories}")
+
+        # Step 2: LLM identifies relevant categories
+        category_prompt_messages = [
+            {"role": "system", "content": f"You are an expert category filter. Given a user query, optional image analysis, and a list of available categories, identify which categories are relevant. Respond ONLY with a JSON list of relevant category names (e.g., [\"clothing\", \"electronics\"]). If none seem relevant, return an empty list."}, 
+            {"role": "user", "content": f"User Query: {query}\nImage Analysis: {image_analysis_content or 'N/A'}\nAvailable Categories: {json.dumps(all_categories)}"}        
+        ]
+        logger.info("Identifying relevant categories using LLM.")
+        category_result = self.openai_helper.chat_completion(messages=category_prompt_messages, model="gpt-4.1")
+        relevant_categories = []
+        if category_result["success"]:
+            try:
+                parsed_categories = json.loads(category_result["content"])
+                if isinstance(parsed_categories, list):
+                    relevant_categories = [cat for cat in parsed_categories if cat in all_categories]
+                    logger.info(f"LLM identified relevant categories: {relevant_categories}")
+                else: logger.warning("LLM category response was not a list.")
+            except json.JSONDecodeError: logger.error(f"Failed to parse category JSON: {category_result['content']}")
+        else: logger.error(f"Category identification failed: {category_result['error']}")
         
-        # Step 1: Parse search query
-        search_terms, filters = self._parse_search_query(query)
-        if plan and task_id:
-            self.planner_system.update_step(task_id, 0, "completed", {
-                "search_terms": search_terms,
-                "filters": filters
-            })
+        # --- Conditional Execution Path --- 
+        search_terms = []
+        filters = {}
         
-        # Step 2: Identify product categories and filters
-        categories = self._identify_categories(search_terms)
-        if plan and task_id:
-            self.planner_system.update_step(task_id, 1, "completed", {
-                "categories": categories,
-                "refined_filters": filters
-            })
-        
-        # Step 3: Execute search
-        search_results = self._search_products(search_terms, categories, filters)
-        if plan and task_id:
-            self.planner_system.update_step(task_id, 2, "completed", {
-                "results_count": len(search_results)
-            })
-        
-        # Step 4: Process and rank results
-        ranked_results = self._rank_results(search_results, context)
-        if plan and task_id:
-            self.planner_system.update_step(task_id, 3, "completed", {
-                "ranked_results": [p["id"] for p in ranked_results[:5]]
-            })
-        
-        # Prepare response
+        if relevant_categories:
+            # Path 1: Categories identified - Return all products in these categories
+            logger.info(f"Relevant categories found ({relevant_categories}). Executing category-only search.")
+            ranked_results = self._get_products_by_categories(relevant_categories)
+            logger.info(f"Found {len(ranked_results)} products in categories: {relevant_categories}")
+            # search_terms and filters remain empty for this path
+        else:
+            # Path 2: No relevant categories - Fallback to term/filter search
+            logger.info("No relevant categories identified by LLM. Falling back to term/filter search.")
+            # Step 3 (Fallback): Parse search terms & filters
+            search_terms, filters = self._parse_search_query(query, image_analysis_content)
+            # Step 4 (Fallback): Execute search across *all* categories
+            search_results = self._search_products(search_terms, [], filters) # Pass empty list for categories
+            # Step 5 (Fallback): Rank results
+            ranked_results = self._rank_results(search_results, context)
+            logger.info(f"Fallback search completed with {len(ranked_results)} results.")
+        # --- End Conditional Execution Path --- 
+
+        # Prepare response (consistent structure)
         response = {
             "type": "search_results",
             "query": query,
-            "search_terms": search_terms,
-            "categories": categories,
-            "filters": filters,
-            "results": ranked_results,
+            "image_analysis": image_analysis_content,
+            "search_terms": search_terms, # Will be empty if category path taken
+            "relevant_categories": relevant_categories, 
+            "filters": filters,         # Will be empty if category path taken
+            "results": ranked_results,  # Contains either category results or ranked fallback results
             "total_results": len(ranked_results),
             "timestamp": datetime.now().isoformat()
         }
@@ -237,14 +266,22 @@ class SearchSkill:
             })
             response["plan"] = plan
         
-        logger.info(f"Search completed with {len(ranked_results)} results")
+        logger.info(f"Search skill finished execution.")
         return response
-    
-    def _parse_search_query(self, query: str) -> tuple:
-        """Parse the search query to extract search terms and filters"""
+
+    def _get_products_by_categories(self, categories: List[str]) -> List[Dict[str, Any]]:
+        """Retrieve all products belonging to the specified categories, sorted by name."""
+        logger.debug(f"Retrieving all products for categories: {categories}")
+        results = [
+            product for product in self.product_database 
+            if product.get('category') in categories
+        ]
+        results.sort(key=lambda p: p.get('name', '')) # Sort results by name
+        return results
+
+    def _parse_search_query(self, query: str, image_analysis: Optional[str] = None) -> tuple:
+        """Parse the search query and integrate image analysis to extract terms/filters."""
         query_lower = query.lower()
-        
-        # Extract filters
         filters = {}
         
         # Price filter
@@ -274,7 +311,8 @@ class SearchSkill:
             if color in query_lower:
                 if "colors" not in filters:
                     filters["colors"] = []
-                filters["colors"].append(color)
+                if color not in filters["colors"]:
+                    filters["colors"].append(color)
         
         # Size filter
         sizes = ["small", "medium", "large", "s", "m", "l", "xl", "xxl"]
@@ -283,7 +321,8 @@ class SearchSkill:
             if re.search(size_pattern, query_lower):
                 if "sizes" not in filters:
                     filters["sizes"] = []
-                filters["sizes"].append(size)
+                if size not in filters["sizes"]:
+                    filters["sizes"].append(size)
         
         # Rating filter
         rating_patterns = [
@@ -297,97 +336,71 @@ class SearchSkill:
             if matches:
                 filters[filter_type] = float(matches.group(1))
         
-        # Extract search terms (remove filter-related words)
+        # Extract search terms from query AND image analysis
+        combined_text = query_lower
+        if image_analysis:
+            combined_text += " " + image_analysis.lower()
+        
+        # Remove filter-related words (crude removal, LLM could do better)
         filter_words = ["under", "less than", "cheaper than", "over", "more than", 
                        "between", "and", "stars", "rated", "rating"]
+        search_text = combined_text
+        for word in filter_words + colors + sizes:
+            search_text = re.sub(r'\b' + re.escape(word) + r'\b', '', search_text)
         
-        search_terms = query_lower
-        for word in filter_words:
-            search_terms = search_terms.replace(word, "")
+        search_text = re.sub(r'\$?\d+(\.\d+)?', '', search_text)
+        search_text = re.sub(r'[^w\s]', '', search_text)
+        search_terms = [term.strip() for term in search_text.split() if term.strip() and len(term) > 1]
         
-        # Remove price mentions
-        search_terms = re.sub(r"\$?\d+(\.\d+)?", "", search_terms)
-        
-        # Clean up and split into terms
-        search_terms = re.sub(r"[^\w\s]", "", search_terms)
-        search_terms = [term.strip() for term in search_terms.split() if term.strip()]
-        
+        logger.debug(f"Parsed search terms: {search_terms}, Filters: {filters}")
         return search_terms, filters
     
-    def _identify_categories(self, search_terms: List[str]) -> List[str]:
-        """Identify product categories based on search terms"""
-        category_keywords = {
-            "clothing": ["shirt", "t-shirt", "tshirt", "jacket", "pants", "jeans", "dress", "sweater", "hoodie", "clothes"],
-            "electronics": ["phone", "laptop", "computer", "tablet", "headphones", "earbuds", "speaker", "camera", "tv", "television"],
-            "footwear": ["shoes", "boots", "sneakers", "sandals", "footwear"],
-            "accessories": ["watch", "wallet", "bag", "purse", "backpack", "sunglasses", "hat", "jewelry"],
-            "home": ["furniture", "chair", "table", "bed", "sofa", "couch", "lamp", "kitchen", "appliance"],
-            "fitness": ["exercise", "workout", "fitness", "yoga", "weights", "gym"]
-        }
-        
-        identified_categories = []
-        for term in search_terms:
-            for category, keywords in category_keywords.items():
-                if term in keywords:
-                    identified_categories.append(category)
-        
-        return list(set(identified_categories))
-    
-    def _search_products(self, search_terms: List[str], categories: List[str], filters: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Search for products based on search terms, categories, and filters"""
+    def _search_products(self, search_terms: List[str], relevant_categories: List[str], filters: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Search for products within relevant categories, applying terms and filters."""
         results = []
-        
+        search_terms_set = set(search_terms)
+        logger.debug(f"Searching within categories: {relevant_categories} for terms: {search_terms_set} with filters: {filters}")
+
         for product in self.product_database:
-            # Check if product matches search terms
-            product_text = f"{product['name']} {product['description']} {product['category']} {product.get('subcategory', '')}"
-            product_text = product_text.lower()
+            # Category filter first
+            if relevant_categories and product.get('category') not in relevant_categories:
+                continue # Skip if not in a relevant category
+            elif not relevant_categories:
+                 # If no categories were identified as relevant, should we search all?
+                 # Let's search all for now, but log it.
+                 if 'category_unfiltered' not in locals(): # Log only once
+                      logger.warning("No relevant categories identified by LLM, searching across all categories.")
+                      category_unfiltered = True 
             
-            # Calculate term match score
-            term_matches = sum(1 for term in search_terms if term in product_text)
-            
-            # Check category match
-            category_match = not categories or product['category'] in categories
-            
-            # Check filters
+            # Apply other filters (Price, Color, Size, Rating)
             filter_match = True
-            
-            # Price filters
-            if "min_price" in filters and product["price"] < filters["min_price"]:
-                filter_match = False
-            if "max_price" in filters and product["price"] > filters["max_price"]:
-                filter_match = False
-            
-            # Color filters
+            # Price
+            if "min_price" in filters and product["price"] < filters["min_price"]: filter_match = False
+            if "max_price" in filters and product["price"] > filters["max_price"]: filter_match = False
+            # Color
             if "colors" in filters and "colors" in product:
-                color_match = False
-                for color in filters["colors"]:
-                    for product_color in product["colors"]:
-                        if color in product_color.lower():
-                            color_match = True
-                            break
-                if not color_match:
+                if not any(filt_col in prod_col.lower() for filt_col in filters["colors"] for prod_col in product["colors"] ):
                     filter_match = False
-            
-            # Size filters
+            # Size
             if "sizes" in filters and "sizes" in product:
-                size_match = False
-                for size in filters["sizes"]:
-                    if size.upper() in product["sizes"] or size.lower() in [s.lower() for s in product["sizes"]]:
-                        size_match = True
-                        break
-                if not size_match:
+                if not any(filt_size.upper() in product["sizes"] or filt_size.lower() in [s.lower() for s in product["sizes"]] for filt_size in filters["sizes"] ):
                     filter_match = False
+            # Rating
+            if "min_rating" in filters and product["rating"] < filters["min_rating"]: filter_match = False
             
-            # Rating filter
-            if "min_rating" in filters and product["rating"] < filters["min_rating"]:
-                filter_match = False
+            if not filter_match:
+                continue
             
-            # Add to results if matches
-            if term_matches > 0 and category_match and filter_match:
+            # Calculate term match score on remaining products
+            product_text = f"{product['name']} {product['description']} {product.get('subcategory', '')}".lower()
+            term_matches = sum(1 for term in search_terms_set if term in product_text)
+            
+            if term_matches > 0:
                 product_copy = product.copy()
                 product_copy["relevance_score"] = term_matches
                 results.append(product_copy)
         
+        logger.debug(f"Found {len(results)} products after search and filtering.")
         return results
     
     def _rank_results(self, results: List[Dict[str, Any]], context: Dict[str, Any]) -> List[Dict[str, Any]]:

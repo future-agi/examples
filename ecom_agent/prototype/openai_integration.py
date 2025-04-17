@@ -6,11 +6,14 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from opentelemetry import trace
 from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+import logging
 
 tracer = trace.get_tracer(__name__)
 
 # Load environment variables
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class OpenAIHelper:
     """Helper class for basic OpenAI API interactions"""
@@ -127,61 +130,76 @@ class OpenAIHelper:
             }) as span:
             """Basic function calling completion with OpenAI"""
             try:
+                # --- Add Detailed Input Logging --- 
+                logger.debug(f"--- Function Completion Input ---")
+                logger.debug(f"Model: {model}")
+                # Log messages safely
+                try:
+                     logger.debug(f"Messages:\n{json.dumps(messages, indent=2)}")
+                except Exception as log_e:
+                     logger.warning(f"Could not serialize messages for debug logging: {log_e}")
+                     logger.debug(f"Messages (raw): {messages}")
+                # Log tools safely
+                try:
+                     logger.debug(f"Tools:\n{json.dumps(tools, indent=2)}")
+                except Exception as log_e:
+                     logger.warning(f"Could not serialize tools for debug logging: {log_e}")
+                     logger.debug(f"Tools (raw): {tools}")
+                logger.debug(f"--- End Function Completion Input ---")
+                # --- End Detailed Input Logging --- 
                 
+                # Log input messages to span (existing code)
                 for i, message in enumerate(messages):
                     if message.get("role") and message.get("content"):
                         span.set_attribute(f"llm.input_messages.{i}.message.role", message["role"])
                         span.set_attribute(f"llm.input_messages.{i}.message.content", message["content"])
 
+                # Make the API call
                 response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
                     tools=tools
                 )
 
+                # Process successful response
+                tool_calls = response.choices[0].message.tool_calls
+                
+                # Safely serialize tool_calls for logging/tracing
+                tool_calls_json = None # Initialize
+                if tool_calls:
+                    try:
+                        # Use model_dump() which is available on Pydantic models (like tool_calls)
+                        tool_calls_list = [tc.model_dump() for tc in tool_calls]
+                        tool_calls_json = json.dumps(tool_calls_list)
+                    except Exception as json_e:
+                        logger.warning(f"Could not serialize tool_calls for tracing: {json_e}")
+                        tool_calls_json = "[Serialization Error]"
+                else:
+                    tool_calls_json = "[]" # Represent empty tool calls as empty JSON array
+                
+                # --- Use tool_calls_json for span attributes --- 
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")   
-                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response.choices[0].message.tool_calls))
-                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(response.choices[0].message.tool_calls))
-                try:
-                    message = response.choices[0].message
-                    tool_calls = getattr(message, "tool_calls", None)
-                    
-                    if tool_calls and hasattr(tool_calls, "__iter__"):
-                        for index, tool_call in enumerate(tool_calls):
-                            # Record tool call ID if present
-                            if hasattr(tool_call, "id") and tool_call.id is not None:
-                                span.set_attribute(
-                                    f"llm.output_messages.0.message.tool_calls.{index}.id", 
-                                    tool_call.id
-                                )
-                            
-                            # Record function details if present
-                            if hasattr(tool_call, "function"):
-                                function = tool_call.function
-                                
-                                if hasattr(function, "name") and function.name is not None:
-                                    span.set_attribute(
-                                        f"llm.output_messages.0.message.tool_calls.{index}.function.name",
-                                        function.name
-                                    )
-                                
-                                if hasattr(function, "arguments") and function.arguments is not None:
-                                    span.set_attribute(
-                                        f"llm.output_messages.0.message.tool_calls.{index}.function.arguments", 
-                                        function.arguments
-                                    )
-                except Exception as e:
-                    span.set_attribute("tool_calls_processing_error", str(e))
-                    # We catch the error but continue execution to return the response
+                span.set_attribute("llm.output_messages.0.message.content", tool_calls_json) # Use safe json
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, tool_calls_json) # Use safe json
+                # Also update RAW_OUTPUT for consistency
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, tool_calls_json)
+                # --- End span attribute update --- 
 
                 return {
-                    "tool_calls": response.choices[0].message.tool_calls,
+                    "tool_calls": tool_calls, # Return the actual objects
                     "success": True
                 }
             except Exception as e:
-                span.set_attribute("error.message", str(e))
-                span.set_attribute(SpanAttributes.OUTPUT_VALUE, str(e))
+                # Log the actual error from the API call
+                error_message = f"{type(e).__name__}: {str(e)}"
+                # Ensure full traceback is logged here to see where the API error happened
+                logger.error(f"OpenAI function_completion API call failed: {error_message}", exc_info=True) 
+                
+                span.set_attribute("error.message", error_message)
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, error_message) 
+                # Set RAW_OUTPUT in error case too
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps({"error": error_message})) 
                 return {
-                    "error": str(e),
+                    "error": error_message,
                     "success": False
                 } 

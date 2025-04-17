@@ -102,8 +102,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from memory import Memory
 from reflection import Reflection
 from planner import Planner
-from image_processor import ImageProcessor
-from product_recommender import ProductRecommender
+# from image_processor import ImageProcessor # Assuming this might not be needed if recommender is gone?
+# from product_recommender import ProductRecommender # Remove import
 from skill_integration import SkillIntegration
 
 # Load environment variables
@@ -119,19 +119,23 @@ class IntegratedEcommerceAgent:
         self.planner = Planner()
         
         # Initialize specialized components
-        self.image_processor = ImageProcessor()
-        self.product_recommender = ProductRecommender(self.memory, self.reflection)
+        # self.image_processor = ImageProcessor() # Remove/comment out if only used by recommender
+        # self.product_recommender = ProductRecommender(self.memory, self.reflection) # Remove instance
         
         # Initialize skill integration
+        # Pass None for systems if they aren't used by remaining skills directly
         self.skill_integration = SkillIntegration(self.memory, self.reflection, self.planner)
         
         # Conversation history
         self.conversation_history = []
+        # Add state for pending order confirmation
+        self.pending_order_context = None 
         
-        # Active render request
-        self.active_render_request = None
+        # Active render request (Is this still needed? Check ProductRecommender usage)
+        # Let's remove it for now as it was part of ProductRecommender logic
+        # self.active_render_request = None 
         
-        logger.info("IntegratedEcommerceAgent initialized with all components")
+        logger.info("IntegratedEcommerceAgent initialized (without ProductRecommender)")
     
     def add_to_conversation(self, role, content):
         """Add a message to the conversation history"""
@@ -143,9 +147,10 @@ class IntegratedEcommerceAgent:
         return self.conversation_history
     
     def clear_conversation(self):
-        """Clear the conversation history"""
+        """Clear the conversation history AND pending order context"""
         self.conversation_history = []
-        logger.info("Conversation history cleared")
+        self.pending_order_context = None # Clear pending order on conversation clear
+        logger.info("Conversation history and pending order cleared")
         return "Conversation cleared."
     
     def process_query(self, query: str, image: Optional[str] = None) -> Tuple[str, Optional[str]]:
@@ -159,40 +164,80 @@ class IntegratedEcommerceAgent:
         }) as span:
             """Process a user query and return a response"""
             try:
-                # Add user message to conversation history
-                user_message = {"role": "user", "content": query}
-                if image:
-                    user_message["image"] = image
-                self.conversation_history.append(user_message)
+                # --- Check for Pending Order Confirmation --- 
+                if self.pending_order_context:
+                    logger.info(f"Received response to pending order confirmation: '{query}'")
+                    user_confirmation = 'yes' if query.lower().strip() in ['yes', 'y', 'ok', 'okay', 'confirm', 'proceed'] else 'no'
+                    
+                    # Prepare context for confirmation execution
+                    confirmation_context = {
+                        "user_confirmation": user_confirmation,
+                        "pending_order_context": self.pending_order_context,
+                        "query": query, # Pass original query for logging/context perhaps?
+                        "conversation_history": self.conversation_history # Pass current history
+                    }
+                    
+                    # Clear the pending state *before* executing
+                    logger.debug("Clearing pending order context.")
+                    self.pending_order_context = None 
+                    
+                    # Re-route specifically to handle the confirmation
+                    # We force the skill here to ensure it goes back to OrderSkill
+                    logger.info(f"Routing confirmation ('{user_confirmation}') back to OrderSkill.")
+                    result = self.skill_integration.route_query(query, confirmation_context)
+                    # The skill will now handle yes/no and return final confirmation or cancellation message
+                    
+                else:
+                    # --- Standard Query Processing --- 
+                    logger.info("Processing standard query (no pending confirmation).")
+                    user_message = {"role": "user", "content": query}
+                    if image:
+                        user_message["image"] = image
+                    self.conversation_history.append(user_message)
+                    
+                    context = {
+                        "query": query,
+                        "conversation_history": self.conversation_history
+                    }
+                    if image:
+                        context["image_path"] = image
+                    
+                    result = self.skill_integration.route_query(query, context)
+                # --- End Standard/Confirmation Check --- 
                 
-                # Prepare context for skill determination
-                context = {
-                    "query": query,
-                    "conversation_history": self.conversation_history
-                }
+                # --- Process Result --- 
+                response = ""
+                image_path_result = None
                 
-                if image:
-                    context["image_path"] = image
-                
-                # Determine and execute appropriate skill
-                result = self.skill_integration.route_query(query, context)
-                
-                # Format the response
-                response = self._format_response(result)
-                
-                # Add assistant response to conversation history
+                # Check if confirmation is needed NOW
+                if result.get("type") == "needs_order_confirmation":
+                    logger.info("Order skill requires user confirmation.")
+                    self.pending_order_context = result.get("internal_context")
+                    response = result.get("confirmation_prompt", "Please confirm your order.")
+                    # No image path expected here
+                    logger.debug(f"Stored pending order context: {self.pending_order_context}")
+                else:
+                    # Format standard responses (including final order confirmation)
+                    response = self._format_response(result)
+                    image_path_result = result.get("image_path")
+
+                # --- Add Assistant Response to History --- 
                 assistant_message = {"role": "assistant", "content": response}
-                if "image_path" in result:
-                    assistant_message["image"] = result["image_path"]
+                # Add image ONLY if it came from the result (gen/edit/render)
+                # Don't add the user's uploaded image to the assistant message
+                if image_path_result:
+                    assistant_message["image"] = image_path_result
+                # Ensure history doesn't grow excessively if needed
+                # self.conversation_history = self.conversation_history[-MAX_HISTORY:] 
                 self.conversation_history.append(assistant_message)
                 
-                # Return response and any generated/edited image path
+                # Update span (no change)
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", response)
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, response)
                 span.set_attribute(SpanAttributes.RAW_OUTPUT, response)
 
-                return response, result.get("image_path")
+                return response, image_path_result 
                 
             except Exception as e:
                 logger.error(f"Error processing query: {str(e)}")
@@ -203,6 +248,8 @@ class IntegratedEcommerceAgent:
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", error_response)
 
+                # Clear pending context on error too?
+                self.pending_order_context = None
                 return error_response, None
     
     def _format_response(self, result: Dict[str, Any]) -> str:
@@ -342,24 +389,38 @@ def create_interface():
             query_text = message if message else "Analyze this image."
 
             response, rendered_image_path = agent.process_query(query_text, image_path)
-            logger.debug(f"Agent response: '{response[:50]}...', Rendered image: {rendered_image_path}")
+            logger.debug(f"Agent response: '{response[:50]}...', Rendered image path from process_query: {rendered_image_path}")
             
-            # Format the complete history for Gradio display
-            gradio_display_history = format_history_for_gradio(agent.get_conversation_history())
+            # --- Add rendered image to history if present --- 
+            current_history = agent.get_conversation_history()
+            if rendered_image_path and current_history:
+                 last_message = current_history[-1]
+                 if last_message.get("role") == "assistant":
+                      if "image" not in last_message or last_message["image"] != rendered_image_path:
+                           logger.info(f"Adding returned rendered_image_path {rendered_image_path} to last assistant message in history.")
+                           last_message["image"] = rendered_image_path
+                      else:
+                           logger.debug("Rendered image path already seems to be in last assistant message.")
+                 else:
+                      logger.warning("Cannot add rendered_image_path to history: Last message is not from assistant.")
+            # --- End rendered image history update ---
 
-            # Handle rendered image display (separate component)
+            # Format the potentially updated history for Gradio display
+            gradio_display_history = format_history_for_gradio(current_history) # Use updated history
+
+            # Handle rendered image display (separate component - keep this for dedicated view)
             rendered_update = gr.update(visible=False)
             if rendered_image_path:
-                logger.info(f"Showing rendered image: {rendered_image_path}")
+                logger.info(f"Updating separate rendered_image component: {rendered_image_path}")
                 rendered_update = gr.update(visible=True, value=rendered_image_path)
             
-            # Return empty input, formatted history, and rendered image update
-            return "", gradio_display_history, rendered_update, rendered_image_path
+            # Return empty input, formatted history, rendered image update, AND clear image input
+            return "", gradio_display_history, rendered_update, gr.update(value=None)
 
         def format_history_for_gradio(history: list[dict]) -> list[dict]:
             """Formats the internal history list for Gradio Chatbot(type='messages').
                Ensures output is List[Dict[str, str]] with keys 'role' and 'content'.
-               Images are embedded in content using Markdown.
+               Adds a text note if an image was associated with the message.
             """
             gradio_history = []
             for i, msg in enumerate(history):
@@ -379,43 +440,20 @@ def create_interface():
                 else:
                      content_text = content_text.strip()
 
-                # Prepare final content string
+                # --- Add simple text note for image --- 
                 final_content = content_text
                 if image_path and isinstance(image_path, str):
-                    try:
-                        # Check if path exists for logging, but don't error out here
-                        if not os.path.exists(image_path):
-                             logger.warning(f"Image path does not exist (index {i}): {image_path}")
-                             
-                        # Create Markdown for image
-                        # Use a generic alt text for simplicity
-                        alt_text = "Image"
-                        image_markdown = f"![{alt_text}]({image_path})"
-                        
-                        # Prepend image markdown to text content
-                        if final_content: # Add image markdown before text
-                            final_content = f"{image_markdown}\n\n{final_content}"
-                        else: # Only image markdown
-                            final_content = image_markdown
-                            
-                    except Exception as e:
-                        logger.error(f"Error processing image path '{image_path}' for Markdown (index {i}): {e}")
-                        # If image processing fails, add error note to text
-                        error_note = f"[Error displaying image: {os.path.basename(image_path or '')}]"
-                        if final_content:
-                             final_content = f"{error_note}\n\n{final_content}"
-                        else:
-                             final_content = error_note
-                             
+                     image_note = "\n[Image Attached]"
+                     # Prepend or append note? Let's prepend for visibility.
+                     final_content = f"{image_note}\n\n{final_content}" if final_content else image_note
                 elif image_path: # Log if image path is not a string
                      logger.warning(f"Image path in history is not a string (index {i}): {image_path}")
+                # --- End image note logic --- 
 
-                # Ensure final content is not None before appending
                 if final_content is None:
                      logger.error(f"Final content became None unexpectedly (index {i}). Skipping message: {msg}")
                      continue
                      
-                # Append the strictly formatted dictionary
                 gradio_history.append({"role": role, "content": final_content})
 
             logger.debug(f"Final Gradio history format for messages: {gradio_history}")
@@ -434,7 +472,7 @@ def create_interface():
         submit_btn.click(
             user_query,
             inputs=[user_input, image_input],
-            outputs=[user_input, chatbot, rendered_image, rendered_image] 
+            outputs=[user_input, chatbot, rendered_image, image_input] 
         )
         view_memory_btn.click(view_memory, inputs=[], outputs=[memory_display])
         clear_btn.click(clear_conversation, inputs=[], outputs=[chatbot, memory_display])
