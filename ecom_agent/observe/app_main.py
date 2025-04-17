@@ -9,59 +9,11 @@ from opentelemetry import trace
 from fi_instrumentation import register
 from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues
 
-eval_tag = [
-    EvalTag(
-        eval_name=EvalName.EVALUATE_LLM_FUNCTION_CALLING,
-        type=EvalTagType.OBSERVATION_SPAN,
-        value=EvalSpanKind.TOOL,
-        config={},
-        mapping={
-            "input": "raw.input",
-            "output": "raw.output"
-        },
-        custom_eval_name="LLM Function Calling"
-    ),
-    EvalTag(
-        eval_name=EvalName.CONVERSATION_RESOLUTION,
-        type=EvalTagType.OBSERVATION_SPAN,
-        value=EvalSpanKind.LLM,
-        config={},
-        mapping={
-            "output": "raw.output"
-        },
-        custom_eval_name="Conversation Resolution"
-    ),
-    EvalTag(
-        eval_name=EvalName.DETERMINISTIC_EVALS,
-        type=EvalTagType.OBSERVATION_SPAN,
-        value=EvalSpanKind.AGENT,
-        config={
-            "rule_prompt": "Check if the  agent chooses the right skill ({{raw.output}}) to use based on the user's query ({{raw.input}})",
-            "choices": ["Yes", "No"],
-            "multi_choice": False
-        },
-        mapping={},
-        custom_eval_name="Skill_Selection"
-    ),
-    EvalTag(
-        eval_name=EvalName.DETERMINISTIC_EVALS,
-        type=EvalTagType.OBSERVATION_SPAN,
-        value=EvalSpanKind.LLM,
-        config={
-            "rule_prompt": "Check if the response is satsifactory and helpful to the user ({{raw.output}}) based on the user's query ({{raw.input}})",
-            "choices": ["Yes", "No"],
-            "multi_choice": False
-        },
-        mapping={},
-        custom_eval_name="Response_Helpfulness"
-    )
-]
 
 trace_provider = register(
-    project_type=ProjectType.EXPERIMENT,
-    project_name="ecom_agent_experiment-3",
-    project_version_name="v1",
-    eval_tags=eval_tag
+    project_type=ProjectType.OBSERVE,
+    project_name="ecom_agent_observe-2",
+    session_name="ecom_agent_observe",
 )
 
 trace.set_tracer_provider(trace_provider)

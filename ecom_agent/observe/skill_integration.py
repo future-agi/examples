@@ -145,13 +145,13 @@ class SkillIntegration:
                     confidence = args.get("confidence", 0.5)
                     logger.info(f"LLM determined skill: {llm_skill_name} with confidence: {confidence}")
                     span.set_attribute("llm.response", json.dumps(args)) # Log parsed args
-                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(args)) # Log chosen skill
+                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(args))
                 except Exception as e: # Catch JSONDecodeError and others
                     logger.error(f"Error processing function arguments: {e}. Raw args: {tool_calls[0].function.arguments}. Defaulting to chat.")
                     llm_skill_name = "chat"
                     confidence = 0.5
                     span.set_attribute("error.message", f"Argument parsing error: {e}")
-
+                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps({"error": f"Argument parsing error: {e}"}))
                 # --- Apply Image Context Logic (Trusting) --- 
                 final_skill_name = llm_skill_name
                 if context.get("image_path"):
@@ -177,7 +177,6 @@ class SkillIntegration:
                 logger.info(f"Final determined skill: {final_skill_name}")
                 result = {"success": True, "skill": final_skill_name, "confidence": confidence}
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
-                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
                 return result
                 
             except Exception as e:
@@ -185,7 +184,6 @@ class SkillIntegration:
                 result = {"success": True, "skill": "chat", "confidence": 0.5} # Default to chat on unexpected error
                 span.set_attribute("error.message", str(e))
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
-                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
                 return result
     
     def route_query(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
