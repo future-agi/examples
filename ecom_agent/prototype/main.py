@@ -534,8 +534,11 @@ def create_interface():
             
             response, rendered_image_path = agent.process_query(message, image)
             
-            # Update chatbot with user message and response
-            conversation = chatbot + [[message, response]]
+            # Update chatbot with user message and response in the correct format
+            conversation = chatbot + [
+                {"role": "user", "content": message},
+                {"role": "assistant", "content": response}
+            ]
             
             # Show rendered image if available
             if rendered_image_path:

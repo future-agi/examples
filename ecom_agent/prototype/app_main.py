@@ -270,8 +270,11 @@ def create_interface():
             response, rendered_image_path = agent.process_query(message, image)
             logger.debug(f"Response generated: {response[:50]}...")
             
-            # Create a new messages list with the latest interaction
-            new_history = [[message, response]]
+            # Create a new messages list with the latest interaction in the correct format
+            new_history = [
+                {"role": "user", "content": message},
+                {"role": "assistant", "content": response}
+            ]
             
             # Show rendered image if available
             if rendered_image_path:
