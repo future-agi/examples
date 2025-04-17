@@ -284,11 +284,11 @@ class SkillIntegration:
                             SpanAttributes.RAW_INPUT: query,
                         }) as span:
 
-                        span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
-                        span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
-
                         result = skill_instance.execute(query, context)
                         logger.info(f"Skill '{skill_name}' executed.")
+
+                        span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
+                        span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
 
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
 
