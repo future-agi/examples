@@ -18,7 +18,7 @@ eval_tag = [
         value=EvalSpanKind.LLM,
         config={},
         mapping={
-            "input": "input.value"
+            "input": "raw.input"
         },
         custom_eval_name="Toxicity"
     ),
@@ -28,7 +28,7 @@ eval_tag = [
         value=EvalSpanKind.LLM,
         config={},
         mapping={
-            "input": "input.value"
+            "input": "raw.input"
         },
         custom_eval_name="Tone"
     ),
@@ -38,7 +38,7 @@ eval_tag = [
         value=EvalSpanKind.LLM,
         config={},
         mapping={
-            "input": "input.value"
+            "input": "raw.input"
         },
         custom_eval_name="Sexist"
     ),
@@ -48,8 +48,8 @@ eval_tag = [
         value=EvalSpanKind.TOOL,
         config={},
         mapping={
-            "input": "input.value",
-            "output": "output.value"
+            "input": "raw.input",
+            "output": "raw.output"
         },
         custom_eval_name="LLM Function Calling"
     ),
@@ -59,7 +59,7 @@ eval_tag = [
         value=EvalSpanKind.LLM,
         config={},
         mapping={
-            "output": "output.value"
+            "output": "raw.output"
         },
         custom_eval_name="Conversation Resolution"
     ),
@@ -69,7 +69,7 @@ eval_tag = [
         value=EvalSpanKind.LLM,
         config={},
         mapping={
-            "input": "input.value",
+            "input": "raw.input",
             "image_url": "image.url"
         },
         custom_eval_name="Image Instruction"
