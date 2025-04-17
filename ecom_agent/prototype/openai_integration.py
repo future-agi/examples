@@ -12,7 +12,7 @@ class OpenAIHelper:
     def __init__(self):
         self.client = OpenAI()
     
-    def chat_completion(self, messages: List[Dict[str, str]], model: str = "gpt-4", max_tokens: int = 1000) -> Dict[str, Any]:
+    def chat_completion(self, messages: List[Dict[str, str]], model: str = "gpt-4.1", max_tokens: int = 1000) -> Dict[str, Any]:
         """Basic chat completion with OpenAI"""
         try:
             response = self.client.chat.completions.create(
@@ -30,7 +30,7 @@ class OpenAIHelper:
                 "success": False
             }
     
-    def vision_completion(self, image_path: str, prompt: str, model: str = "gpt-4-vision-preview", max_tokens: int = 300) -> Dict[str, Any]:
+    def vision_completion(self, image_path: str, prompt: str, model: str = "gpt-4.1", max_tokens: int = 300) -> Dict[str, Any]:
         """Basic vision completion with OpenAI"""
         try:
             with open(image_path, "rb") as image_file:
@@ -57,7 +57,7 @@ class OpenAIHelper:
                 "success": False
             }
     
-    def function_completion(self, messages: List[Dict[str, str]], tools: List[Dict[str, Any]], model: str = "gpt-4") -> Dict[str, Any]:
+    def function_completion(self, messages: List[Dict[str, str]], tools: List[Dict[str, Any]], model: str = "gpt-4.1") -> Dict[str, Any]:
         """Basic function calling completion with OpenAI"""
         try:
             response = self.client.chat.completions.create(

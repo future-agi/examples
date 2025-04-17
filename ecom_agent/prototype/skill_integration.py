@@ -3,6 +3,7 @@ import sys
 import logging
 from typing import Dict, Any, Optional, Tuple
 from openai_integration import OpenAIHelper
+from gemini_integration import GeminiHelper
 
 # Configure logging
 logging.basicConfig(
@@ -17,10 +18,13 @@ logger = logging.getLogger("ecommerce_agent.skill_integration")
 
 # Import skill modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from product_recommender import ProductRecommender
 from search_skill import SearchSkill
 from order_skill import OrderSkill
 from search_order_skill import SearchOrderSkill
 from cancel_order_skill import CancelOrderSkill
+from image_generation_skill import ImageGenerationSkill
+from image_editing_skill import ImageEditingSkill
 
 class SkillIntegration:
     """Integration of various e-commerce skills with AI capabilities"""
@@ -30,12 +34,16 @@ class SkillIntegration:
         self.reflection_system = reflection_system
         self.planner_system = planner_system
         self.openai_helper = OpenAIHelper()
+        self.gemini_helper = GeminiHelper()
         
         # Initialize skill instances
         self.search_skill = SearchSkill()
-        self.order_skill = OrderSkill()
+        self.order_skill = OrderSkill(memory_system, reflection_system, planner_system)
         self.search_order_skill = SearchOrderSkill()
         self.cancel_order_skill = CancelOrderSkill()
+        self.product_recommender = ProductRecommender(memory_system, reflection_system)
+        self.image_generation_skill = ImageGenerationSkill()
+        self.image_editing_skill = ImageEditingSkill()
         
         # Define available skills
         self.skills = {
@@ -43,6 +51,9 @@ class SkillIntegration:
             "place_order": self.order_skill,
             "search_order": self.search_order_skill,
             "cancel_order": self.cancel_order_skill,
+            "recommendation": self.product_recommender,
+            "image_generation": self.image_generation_skill,
+            "image_editing": self.image_editing_skill,
             "chat": None  # Chat will be handled directly by the LLM
         }
         
@@ -57,7 +68,7 @@ class SkillIntegration:
                     "properties": {
                         "skill_name": {
                             "type": "string",
-                            "enum": ["search", "place_order", "search_order", "cancel_order", "chat"],
+                            "enum": ["search", "place_order", "search_order", "cancel_order", "recommendation", "image_generation", "image_editing", "chat"],
                             "description": "The name of the skill that should handle the query. Use 'chat' for generic conversations."
                         },
                         "confidence": {
@@ -72,12 +83,17 @@ class SkillIntegration:
             }
         }
     
-    def _determine_skill(self, query: str) -> Dict[str, Any]:
+    def _determine_skill(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Use OpenAI's function calling to determine which skill to use"""
         try:
+            # Prepare the prompt with image context if available
+            prompt = query
+            if context.get("image_path"):
+                prompt = f"User query: {query}\nContext: User has provided an image at {context['image_path']}"
+            
             # Use OpenAIHelper for function calling
             response = self.openai_helper.function_completion(
-                messages=[{"role": "user", "content": query}],
+                messages=[{"role": "user", "content": prompt}],
                 tools=[self.skill_determination_tool]
             )
             
@@ -101,6 +117,14 @@ class SkillIntegration:
             args = json.loads(tool_calls[0].function.arguments)
             skill_name = args["skill_name"]
             confidence = args["confidence"]
+            
+            # If an image is provided, prefer image-related skills
+            if context.get("image_path"):
+                if "image" in query.lower() or "picture" in query.lower() or "photo" in query.lower():
+                    if "edit" in query.lower() or "modify" in query.lower() or "change" in query.lower():
+                        skill_name = "image_editing"
+                    else:
+                        skill_name = "image_generation"
             
             if skill_name not in self.skills:
                 return {
@@ -126,7 +150,7 @@ class SkillIntegration:
         """Route a query to the appropriate skill using AI"""
         try:
             # Determine which skill to use
-            skill_determination = self._determine_skill(query)
+            skill_determination = self._determine_skill(query, context)
             
             if not skill_determination["success"]:
                 return {

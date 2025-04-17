@@ -24,6 +24,41 @@ class OrderSkill:
             if os.path.exists("product_database.json"):
                 with open("product_database.json", "r") as f:
                     return json.load(f)
+            
+            # Create a default product database if it doesn't exist
+            default_products = [
+                {
+                    "id": 1,
+                    "name": "Smartphone X",
+                    "price": 999.99,
+                    "in_stock": True,
+                    "stock_count": 50,
+                    "description": "Latest smartphone with advanced features"
+                },
+                {
+                    "id": 2,
+                    "name": "Laptop Pro",
+                    "price": 1499.99,
+                    "in_stock": True,
+                    "stock_count": 30,
+                    "description": "High-performance laptop for professionals"
+                },
+                {
+                    "id": 3,
+                    "name": "Wireless Headphones",
+                    "price": 199.99,
+                    "in_stock": True,
+                    "stock_count": 100,
+                    "description": "Premium wireless headphones with noise cancellation"
+                }
+            ]
+            
+            with open("product_database.json", "w") as f:
+                json.dump(default_products, f, indent=2)
+            
+            logger.info("Created default product database")
+            return default_products
+            
         except Exception as e:
             logger.error(f"Error loading product database: {str(e)}")
             return []

@@ -28,19 +28,45 @@ class GeminiHelper:
     
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        # Create directories for storing images
+        os.makedirs("generated_products", exist_ok=True)
+        os.makedirs("edited_products", exist_ok=True)
+        logger.info("Created directories for storing generated and edited images")
     
-    def generate_content(self, contents: Any, model: str = "gemini-2.0-flash", 
-                        response_modalities: List[str] = None) -> Dict[str, Any]:
-        """Generic method to generate content using Gemini"""
+    def analyze_image(self, image_path: str, prompt: str) -> Dict[str, Any]:
+        """Analyze an image using Gemini"""
         try:
-            config = None
-            if response_modalities:
-                config = types.GenerateContentConfig(response_modalities=response_modalities)
-            
+            image = Image.open(image_path)
             response = self.client.models.generate_content(
-                model=model,
-                contents=contents,
-                config=config
+                model="gemini-2.0-flash",
+                contents=[image, prompt]
+            )
+            
+            if response.text:
+                return {
+                    "success": True,
+                    "analysis": response.text
+                }
+            return {
+                "success": False,
+                "error": "No text response received"
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing image with Gemini: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def generate_image(self, prompt: str) -> Tuple[Optional[str], Dict[str, Any]]:
+        """Generate an image using Gemini"""
+        try:
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash-exp-image-generation",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=['TEXT', 'IMAGE']
+                )
             )
             
             result = {"success": True}
@@ -52,69 +78,61 @@ class GeminiHelper:
                 elif part.inline_data is not None:
                     image = Image.open(BytesIO(part.inline_data.data))
                     timestamp = int(time.time())
-                    if isinstance(contents, list) and len(contents) > 1:
-                        # If we're editing an image
-                        image_path = f"edited_products/product_edit_{timestamp}.png"
-                    else:
-                        # If we're generating a new image
-                        image_path = f"generated_products/product_{timestamp}.png"
-                    os.makedirs(os.path.dirname(image_path), exist_ok=True)
+                    image_path = f"generated_products/product_{timestamp}.png"
                     image.save(image_path)
                     result["image_path"] = image_path
             
             return image_path, result
             
         except Exception as e:
-            logger.error(f"Error generating content with Gemini: {str(e)}")
+            logger.error(f"Error generating image with Gemini: {str(e)}")
             return None, {
                 "success": False,
                 "error": str(e)
             }
     
-    def generate_text(self, prompt: str) -> Dict[str, Any]:
-        """Generate text using Gemini"""
-        _, result = self.generate_content(prompt)
-        return result
-    
-    def analyze_image(self, image_path: str, prompt: str) -> Dict[str, Any]:
-        """Analyze an image using Gemini"""
-        image = Image.open(image_path)
-        _, result = self.generate_content([image, prompt])
-        return result
-    
-    def generate_image(self, prompt: str) -> Tuple[Optional[str], Dict[str, Any]]:
-        """Generate an image using Gemini"""
-        return self.generate_content(
-            prompt,
-            model="gemini-2.0-flash-exp-image-generation",
-            response_modalities=['TEXT', 'IMAGE']
-        )
-    
     def edit_image(self, image_path: str, prompt: str) -> Tuple[Optional[str], Dict[str, Any]]:
         """Edit an image using Gemini"""
-        image = Image.open(image_path)
-        return self.generate_content(
-            [prompt, image],
-            model="gemini-2.0-flash-exp-image-generation",
-            response_modalities=['TEXT', 'IMAGE']
-        )
-    
-    def generate_variations(self, image_path: str, prompt: str, num_variations: int = 3) -> List[Tuple[Optional[str], Dict[str, Any]]]:
-        """Generate variations of an image using Gemini"""
-        image = Image.open(image_path)
-        variations = []
-        for _ in range(num_variations):
-            result = self.generate_content(
-                [prompt, image],
+        try:
+            image = Image.open(image_path)
+            response = self.client.models.generate_content(
                 model="gemini-2.0-flash-exp-image-generation",
-                response_modalities=['TEXT', 'IMAGE']
+                contents=[prompt, image],
+                config=types.GenerateContentConfig(
+                    response_modalities=['TEXT', 'IMAGE']
+                )
             )
-            variations.append(result)
-        return variations
+            
+            result = {"success": True}
+            image_path = None
+            
+            for part in response.candidates[0].content.parts:
+                if part.text is not None:
+                    result["text"] = part.text
+                elif part.inline_data is not None:
+                    image = Image.open(BytesIO(part.inline_data.data))
+                    timestamp = int(time.time())
+                    image_path = f"edited_products/product_edit_{timestamp}.png"
+                    image.save(image_path)
+                    result["image_path"] = image_path
+            
+            return image_path, result
+            
+        except Exception as e:
+            logger.error(f"Error editing image with Gemini: {str(e)}")
+            return None, {
+                "success": False,
+                "error": str(e)
+            }
     
     def generate_product_image(self, product_description: str) -> Tuple[Optional[str], Dict[str, Any]]:
         """Generate a product image using Gemini"""
-        return self.generate_image(product_description)
+        prompt = f"""
+        Create a 3D rendered product image based on this description:
+        {product_description}
+        The image should be photorealistic and show the product from multiple angles.
+        """
+        return self.generate_image(prompt)
     
     def edit_product_in_image(self, base_image_path: str, product_description: str, edit_instructions: str) -> Tuple[Optional[str], Dict[str, Any]]:
         """Edit an image to add/place a product using Gemini"""
@@ -122,6 +140,7 @@ class GeminiHelper:
         This is a base image. {edit_instructions}
         Product Description: {product_description}
         Please edit the image to show how the product would look in this setting.
+        Make sure the product looks realistic and properly integrated into the scene.
         """
         return self.edit_image(base_image_path, prompt)
     
@@ -135,6 +154,7 @@ class GeminiHelper:
             Generate a variation of this product with different colors/styles:
             {product_description}
             Variation {i+1} should have unique characteristics.
+            Make it look realistic and professional.
             """
             
             image_path, variation_result = self.generate_image(variation_prompt)

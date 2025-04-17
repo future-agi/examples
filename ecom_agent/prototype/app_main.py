@@ -69,94 +69,54 @@ class IntegratedEcommerceAgent:
         logger.info("Conversation history cleared")
         return "Conversation cleared."
     
-    def process_query(self, query, image=None):
-        logger.info(f"Processing query: {query}")
-        if image:
-            logger.info(f"Image provided: {image}")
-        
+    def process_query(self, query: str, image: Optional[str] = None) -> Tuple[str, Optional[str]]:
+        """Process a user query and return a response"""
         try:
-            # Add query to conversation history
-            self.add_to_conversation("user", query)
+            # Add user message to conversation history
+            user_message = {"role": "user", "content": query}
+            if image:
+                user_message["image"] = image
+            self.conversation_history.append(user_message)
             
-            # Check if this is a response to a render request
-            if self.active_render_request:
-                request_id = self.active_render_request
-                self.active_render_request = None
-                
-                # Process the render response
-                context = {"query": query}
-                if image:
-                    context["image_path"] = image
-                    
-                if query.lower() in ["yes", "y", "sure", "ok", "okay"]:
-                    # Create the rendering
-                    logger.info(f"Creating product rendering for request: {request_id}")
-                    rendered_image_path, result = self.product_recommender.create_product_rendering(request_id)
-                    
-                    response = f"I've created a visualization of the recommended product on your image. You can see how it would look!"
-                    self.add_to_conversation("assistant", response)
-                    return response, rendered_image_path
-                else:
-                    # User declined rendering
-                    logger.info(f"User declined product rendering for request: {request_id}")
-                    response = "You've declined the product rendering. Here are the recommendations without visualization."
-                    self.add_to_conversation("assistant", response)
-                    return response, None
+            # Prepare context for skill determination
+            context = {
+                "query": query,
+                "conversation_history": self.conversation_history
+            }
             
-            # Prepare context
-            context = {"query": query}
             if image:
                 context["image_path"] = image
-                # Add image to memory
-                self.memory.add("user_image", {"path": image})
             
-            # Check if this is a product recommendation request with an image
-            if image and ("recommend" in query.lower() or "suggest" in query.lower()):
-                logger.info("Processing as product recommendation with image")
-                # Analyze the image
-                analysis = self.product_recommender.analyze_user_image(image, query)
-                
-                # Generate recommendations
-                recommendations = self.product_recommender.generate_recommendations(image, query)
-                
-                # Ask if user wants a rendering
-                render_message, request_id = self.product_recommender.ask_for_rendering(image, recommendations)
-                
-                # Store the active render request
-                self.active_render_request = request_id
-                
-                # Add response to conversation history
-                self.add_to_conversation("assistant", render_message)
-                
-                return render_message, None
-            
-            # Route the query to the appropriate skill
-            logger.info("Routing query to appropriate skill")
+            # Determine and execute appropriate skill
             result = self.skill_integration.route_query(query, context)
             
-            # Format the response based on result type
+            # Format the response
             response = self._format_response(result)
             
-            # Add response to conversation history
-            self.add_to_conversation("assistant", response)
+            # Add assistant response to conversation history
+            assistant_message = {"role": "assistant", "content": response}
+            if "image_path" in result:
+                assistant_message["image"] = result["image_path"]
+            self.conversation_history.append(assistant_message)
             
-            return response, None
+            # Return response and any generated/edited image path
+            return response, result.get("image_path")
             
         except Exception as e:
             logger.error(f"Error processing query: {str(e)}")
-            logger.error(f"Exception details: {type(e).__name__}: {str(e)}")
-            import traceback
-            logger.error(traceback.format_exc())
-            
-            error_response = f"I encountered an error while processing your request: {str(e)}. Please try again or rephrase your query."
-            self.add_to_conversation("assistant", error_response)
+            error_response = f"Sorry, I encountered an error: {str(e)}"
+            self.conversation_history.append({"role": "assistant", "content": error_response})
             return error_response, None
     
     def _format_response(self, result: Dict[str, Any]) -> str:
         """Format the response based on result type"""
         result_type = result.get("type", "unknown")
         
-        if result_type == "search_results":
+        if result_type == "chat_response":
+            # Return the LLM's response directly
+            return result.get("response", "")
+        
+        elif result_type == "search_results":
             # Format search results
             response = f"Here are the search results for '{result['query']}':\n\n"
             
@@ -216,6 +176,20 @@ class IntegratedEcommerceAgent:
                 except:
                     response += f"Estimated refund date: {result['estimated_refund_date']}"
         
+        elif result_type == "image_generation":
+            # Format image generation response
+            response = f"I've generated an image based on your request.\n"
+            if "description" in result:
+                response += f"\n{result['description']}\n"
+            response += "\nYou can see the generated image below."
+        
+        elif result_type == "image_editing":
+            # Format image editing response
+            response = f"I've edited the image based on your request.\n"
+            if "description" in result:
+                response += f"\n{result['description']}\n"
+            response += "\nYou can see the edited image below."
+        
         elif result_type.endswith("_error"):
             # Format error response
             response = f"Sorry, I encountered an issue: {result.get('error', 'Unknown error')}"
@@ -223,10 +197,8 @@ class IntegratedEcommerceAgent:
                 response += f"\nReason: {result['reason']}"
         
         else:
-            # Generic response
-            response = f"I've processed your request: {result.get('query', '')}"
-            if "error" in result:
-                response = f"Sorry, there was an error: {result['error']}"
+            # For unknown types, return the response directly if it exists
+            response = result.get("response", "")
         
         return response
 
@@ -262,25 +234,42 @@ def create_interface():
         
         def user_query(message, image):
             logger.debug(f"User query function called with message: {message}")
-            if not message.strip():
-                logger.warning("Empty query submitted")
-                return "Please enter a query.", [], gr.update(visible=False), None
+            if not message and not image: # Allow image-only queries
+                 logger.warning("Empty query and no image submitted")
+                 # Return current history without adding anything
+                 return "", agent.get_conversation_history(), gr.update(visible=False), None
+
+            # Process the image path if provided
+            image_path = None
+            if image:
+                # Ensure the image path is absolute
+                image_path = os.path.abspath(image)
+                logger.info(f"Processing image at path: {image_path}")
             
-            response, rendered_image_path = agent.process_query(message, image)
+            # Use a default query if only an image is provided
+            query_text = message if message else "Analyze this image."
+
+            response, rendered_image_path = agent.process_query(query_text, image_path)
             logger.debug(f"Response generated: {response[:50]}...")
             
-            # Create a new messages list with the latest interaction in the correct format
-            new_history = [
-                {"role": "user", "content": message},
-                {"role": "assistant", "content": response}
-            ]
+            # Get the full conversation history
+            updated_history = agent.get_conversation_history()
             
             # Show rendered image if available
             if rendered_image_path:
                 logger.info(f"Showing rendered image: {rendered_image_path}")
-                return "", new_history, gr.update(visible=True), rendered_image_path
+                # Add the rendered image to the assistant's last message if not already present
+                if updated_history and updated_history[-1]['role'] == 'assistant':
+                    if 'image' not in updated_history[-1] or updated_history[-1]['image'] != rendered_image_path:
+                         # This part might need adjustment depending on how process_query returns rendered images
+                         # Assuming process_query already added it correctly to history. If not, uncomment below:
+                         # updated_history[-1]['image'] = rendered_image_path
+                         pass # Assuming process_query handles adding image to history
+
+                return "", updated_history, gr.update(visible=True, value=rendered_image_path), rendered_image_path
             else:
-                return "", new_history, gr.update(visible=False), None
+                # Return empty string for user input, the updated history, and hide the rendered image component
+                return "", updated_history, gr.update(visible=False), None
         
         def view_memory():
             logger.debug("View memory function called")
@@ -289,13 +278,15 @@ def create_interface():
         def clear_conversation():
             logger.debug("Clear conversation function called")
             agent.clear_conversation()
+            # Return empty lists for chatbot and memory display
             return [], []
         
         # Set up event handlers
         submit_btn.click(
             user_query,
             inputs=[user_input, image_input],
-            outputs=[user_input, chatbot, rendered_image, rendered_image]
+            # Update chatbot output to receive the full history
+            outputs=[user_input, chatbot, rendered_image, rendered_image] 
         )
         
         view_memory_btn.click(
@@ -307,7 +298,8 @@ def create_interface():
         clear_btn.click(
             clear_conversation,
             inputs=[],
-            outputs=[chatbot, memory_display]
+            # Update chatbot and memory display on clear
+            outputs=[chatbot, memory_display] 
         )
     
     logger.info("Gradio interface created")

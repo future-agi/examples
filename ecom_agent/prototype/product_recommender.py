@@ -1,4 +1,5 @@
 import os
+import json
 from typing import List, Dict, Any, Optional, Tuple
 import gradio as gr
 from openai_integration import OpenAIHelper
@@ -13,6 +14,18 @@ class ProductRecommender:
         self.render_requests = {}
         self.openai_helper = OpenAIHelper()
         self.gemini_helper = GeminiHelper()
+        self.product_database = self._load_product_database()
+    
+    def _load_product_database(self) -> List[Dict[str, Any]]:
+        """Load the product database"""
+        try:
+            if os.path.exists("product_database.json"):
+                with open("product_database.json", "r") as f:
+                    return json.load(f)
+            return []
+        except Exception as e:
+            print(f"Error loading product database: {str(e)}")
+            return []
     
     def analyze_user_image(self, image_path: str, query: str = "") -> Dict[str, Any]:
         """Analyze a user-provided image using GPT-4 Vision"""
@@ -20,7 +33,7 @@ class ProductRecommender:
             return {"error": f"Image file not found: {image_path}"}
         
         # Use OpenAI to analyze the image
-        analysis_result = self.openai_helper.analyze_image(image_path, query)
+        analysis_result = self.openai_helper.vision_completion(image_path, query)
         
         if not analysis_result["success"]:
             return {"error": f"Failed to analyze image: {analysis_result['error']}"}
@@ -28,7 +41,7 @@ class ProductRecommender:
         # Store the analysis in memory if available
         analysis = {
             "image_path": image_path,
-            "analysis": analysis_result["analysis"],
+            "analysis": analysis_result["content"],
             "query": query
         }
         
@@ -38,52 +51,63 @@ class ProductRecommender:
         return analysis
     
     def generate_recommendations(self, image_path: str, query: str) -> Dict[str, Any]:
-        """Generate product recommendations using GPT-4"""
+        """Generate product recommendations using GPT-4 and product database"""
         # First analyze the image
         image_analysis = self.analyze_user_image(image_path, query)
         if "error" in image_analysis:
             return image_analysis
         
-        # Generate recommendations using OpenAI
-        recommendations_result = self.openai_helper.generate_product_recommendations(
-            image_analysis["analysis"],
-            query
+        # Get product recommendations from OpenAI
+        recommendations_result = self.openai_helper.chat_completion(
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"""You are a product recommendation system. Based on the image analysis and query, recommend products from our database.
+                    Available products: {json.dumps(self.product_database)}
+                    Format your response as a JSON array of product IDs that match the user's needs."""
+                },
+                {
+                    "role": "user",
+                    "content": f"Image Analysis: {image_analysis['analysis']}\nUser Query: {query}"
+                }
+            ]
         )
         
         if not recommendations_result["success"]:
             return {"error": f"Failed to generate recommendations: {recommendations_result['error']}"}
         
-        # Store recommendations in memory if available
-        recommendations = {
-            "image_path": image_path,
-            "query": query,
-            "recommendations": recommendations_result["recommendations"]
-        }
-        
-        if self.memory_system:
-            self.memory_system.add("product_recommendations", recommendations)
-        
-        return recommendations
+        try:
+            # Parse the recommended product IDs
+            recommended_ids = json.loads(recommendations_result["content"])
+            recommended_products = [
+                product for product in self.product_database 
+                if product["id"] in recommended_ids
+            ]
+            
+            # Store recommendations in memory if available
+            recommendations = {
+                "image_path": image_path,
+                "query": query,
+                "recommendations": recommended_products
+            }
+            
+            if self.memory_system:
+                self.memory_system.add("product_recommendations", recommendations)
+            
+            return recommendations
+            
+        except json.JSONDecodeError:
+            return {"error": "Failed to parse product recommendations"}
     
     def ask_for_rendering(self, image_path: str, recommendations: Dict[str, Any]) -> Tuple[str, str]:
         """Ask if user wants to see a product rendering"""
         if "error" in recommendations:
             return recommendations["error"], None
         
-        # Generate a rendering prompt using OpenAI
-        prompt_result = self.openai_helper.generate_product_rendering_prompt(
-            recommendations["analysis"],
-            recommendations["recommendations"]
-        )
-        
-        if not prompt_result["success"]:
-            return "I couldn't generate a rendering prompt. Here are the recommendations without visualization.", None
-        
         # Store the render request
         request_id = f"render_{len(self.render_requests)}"
         self.render_requests[request_id] = {
             "image_path": image_path,
-            "prompt": prompt_result["prompt"],
             "recommendations": recommendations
         }
         
@@ -100,8 +124,8 @@ class ProductRecommender:
         # Use Gemini to edit the image with the product
         image_path, result = self.gemini_helper.edit_product_in_image(
             request["image_path"],
-            request["recommendations"]["recommendations"],
-            request["prompt"]
+            request["recommendations"]["recommendations"][0]["description"],  # Use first recommended product
+            "Please show how this product would look in the image"
         )
         
         if not result["success"]:
