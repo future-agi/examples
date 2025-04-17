@@ -79,7 +79,7 @@ The E-commerce Agent is the main class that integrates all components and provid
 1. Clone the repository:
    ```
    git clone <repository-url>
-   cd ecommerce_agent
+   cd ecom_agent/prototype 
    ```
 
 2. Install dependencies:
@@ -92,7 +92,10 @@ The E-commerce Agent is the main class that integrates all components and provid
    - Add your OpenAI API key:
      ```
      OPENAI_API_KEY=your_openai_api_key_here
+     FI_API_KEY=your_fi_api_key_here
+     FI_SECRET_KEY=your_fi_secret_key_here
      ```
+
 
 ### Running the Application
 

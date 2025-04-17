@@ -13,7 +13,7 @@ from opentelemetry import trace
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="ecom_agent",
+    project_name="ecommerce_observe",
     session_name="ecom_agent_observe",
 )
 
@@ -34,7 +34,7 @@ except ImportError:
     # Fallback to main if app_main doesn't exist
     from main import EcommerceAgent as IntegratedEcommerceAgent
 
-class EcommerceAgentPrototype:
+class EcommerceAgentObserve:
     """
     Prototype for testing the e-commerce agent without a UI
     Simulates the user sending messages as they would through the Gradio interface
@@ -188,7 +188,7 @@ def main():
     args = parser.parse_args()
     
     # Create prototype agent
-    prototype = EcommerceAgentPrototype(debug=args.debug)
+    prototype = EcommerceAgentObserve(debug=args.debug)
     
     # Create test_images directory if it doesn't exist
     os.makedirs("test_images", exist_ok=True)
