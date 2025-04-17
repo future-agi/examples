@@ -24,7 +24,6 @@ class OpenAIHelper:
                 SpanAttributes.INPUT_VALUE: json.dumps(messages),
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
                 SpanAttributes.RAW_INPUT: json.dumps(messages),
-                SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Basic chat completion with OpenAI"""
             try:
@@ -42,6 +41,7 @@ class OpenAIHelper:
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", json.dumps(response.choices[0].message.content))
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response.choices[0].message.content))
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(response.choices[0].message.content))
                 return {
                     "content": response.choices[0].message.content,
                     "success": True
@@ -49,6 +49,7 @@ class OpenAIHelper:
             except Exception as e:
                 span.set_attribute("error.message", str(e))
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, str(e))
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, str(e))
                 return {
                     "error": str(e),
                     "success": False
@@ -60,7 +61,6 @@ class OpenAIHelper:
                 SpanAttributes.INPUT_VALUE: prompt,
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
                 SpanAttributes.RAW_INPUT: prompt,
-                SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Basic vision completion with OpenAI"""
             try:
@@ -96,6 +96,7 @@ class OpenAIHelper:
                     span.set_attribute("llm.output_messages.0.message.role", "assistant")
                     span.set_attribute("llm.output_messages.0.message.content", json.dumps(response.choices[0].message.content))
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response.choices[0].message.content))
+                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(response.choices[0].message.content))
 
                     return {
                         "content": response.choices[0].message.content,
@@ -104,10 +105,14 @@ class OpenAIHelper:
             except FileNotFoundError:
                 span.set_attribute("error.message", f"Image file not found: {image_path}")
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, f"Image file not found: {image_path}")
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, f"Image file not found: {image_path}")
+
                 return {"error": f"Image file not found: {image_path}", "success": False}
             except Exception as e:
                 span.set_attribute("error.message", str(e))
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, str(e))
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, str(e))
+
                 return {
                     "error": str(e),
                     "success": False
@@ -119,7 +124,6 @@ class OpenAIHelper:
                 SpanAttributes.INPUT_VALUE: json.dumps(messages),
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
                 SpanAttributes.RAW_INPUT: json.dumps(messages),
-                SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Basic function calling completion with OpenAI"""
             try:
@@ -136,8 +140,39 @@ class OpenAIHelper:
                 )
 
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")   
-                span.set_attribute("llm.output_messages.0.message.content", json.dumps(response.choices[0].message.tool_calls))
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response.choices[0].message.tool_calls))
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(response.choices[0].message.tool_calls))
+                try:
+                    message = response.choices[0].message
+                    tool_calls = getattr(message, "tool_calls", None)
+                    
+                    if tool_calls and hasattr(tool_calls, "__iter__"):
+                        for index, tool_call in enumerate(tool_calls):
+                            # Record tool call ID if present
+                            if hasattr(tool_call, "id") and tool_call.id is not None:
+                                span.set_attribute(
+                                    f"llm.output_messages.0.message.tool_calls.{index}.id", 
+                                    tool_call.id
+                                )
+                            
+                            # Record function details if present
+                            if hasattr(tool_call, "function"):
+                                function = tool_call.function
+                                
+                                if hasattr(function, "name") and function.name is not None:
+                                    span.set_attribute(
+                                        f"llm.output_messages.0.message.tool_calls.{index}.function.name",
+                                        function.name
+                                    )
+                                
+                                if hasattr(function, "arguments") and function.arguments is not None:
+                                    span.set_attribute(
+                                        f"llm.output_messages.0.message.tool_calls.{index}.function.arguments", 
+                                        function.arguments
+                                    )
+                except Exception as e:
+                    span.set_attribute("tool_calls_processing_error", str(e))
+                    # We catch the error but continue execution to return the response
 
                 return {
                     "tool_calls": response.choices[0].message.tool_calls,

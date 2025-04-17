@@ -95,7 +95,6 @@ class SkillIntegration:
                 SpanAttributes.INPUT_VALUE: query,
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.AGENT.value,
                 SpanAttributes.RAW_INPUT: query,
-                SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Use OpenAI's function calling to determine which skill to use"""
             try:
@@ -117,6 +116,8 @@ class SkillIntegration:
                     logger.warning(f"Function calling failed: {response.get('error')}. Defaulting to chat.")
                     # Default to chat on failure
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps({"success": True, "skill": "chat", "confidence": 0.5}))
+                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps({"success": True, "skill": "chat", "confidence": 0.5}))
+
                     return {"success": True, "skill": "chat", "confidence": 0.5}
                 
                 tool_calls = response["tool_calls"]
@@ -124,6 +125,8 @@ class SkillIntegration:
                     logger.warning("No tool calls returned by function calling. Defaulting to chat.")
                     # Default to chat if no function called
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps({"success": True, "skill": "chat", "confidence": 0.5}))
+                    span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps({"success": True, "skill": "chat", "confidence": 0.5}))
+
                     return {"success": True, "skill": "chat", "confidence": 0.5}
                 
                 # Parse the function arguments
@@ -185,7 +188,6 @@ class SkillIntegration:
                 SpanAttributes.INPUT_VALUE: query,
                 SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.CHAIN.value,
                 SpanAttributes.RAW_INPUT: query,
-                SpanAttributes.RAW_OUTPUT: "response",
             }) as span:
             """Route a query to the appropriate skill using AI"""
             try:
@@ -209,7 +211,6 @@ class SkillIntegration:
                             "llm.input_messages.0.message.role": "user",
                             "llm.input_messages.0.message.content": query,
                             SpanAttributes.RAW_INPUT: query,
-                            SpanAttributes.RAW_OUTPUT: "response",
                         }) as span:
                         image_path = context.get("image_path")
                         
@@ -240,6 +241,7 @@ class SkillIntegration:
                             span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(chat_response.get("error", "Unknown chat completion error")))
                             span.set_attribute("llm.output_messages.0.message.role", "assistant")
                             span.set_attribute("llm.output_messages.0.message.content", json.dumps(chat_response.get("error", "Unknown chat completion error")))
+                            span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(chat_response.get("error", "Unknown chat completion error")))
 
                             return {
                                 "type": "chat_error",
@@ -251,6 +253,7 @@ class SkillIntegration:
                         span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(chat_response["content"]))
                         span.set_attribute("llm.output_messages.0.message.role", "assistant")
                         span.set_attribute("llm.output_messages.0.message.content", json.dumps(chat_response["content"]))
+                        span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(chat_response["content"]))
 
                         return {
                             "type": "chat_response",
@@ -262,7 +265,6 @@ class SkillIntegration:
                         SpanAttributes.INPUT_VALUE: query,
                         SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.TOOL.value,
                         SpanAttributes.RAW_INPUT: query,
-                        SpanAttributes.RAW_OUTPUT: "response",
                     }) as span:
 
                     # Execute other skills
@@ -284,7 +286,7 @@ class SkillIntegration:
 
                         span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
                         span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps(result))
-                        
+
                         result = skill_instance.execute(query, context)
                         logger.info(f"Skill '{skill_name}' executed.")
 

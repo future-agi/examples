@@ -76,7 +76,7 @@ eval_tag = [
 
 trace_provider = register(
     project_type=ProjectType.EXPERIMENT,
-    project_name="ecom_agent",
+    project_name="e-commerce-agent",
     project_version_name="v1",
     eval_tags=eval_tag
 )
@@ -156,7 +156,6 @@ class IntegratedEcommerceAgent:
                 "llm.input_messages.0.message.role": "user",
                 "llm.input_messages.0.message.content": query,
                 SpanAttributes.RAW_INPUT: query,
-                SpanAttributes.RAW_OUTPUT: "response",
         }) as span:
             """Process a user query and return a response"""
             try:
@@ -190,7 +189,8 @@ class IntegratedEcommerceAgent:
                 # Return response and any generated/edited image path
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", response)
-                # span.set_attribute("image.url", result.get("image_path"))
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, response)
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, response)
 
                 return response, result.get("image_path")
                 
