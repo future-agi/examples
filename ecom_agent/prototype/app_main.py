@@ -5,6 +5,85 @@ from typing import Dict, Any, Optional, Tuple
 import gradio as gr
 from dotenv import load_dotenv
 
+from opentelemetry import trace
+from fi_instrumentation import register
+from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues
+
+eval_tag = [
+    EvalTag(
+        eval_name=EvalName.TOXICITY,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Toxicity"
+    ),
+    EvalTag(
+        eval_name=EvalName.TONE,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Tone"
+    ),
+    EvalTag(
+        eval_name=EvalName.SEXIST,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value"
+        },
+        custom_eval_name="Sexist"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVALUATE_LLM_FUNCTION_CALLING,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.TOOL,
+        config={},
+        mapping={
+            "input": "input.value",
+            "output": "output.value"
+        },
+        custom_eval_name="LLM Function Calling"
+    ),
+    EvalTag(
+        eval_name=EvalName.CONVERSATION_RESOLUTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "output": "output.value"
+        },
+        custom_eval_name="Conversation Resolution"
+    ),
+    EvalTag(
+        eval_name=EvalName.EVAL_IMAGE_INSTRUCTION,
+        type=EvalTagType.OBSERVATION_SPAN,
+        value=EvalSpanKind.LLM,
+        config={},
+        mapping={
+            "input": "input.value",
+            "image_url": "image.url"
+        },
+        custom_eval_name="Image Instruction"
+    ),
+]
+
+trace_provider = register(
+    project_type=ProjectType.EXPERIMENT,
+    project_name="ecom_agent",
+    project_version_name="v1",
+    eval_tags=eval_tag
+)
+
+trace.set_tracer_provider(trace_provider)
+tracer = trace.get_tracer(__name__)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -70,43 +149,61 @@ class IntegratedEcommerceAgent:
         return "Conversation cleared."
     
     def process_query(self, query: str, image: Optional[str] = None) -> Tuple[str, Optional[str]]:
-        """Process a user query and return a response"""
-        try:
-            # Add user message to conversation history
-            user_message = {"role": "user", "content": query}
-            if image:
-                user_message["image"] = image
-            self.conversation_history.append(user_message)
-            
-            # Prepare context for skill determination
-            context = {
-                "query": query,
-                "conversation_history": self.conversation_history
-            }
-            
-            if image:
-                context["image_path"] = image
-            
-            # Determine and execute appropriate skill
-            result = self.skill_integration.route_query(query, context)
-            
-            # Format the response
-            response = self._format_response(result)
-            
-            # Add assistant response to conversation history
-            assistant_message = {"role": "assistant", "content": response}
-            if "image_path" in result:
-                assistant_message["image"] = result["image_path"]
-            self.conversation_history.append(assistant_message)
-            
-            # Return response and any generated/edited image path
-            return response, result.get("image_path")
-            
-        except Exception as e:
-            logger.error(f"Error processing query: {str(e)}")
-            error_response = f"Sorry, I encountered an error: {str(e)}"
-            self.conversation_history.append({"role": "assistant", "content": error_response})
-            return error_response, None
+        with tracer.start_as_current_span("process_query", 
+            attributes={
+                SpanAttributes.INPUT_VALUE: query,
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
+                "llm.input_messages.0.message.role": "user",
+                "llm.input_messages.0.message.content": query,
+                SpanAttributes.RAW_INPUT: query,
+                SpanAttributes.RAW_OUTPUT: "response",
+        }) as span:
+            """Process a user query and return a response"""
+            try:
+                # Add user message to conversation history
+                user_message = {"role": "user", "content": query}
+                if image:
+                    user_message["image"] = image
+                self.conversation_history.append(user_message)
+                
+                # Prepare context for skill determination
+                context = {
+                    "query": query,
+                    "conversation_history": self.conversation_history
+                }
+                
+                if image:
+                    context["image_path"] = image
+                
+                # Determine and execute appropriate skill
+                result = self.skill_integration.route_query(query, context)
+                
+                # Format the response
+                response = self._format_response(result)
+                
+                # Add assistant response to conversation history
+                assistant_message = {"role": "assistant", "content": response}
+                if "image_path" in result:
+                    assistant_message["image"] = result["image_path"]
+                self.conversation_history.append(assistant_message)
+                
+                # Return response and any generated/edited image path
+                span.set_attribute("llm.output_messages.0.message.role", "assistant")
+                span.set_attribute("llm.output_messages.0.message.content", response)
+                # span.set_attribute("image.url", result.get("image_path"))
+
+                return response, result.get("image_path")
+                
+            except Exception as e:
+                logger.error(f"Error processing query: {str(e)}")
+                error_response = f"Sorry, I encountered an error: {str(e)}"
+                self.conversation_history.append({"role": "assistant", "content": error_response})
+
+                span.set_attribute("error.message", str(e))
+                span.set_attribute("llm.output_messages.0.message.role", "assistant")
+                span.set_attribute("llm.output_messages.0.message.content", error_response)
+
+                return error_response, None
     
     def _format_response(self, result: Dict[str, Any]) -> str:
         """Format the response based on result type"""
