@@ -70,7 +70,6 @@ class IntegratedEcommerceAgent:
         return "Conversation cleared."
     
     def process_query(self, query, image=None):
-        """Process a user query"""
         logger.info(f"Processing query: {query}")
         if image:
             logger.info(f"Image provided: {image}")

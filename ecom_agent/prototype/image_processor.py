@@ -1,10 +1,12 @@
 import os
 import base64
+import logging
 from typing import List, Dict, Any, Optional, Tuple
 from io import BytesIO
 from PIL import Image
 import openai
 from dotenv import load_dotenv
+from gemini_integration import GeminiHelper
 
 # Load environment variables
 load_dotenv()
@@ -12,13 +14,25 @@ load_dotenv()
 # Configure OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("ecommerce_agent.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("ecommerce_agent.image_processor")
+
 class ImageProcessor:
-    """Image processing system using OpenAI"""
+    """Handles image processing and product visualization"""
     
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
+        self.gemini_helper = GeminiHelper()
     
     def analyze_image(self, image_path: str) -> Dict[str, Any]:
         """Analyze an image using OpenAI's vision capabilities"""
@@ -29,7 +43,7 @@ class ImageProcessor:
             
             # Call OpenAI API
             response = openai.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4.1",
                 messages=[
                     {
                         "role": "user",
@@ -89,7 +103,7 @@ class ImageProcessor:
             
             # Call OpenAI API for recommendations
             response = openai.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4.1",
                 messages=[
                     {"role": "system", "content": "You are a helpful e-commerce assistant that provides product recommendations."},
                     {"role": "user", "content": prompt}
@@ -111,45 +125,89 @@ class ImageProcessor:
             return {"error": str(e)}
     
     def render_product_on_image(self, image_path: str, product_description: str) -> Tuple[str, Dict[str, Any]]:
-        """Create a rendered image with the recommended product on the user's image"""
+        """Create a rendered image with the recommended product on the user's image using Gemini"""
         try:
-            # Encode image to base64
+            # Read the image file
             with open(image_path, "rb") as image_file:
-                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+                image_data = image_file.read()
             
-            # Call OpenAI DALL-E API
-            response = openai.images.edit(
-                model="dall-e-3",
-                image=open(image_path, "rb"),
-                prompt=f"Edit this image to include the following product: {product_description}. Make it look natural and well-integrated.",
-                n=1,
-                size="1024x1024"
+            # Create a prompt for Gemini
+            prompt = f"""
+            Edit this image to include the following product: {product_description}
+            Make the product look natural and well-integrated into the scene.
+            Maintain the original image's style and lighting.
+            """
+            
+            # Call Gemini to edit the image
+            response = self.gemini_helper.edit_image(
+                image_data=image_data,
+                prompt=prompt
             )
             
+            if not response["success"]:
+                return "", {"error": response["error"]}
+            
             # Save the generated image
-            image_url = response.data[0].url
-            
-            # Generate a unique filename
-            timestamp = int(response.created)
-            output_path = f"rendered_products/product_render_{timestamp}.png"
-            
-            # Ensure directory exists
+            output_path = f"rendered_products/product_render_{int(response['timestamp'])}.png"
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Download and save the image
-            import requests
-            img_data = requests.get(image_url).content
             with open(output_path, 'wb') as handler:
-                handler.write(img_data)
+                handler.write(response["image_data"])
             
             result = {
                 "original_image": image_path,
                 "product_description": product_description,
                 "rendered_image_path": output_path,
-                "timestamp": response.created
+                "timestamp": response["timestamp"]
             }
             
             return output_path, result
             
         except Exception as e:
+            logger.error(f"Error rendering product on image: {str(e)}")
             return "", {"error": str(e)}
+    
+    def generate_product_variations(self, image_path: str, product_description: str, num_variations: int = 3) -> Dict[str, Any]:
+        """Generate variations of a product using Gemini"""
+        try:
+            # Read the image file
+            with open(image_path, "rb") as image_file:
+                image_data = image_file.read()
+            
+            # Create a prompt for Gemini
+            prompt = f"""
+            Generate {num_variations} variations of this product: {product_description}
+            Each variation should show the product in a different style or context.
+            Make each variation look realistic and appealing.
+            """
+            
+            # Call Gemini to generate variations
+            response = self.gemini_helper.generate_variations(
+                image_data=image_data,
+                prompt=prompt,
+                num_variations=num_variations
+            )
+            
+            if not response["success"]:
+                return {"error": response["error"]}
+            
+            # Save the generated variations
+            variations = []
+            for i, variation_data in enumerate(response["variations"]):
+                output_path = f"rendered_products/product_variation_{i}_{int(response['timestamp'])}.png"
+                with open(output_path, 'wb') as handler:
+                    handler.write(variation_data)
+                variations.append(output_path)
+            
+            result = {
+                "original_image": image_path,
+                "product_description": product_description,
+                "variations": variations,
+                "timestamp": response["timestamp"]
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error generating product variations: {str(e)}")
+            return {"error": str(e)}

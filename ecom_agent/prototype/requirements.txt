@@ -3,3 +3,4 @@ gradio==5.25.2
 python-dotenv==1.1.0
 pillow==11.2.1
 requests==2.31.0
+google-genai==1.11.0
