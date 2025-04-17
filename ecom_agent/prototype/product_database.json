@@ -1,0 +1,902 @@
+[
+  {
+    "id": "P001",
+    "name": "Wireless Bluetooth Headphones",
+    "price": 49.99,
+    "category": "Electronics",
+    "description": "High-quality wireless headphones with noise cancellation",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P002",
+    "name": "Smart Fitness Tracker",
+    "price": 79.99,
+    "category": "Wearables",
+    "description": "Track your fitness goals with this smart wearable device",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P003",
+    "name": "Ultra HD Smart TV",
+    "price": 599.99,
+    "category": "Electronics",
+    "description": "55-inch 4K Ultra HD Smart TV with built-in streaming apps",
+    "rating": 4.8,
+    "in_stock": true
+  },
+  {
+    "id": "P004",
+    "name": "Premium Coffee Maker",
+    "price": 129.99,
+    "category": "Kitchen Appliances",
+    "description": "Programmable coffee maker with thermal carafe",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P005",
+    "name": "Ergonomic Office Chair",
+    "price": 199.99,
+    "category": "Furniture",
+    "description": "Comfortable ergonomic chair for home or office use",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P006",
+    "name": "Smartphone Stand",
+    "price": 19.99,
+    "category": "Accessories",
+    "description": "Adjustable stand for smartphones and tablets",
+    "rating": 4.0,
+    "in_stock": true
+  },
+  {
+    "id": "P007",
+    "name": "Wireless Charging Pad",
+    "price": 29.99,
+    "category": "Electronics",
+    "description": "Fast wireless charging pad for compatible devices",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P008",
+    "name": "Stainless Steel Water Bottle",
+    "price": 24.99,
+    "category": "Kitchen",
+    "description": "Insulated water bottle that keeps drinks cold for 24 hours",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P009",
+    "name": "Bluetooth Speaker",
+    "price": 39.99,
+    "category": "Electronics",
+    "description": "Portable Bluetooth speaker with 12-hour battery life",
+    "rating": 4.1,
+    "in_stock": true
+  },
+  {
+    "id": "P010",
+    "name": "Laptop Backpack",
+    "price": 49.99,
+    "category": "Accessories",
+    "description": "Water-resistant backpack with laptop compartment",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P011",
+    "name": "Digital Camera",
+    "price": 349.99,
+    "category": "Electronics",
+    "description": "20MP digital camera with 5x optical zoom",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P012",
+    "name": "Yoga Mat",
+    "price": 29.99,
+    "category": "Fitness",
+    "description": "Non-slip yoga mat with carrying strap",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P013",
+    "name": "Cast Iron Skillet",
+    "price": 34.99,
+    "category": "Kitchen",
+    "description": "Pre-seasoned cast iron skillet for versatile cooking",
+    "rating": 4.8,
+    "in_stock": true
+  },
+  {
+    "id": "P014",
+    "name": "Mechanical Keyboard",
+    "price": 89.99,
+    "category": "Computer Accessories",
+    "description": "RGB backlit mechanical gaming keyboard",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P015",
+    "name": "Desk Lamp",
+    "price": 24.99,
+    "category": "Home Office",
+    "description": "Adjustable LED desk lamp with multiple brightness levels",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P016",
+    "name": "External Hard Drive",
+    "price": 79.99,
+    "category": "Computer Accessories",
+    "description": "1TB portable external hard drive",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P017",
+    "name": "Air Purifier",
+    "price": 129.99,
+    "category": "Home Appliances",
+    "description": "HEPA air purifier for rooms up to 300 sq ft",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P018",
+    "name": "Electric Toothbrush",
+    "price": 49.99,
+    "category": "Personal Care",
+    "description": "Rechargeable electric toothbrush with multiple cleaning modes",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P019",
+    "name": "Indoor Plant",
+    "price": 19.99,
+    "category": "Home Decor",
+    "description": "Low-maintenance indoor plant in decorative pot",
+    "rating": 4.1,
+    "in_stock": true
+  },
+  {
+    "id": "P020",
+    "name": "French Press Coffee Maker",
+    "price": 24.99,
+    "category": "Kitchen",
+    "description": "Glass french press for rich, flavorful coffee",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P021",
+    "name": "Wireless Mouse",
+    "price": 29.99,
+    "category": "Computer Accessories",
+    "description": "Ergonomic wireless mouse with long battery life",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P022",
+    "name": "Smart Light Bulbs",
+    "price": 39.99,
+    "category": "Smart Home",
+    "description": "Set of 2 color-changing smart light bulbs",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P023",
+    "name": "Portable Blender",
+    "price": 34.99,
+    "category": "Kitchen Appliances",
+    "description": "USB rechargeable portable blender for smoothies on the go",
+    "rating": 4.0,
+    "in_stock": true
+  },
+  {
+    "id": "P024",
+    "name": "Resistance Bands Set",
+    "price": 19.99,
+    "category": "Fitness",
+    "description": "Set of 5 resistance bands with different tension levels",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P025",
+    "name": "Desk Organizer",
+    "price": 24.99,
+    "category": "Office Supplies",
+    "description": "Multi-compartment desk organizer for stationery",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P026",
+    "name": "Wireless Earbuds",
+    "price": 59.99,
+    "category": "Electronics",
+    "description": "True wireless earbuds with charging case",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P027",
+    "name": "Bath Towel Set",
+    "price": 39.99,
+    "category": "Home Essentials",
+    "description": "Set of 4 cotton bath towels",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P028",
+    "name": "Knife Set",
+    "price": 69.99,
+    "category": "Kitchen",
+    "description": "6-piece stainless steel knife set with block",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P029",
+    "name": "Bluetooth Car Adapter",
+    "price": 15.99,
+    "category": "Automotive",
+    "description": "Bluetooth adapter for car audio systems",
+    "rating": 4.1,
+    "in_stock": true
+  },
+  {
+    "id": "P030",
+    "name": "Essential Oil Diffuser",
+    "price": 29.99,
+    "category": "Home Decor",
+    "description": "Ultrasonic essential oil diffuser with LED lights",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P031",
+    "name": "Insulated Travel Mug",
+    "price": 19.99,
+    "category": "Kitchen",
+    "description": "Vacuum insulated travel mug that keeps drinks hot for hours",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P032",
+    "name": "Wireless Phone Charger Stand",
+    "price": 25.99,
+    "category": "Electronics",
+    "description": "Fast wireless charging stand compatible with most smartphones",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P033",
+    "name": "Webcam",
+    "price": 49.99,
+    "category": "Computer Accessories",
+    "description": "1080p HD webcam with built-in microphone",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P034",
+    "name": "Throw Blanket",
+    "price": 29.99,
+    "category": "Home Decor",
+    "description": "Soft microfiber throw blanket for couch or bed",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P035",
+    "name": "Slow Cooker",
+    "price": 49.99,
+    "category": "Kitchen Appliances",
+    "description": "6-quart programmable slow cooker",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P036",
+    "name": "Smartphone Gimbal",
+    "price": 89.99,
+    "category": "Photography",
+    "description": "3-axis smartphone stabilizer for smooth video recording",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P037",
+    "name": "Wireless Doorbell",
+    "price": 29.99,
+    "category": "Home Security",
+    "description": "Wireless doorbell with 1000ft range and multiple chimes",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P038",
+    "name": "Cutting Board Set",
+    "price": 24.99,
+    "category": "Kitchen",
+    "description": "Set of 3 bamboo cutting boards in different sizes",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P039",
+    "name": "Smart Scale",
+    "price": 44.99,
+    "category": "Fitness",
+    "description": "Bluetooth smart scale that measures weight, BMI, and more",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P040",
+    "name": "Cordless Drill",
+    "price": 79.99,
+    "category": "Tools",
+    "description": "20V cordless drill with lithium-ion battery",
+    "rating": 4.8,
+    "in_stock": true
+  },
+  {
+    "id": "P041",
+    "name": "Security Camera",
+    "price": 59.99,
+    "category": "Home Security",
+    "description": "Wireless indoor security camera with motion detection",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P042",
+    "name": "Storage Containers",
+    "price": 19.99,
+    "category": "Home Organization",
+    "description": "Set of 10 plastic food storage containers with lids",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P043",
+    "name": "Portable Bluetooth Speaker",
+    "price": 69.99,
+    "category": "Electronics",
+    "description": "Waterproof portable Bluetooth speaker with 20-hour battery life",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P044",
+    "name": "Reusable Shopping Bags",
+    "price": 14.99,
+    "category": "Eco-Friendly",
+    "description": "Set of 5 foldable reusable shopping bags",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P045",
+    "name": "Digital Kitchen Scale",
+    "price": 19.99,
+    "category": "Kitchen",
+    "description": "Precise digital kitchen scale for cooking and baking",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P046",
+    "name": "Portable Power Bank",
+    "price": 29.99,
+    "category": "Electronics",
+    "description": "10000mAh portable power bank for charging devices on the go",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P047",
+    "name": "Garden Tools Set",
+    "price": 34.99,
+    "category": "Garden",
+    "description": "5-piece gardening tool set with storage tote",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P048",
+    "name": "Car Phone Mount",
+    "price": 15.99,
+    "category": "Automotive",
+    "description": "Adjustable car phone mount for dashboard or air vent",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P049",
+    "name": "Smart Thermostat",
+    "price": 129.99,
+    "category": "Smart Home",
+    "description": "WiFi-enabled smart thermostat with energy-saving features",
+    "rating": 4.8,
+    "in_stock": true
+  },
+  {
+    "id": "P050",
+    "name": "Electric Kettle",
+    "price": 34.99,
+    "category": "Kitchen Appliances",
+    "description": "1.7L stainless steel electric kettle with auto shut-off",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P051",
+    "name": "Document Scanner",
+    "price": 129.99,
+    "category": "Office Equipment",
+    "description": "Portable document scanner with automatic feeding",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P052",
+    "name": "Makeup Brush Set",
+    "price": 24.99,
+    "category": "Beauty",
+    "description": "12-piece makeup brush set with carrying case",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P053",
+    "name": "Spice Rack",
+    "price": 29.99,
+    "category": "Kitchen",
+    "description": "Revolving countertop spice rack with 20 jars",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P054",
+    "name": "Wireless Keyboard",
+    "price": 49.99,
+    "category": "Computer Accessories",
+    "description": "Slim wireless keyboard with long battery life",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P055",
+    "name": "Automatic Pet Feeder",
+    "price": 59.99,
+    "category": "Pet Supplies",
+    "description": "Programmable automatic pet feeder with timer",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P056",
+    "name": "Robot Vacuum Cleaner",
+    "price": 199.99,
+    "category": "Home Appliances",
+    "description": "Smart robot vacuum with app control and mapping",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P057",
+    "name": "Gaming Mouse",
+    "price": 39.99,
+    "category": "Gaming",
+    "description": "High-precision gaming mouse with programmable buttons",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P058",
+    "name": "Bamboo Bed Sheets",
+    "price": 69.99,
+    "category": "Bedding",
+    "description": "Soft and breathable bamboo bed sheet set",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P059",
+    "name": "Bike Lock",
+    "price": 24.99,
+    "category": "Sports & Outdoors",
+    "description": "Heavy-duty U-lock for bicycle security",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P060",
+    "name": "Espresso Machine",
+    "price": 199.99,
+    "category": "Kitchen Appliances",
+    "description": "15-bar pump espresso and cappuccino machine",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P061",
+    "name": "Desktop Monitor",
+    "price": 149.99,
+    "category": "Electronics",
+    "description": "24-inch full HD monitor with built-in speakers",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P062",
+    "name": "Hiking Backpack",
+    "price": 69.99,
+    "category": "Outdoor Gear",
+    "description": "50L hiking backpack with hydration system compatibility",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P063",
+    "name": "Aromatherapy Candles",
+    "price": 19.99,
+    "category": "Home Decor",
+    "description": "Set of 3 aromatherapy candles with essential oils",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P064",
+    "name": "USB-C Hub",
+    "price": 39.99,
+    "category": "Computer Accessories",
+    "description": "7-in-1 USB-C hub with HDMI and card reader",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P065",
+    "name": "Bathroom Scale",
+    "price": 29.99,
+    "category": "Personal Care",
+    "description": "Digital bathroom scale with large LCD display",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P066",
+    "name": "Shower Caddy",
+    "price": 24.99,
+    "category": "Bathroom",
+    "description": "Rust-resistant shower caddy with multiple compartments",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P067",
+    "name": "Reading Light",
+    "price": 14.99,
+    "category": "Books & Reading",
+    "description": "Clip-on book light with adjustable brightness",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P068",
+    "name": "Electric Toothbrush Heads",
+    "price": 19.99,
+    "category": "Personal Care",
+    "description": "Pack of 4 replacement electric toothbrush heads",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P069",
+    "name": "Handheld Vacuum",
+    "price": 49.99,
+    "category": "Home Appliances",
+    "description": "Cordless handheld vacuum for quick cleanup",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P070",
+    "name": "Wireless Headset",
+    "price": 79.99,
+    "category": "Electronics",
+    "description": "Wireless gaming headset with noise-cancelling microphone",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P071",
+    "name": "Non-Stick Cookware Set",
+    "price": 89.99,
+    "category": "Kitchen",
+    "description": "10-piece non-stick cookware set with glass lids",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P072",
+    "name": "Selfie Stick",
+    "price": 14.99,
+    "category": "Photography",
+    "description": "Extendable selfie stick with Bluetooth remote",
+    "rating": 4.1,
+    "in_stock": true
+  },
+  {
+    "id": "P073",
+    "name": "Dumbbells Set",
+    "price": 49.99,
+    "category": "Fitness",
+    "description": "Set of 2 adjustable dumbbells with storage case",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P074",
+    "name": "Digital Alarm Clock",
+    "price": 19.99,
+    "category": "Home",
+    "description": "Digital alarm clock with USB charging ports",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P075",
+    "name": "Hand Mixer",
+    "price": 29.99,
+    "category": "Kitchen Appliances",
+    "description": "5-speed hand mixer with stainless steel beaters",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P076",
+    "name": "Leather Wallet",
+    "price": 34.99,
+    "category": "Accessories",
+    "description": "Genuine leather wallet with RFID blocking",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P077",
+    "name": "Air Mattress",
+    "price": 59.99,
+    "category": "Furniture",
+    "description": "Queen-size air mattress with built-in electric pump",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P078",
+    "name": "Cat Scratching Post",
+    "price": 29.99,
+    "category": "Pet Supplies",
+    "description": "Sisal cat scratching post with dangling toy",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P079",
+    "name": "Screen Protector",
+    "price": 9.99,
+    "category": "Phone Accessories",
+    "description": "Tempered glass screen protector for smartphones",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P080",
+    "name": "Indoor Security Camera",
+    "price": 39.99,
+    "category": "Home Security",
+    "description": "WiFi indoor security camera with night vision",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P081",
+    "name": "Screwdriver Set",
+    "price": 24.99,
+    "category": "Tools",
+    "description": "20-piece precision screwdriver set with magnetic tips",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P082",
+    "name": "Electric Hand Warmer",
+    "price": 19.99,
+    "category": "Winter Accessories",
+    "description": "Rechargeable electric hand warmer with 3 heat settings",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P083",
+    "name": "Document Shredder",
+    "price": 49.99,
+    "category": "Office Equipment",
+    "description": "8-sheet cross-cut paper shredder",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P084",
+    "name": "Car Dash Cam",
+    "price": 69.99,
+    "category": "Automotive",
+    "description": "1080p car dash camera with night vision",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P085",
+    "name": "Plant Growing Kit",
+    "price": 24.99,
+    "category": "Garden",
+    "description": "Indoor herb growing kit with pots and seeds",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P086",
+    "name": "Protein Shaker Bottle",
+    "price": 12.99,
+    "category": "Fitness",
+    "description": "BPA-free protein shaker bottle with mixing ball",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P087",
+    "name": "Keyboard and Mouse Combo",
+    "price": 39.99,
+    "category": "Computer Accessories",
+    "description": "Wireless keyboard and mouse combo for desktop",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P088",
+    "name": "Digital Drawing Tablet",
+    "price": 79.99,
+    "category": "Art Supplies",
+    "description": "Graphics drawing tablet with pressure sensitivity",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P089",
+    "name": "Neck Massager",
+    "price": 39.99,
+    "category": "Health & Wellness",
+    "description": "Shiatsu neck and shoulder massager with heat",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P090",
+    "name": "Electric Wine Opener",
+    "price": 24.99,
+    "category": "Kitchen Gadgets",
+    "description": "Rechargeable electric wine bottle opener",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P091",
+    "name": "Solar Garden Lights",
+    "price": 29.99,
+    "category": "Outdoor",
+    "description": "Set of 8 solar-powered garden pathway lights",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P092",
+    "name": "Wall-Mounted Coat Rack",
+    "price": 34.99,
+    "category": "Home Organization",
+    "description": "Wooden wall-mounted coat rack with 5 hooks",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P093",
+    "name": "Silicone Baking Mats",
+    "price": 19.99,
+    "category": "Kitchen",
+    "description": "Set of 3 non-stick silicone baking mats",
+    "rating": 4.7,
+    "in_stock": true
+  },
+  {
+    "id": "P094",
+    "name": "Wireless Earphones",
+    "price": 29.99,
+    "category": "Electronics",
+    "description": "Neckband wireless earphones with 12-hour battery life",
+    "rating": 4.1,
+    "in_stock": true
+  },
+  {
+    "id": "P095",
+    "name": "Yoga Block Set",
+    "price": 16.99,
+    "category": "Fitness",
+    "description": "Set of 2 high-density foam yoga blocks",
+    "rating": 4.5,
+    "in_stock": true
+  },
+  {
+    "id": "P096",
+    "name": "Photo Frame Set",
+    "price": 24.99,
+    "category": "Home Decor",
+    "description": "Set of 5 wooden photo frames in various sizes",
+    "rating": 4.3,
+    "in_stock": true
+  },
+  {
+    "id": "P097",
+    "name": "Smart Plug",
+    "price": 19.99,
+    "category": "Smart Home",
+    "description": "WiFi smart plug with voice control compatibility",
+    "rating": 4.6,
+    "in_stock": true
+  },
+  {
+    "id": "P098",
+    "name": "Floating Shelves",
+    "price": 29.99,
+    "category": "Home Decor",
+    "description": "Set of 3 wooden floating wall shelves",
+    "rating": 4.4,
+    "in_stock": true
+  },
+  {
+    "id": "P099",
+    "name": "Laptop Cooling Pad",
+    "price": 24.99,
+    "category": "Computer Accessories",
+    "description": "Laptop cooling pad with adjustable height and USB fans",
+    "rating": 4.2,
+    "in_stock": true
+  },
+  {
+    "id": "P100",
+    "name": "Electric Pencil Sharpener",
+    "price": 14.99,
+    "category": "Office Supplies",
+    "description": "Automatic electric pencil sharpener for home or office",
+    "rating": 4.3,
+    "in_stock": true
+  }
+]

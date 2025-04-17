@@ -1,0 +1,2072 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "date": "2025-04-10",
+    "product": {
+      "id": "P001",
+      "name": "Wireless Bluetooth Headphones",
+      "price": 49.99,
+      "category": "Electronics",
+      "description": "High-quality wireless headphones with noise cancellation",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Delivered",
+    "status_details": "Your order was delivered on April 15, 2025.",
+    "estimated_delivery": "2025-04-15"
+  },
+  {
+    "order_id": "ORD-1002",
+    "date": "2025-04-12",
+    "product": {
+      "id": "P002",
+      "name": "Smart Fitness Tracker",
+      "price": 79.99,
+      "category": "Wearables",
+      "description": "Track your fitness goals with this smart wearable device",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by April 18, 2025.",
+    "estimated_delivery": "2025-04-18"
+  },
+  {
+    "order_id": "ORD-1003",
+    "date": "2025-04-15",
+    "product": {
+      "id": "P004",
+      "name": "Premium Coffee Maker",
+      "price": 129.99,
+      "category": "Kitchen Appliances",
+      "description": "Programmable coffee maker with thermal carafe",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 17, 2025.",
+    "estimated_delivery": "2025-04-20"
+  },
+  {
+    "order_id": "ORD-1004",
+    "date": "2025-04-16",
+    "product": {
+      "id": "P005",
+      "name": "Portable Bluetooth Speaker",
+      "price": 39.99,
+      "category": "Electronics",
+      "description": "Waterproof portable speaker with 20-hour battery life",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 79.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 18, 2025.",
+    "estimated_delivery": "2025-04-22"
+  },
+  {
+    "order_id": "ORD-1005",
+    "date": "2025-04-16",
+    "product": {
+      "id": "P006",
+      "name": "Stainless Steel Water Bottle",
+      "price": 24.95,
+      "category": "Kitchen & Dining",
+      "description": "Vacuum insulated bottle that keeps drinks cold for 24 hours or hot for 12 hours",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 3,
+    "total": 74.85,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 19, 2025.",
+    "estimated_delivery": "2025-04-24"
+  },
+  {
+    "order_id": "ORD-1006",
+    "date": "2025-04-17",
+    "product": {
+      "id": "P007",
+      "name": "Ergonomic Office Chair",
+      "price": 199.99,
+      "category": "Furniture",
+      "description": "Adjustable office chair with lumbar support and breathable mesh back",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 199.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 22, 2025.",
+    "estimated_delivery": "2025-04-28"
+  },
+  {
+    "order_id": "ORD-1007",
+    "date": "2025-04-18",
+    "product": {
+      "id": "P008",
+      "name": "Smart LED Light Bulbs (4-pack)",
+      "price": 39.99,
+      "category": "Smart Home",
+      "description": "Color-changing WiFi enabled smart bulbs compatible with voice assistants",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 79.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 20, 2025.",
+    "estimated_delivery": "2025-04-25"
+  },
+  {
+    "order_id": "ORD-1008",
+    "date": "2025-04-19",
+    "product": {
+      "id": "P009",
+      "name": "Wireless Charging Pad",
+      "price": 29.99,
+      "category": "Electronics",
+      "description": "Fast wireless charging pad compatible with all Qi-enabled devices",
+      "rating": 4.1,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by April 24, 2025.",
+    "estimated_delivery": "2025-04-24"
+  },
+  {
+    "order_id": "ORD-1009",
+    "date": "2025-04-20",
+    "product": {
+      "id": "P010",
+      "name": "Non-Stick Cookware Set",
+      "price": 89.99,
+      "category": "Kitchen & Dining",
+      "description": "10-piece non-stick cookware set with glass lids and ergonomic handles",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 89.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 22, 2025.",
+    "estimated_delivery": "2025-04-27"
+  },
+  {
+    "order_id": "ORD-1010",
+    "date": "2025-04-20",
+    "product": {
+      "id": "P011",
+      "name": "Digital Drawing Tablet",
+      "price": 149.99,
+      "category": "Electronics",
+      "description": "Professional drawing tablet with pressure-sensitive pen and customizable shortcut keys",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 149.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 22, 2025.",
+    "estimated_delivery": "2025-04-26"
+  },
+  {
+    "order_id": "ORD-1011",
+    "date": "2025-04-21",
+    "product": {
+      "id": "P012",
+      "name": "Robot Vacuum Cleaner",
+      "price": 249.99,
+      "category": "Home Appliances",
+      "description": "Smart robot vacuum with mapping technology and app control",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 249.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 23, 2025.",
+    "estimated_delivery": "2025-04-28"
+  },
+  {
+    "order_id": "ORD-1012",
+    "date": "2025-04-21",
+    "product": {
+      "id": "P013",
+      "name": "Electric Toothbrush",
+      "price": 59.99,
+      "category": "Personal Care",
+      "description": "Rechargeable electric toothbrush with multiple brush modes and timer",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 119.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 23, 2025.",
+    "estimated_delivery": "2025-04-27"
+  },
+  {
+    "order_id": "ORD-1013",
+    "date": "2025-04-22",
+    "product": {
+      "id": "P014",
+      "name": "Portable Power Bank",
+      "price": 34.99,
+      "category": "Electronics",
+      "description": "20000mAh power bank with fast charging and dual USB ports",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 24, 2025.",
+    "estimated_delivery": "2025-04-28"
+  },
+  {
+    "order_id": "ORD-1014",
+    "date": "2025-04-22",
+    "product": {
+      "id": "P015",
+      "name": "Yoga Mat",
+      "price": 29.99,
+      "category": "Fitness",
+      "description": "Non-slip eco-friendly yoga mat with carrying strap",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by April 26, 2025.",
+    "estimated_delivery": "2025-04-26"
+  },
+  {
+    "order_id": "ORD-1015",
+    "date": "2025-04-23",
+    "product": {
+      "id": "P016",
+      "name": "Cast Iron Skillet Set",
+      "price": 49.99,
+      "category": "Kitchen & Dining",
+      "description": "Pre-seasoned cast iron skillet set with silicone handle covers",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 25, 2025.",
+    "estimated_delivery": "2025-04-29"
+  },
+  {
+    "order_id": "ORD-1016",
+    "date": "2025-04-23",
+    "product": {
+      "id": "P017",
+      "name": "Noise Cancelling Earbuds",
+      "price": 79.99,
+      "category": "Electronics",
+      "description": "True wireless earbuds with active noise cancellation and transparency mode",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 25, 2025.",
+    "estimated_delivery": "2025-04-29"
+  },
+  {
+    "order_id": "ORD-1017",
+    "date": "2025-04-23",
+    "product": {
+      "id": "P018",
+      "name": "Adjustable Dumbbell Set",
+      "price": 199.99,
+      "category": "Fitness",
+      "description": "Space-saving adjustable dumbbells with weight range from 5-52.5 lbs",
+      "rating": 4.8,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 199.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 26, 2025.",
+    "estimated_delivery": "2025-05-02"
+  },
+  {
+    "order_id": "ORD-1018",
+    "date": "2025-04-24",
+    "product": {
+      "id": "P019",
+      "name": "Smart Indoor Security Camera",
+      "price": 49.99,
+      "category": "Smart Home",
+      "description": "1080p HD security camera with motion detection and two-way audio",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 99.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 26, 2025.",
+    "estimated_delivery": "2025-04-30"
+  },
+  {
+    "order_id": "ORD-1019",
+    "date": "2025-04-24",
+    "product": {
+      "id": "P020",
+      "name": "Automatic Espresso Machine",
+      "price": 399.99,
+      "category": "Kitchen Appliances",
+      "description": "Bean-to-cup espresso machine with built-in grinder and milk frother",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 399.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 27, 2025.",
+    "estimated_delivery": "2025-05-03"
+  },
+  {
+    "order_id": "ORD-1020",
+    "date": "2025-04-24",
+    "product": {
+      "id": "P021",
+      "name": "Mechanical Keyboard",
+      "price": 89.99,
+      "category": "Electronics",
+      "description": "RGB mechanical keyboard with customizable switches and programmable keys",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 89.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by April 29, 2025.",
+    "estimated_delivery": "2025-04-29"
+  },
+  {
+    "order_id": "ORD-1021",
+    "date": "2025-04-25",
+    "product": {
+      "id": "P022",
+      "name": "Air Purifier",
+      "price": 149.99,
+      "category": "Home Appliances",
+      "description": "HEPA air purifier with air quality monitor and sleep mode",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 149.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 27, 2025.",
+    "estimated_delivery": "2025-05-01"
+  },
+  {
+    "order_id": "ORD-1022",
+    "date": "2025-04-25",
+    "product": {
+      "id": "P023",
+      "name": "Resistance Bands Set",
+      "price": 29.99,
+      "category": "Fitness",
+      "description": "5-piece resistance bands set with handles, door anchor, and carrying bag",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 59.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 27, 2025.",
+    "estimated_delivery": "2025-05-01"
+  },
+  {
+    "order_id": "ORD-1023",
+    "date": "2025-04-25",
+    "product": {
+      "id": "P024",
+      "name": "Aromatherapy Diffuser",
+      "price": 34.99,
+      "category": "Home Goods",
+      "description": "Ultrasonic essential oil diffuser with LED light and auto shut-off",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 27, 2025.",
+    "estimated_delivery": "2025-05-01"
+  },
+  {
+    "order_id": "ORD-1024",
+    "date": "2025-04-26",
+    "product": {
+      "id": "P025",
+      "name": "Wireless Gaming Mouse",
+      "price": 59.99,
+      "category": "Electronics",
+      "description": "Lightweight gaming mouse with RGB lighting and programmable buttons",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 28, 2025.",
+    "estimated_delivery": "2025-05-02"
+  },
+  {
+    "order_id": "ORD-1025",
+    "date": "2025-04-26",
+    "product": {
+      "id": "P026",
+      "name": "Smart Door Lock",
+      "price": 149.99,
+      "category": "Smart Home",
+      "description": "Keyless entry door lock with fingerprint, code, and smartphone access",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 149.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 28, 2025.",
+    "estimated_delivery": "2025-05-03"
+  },
+  {
+    "order_id": "ORD-1026",
+    "date": "2025-04-26",
+    "product": {
+      "id": "P027",
+      "name": "Digital Kitchen Scale",
+      "price": 19.99,
+      "category": "Kitchen & Dining",
+      "description": "Precise digital kitchen scale with tare function and multiple unit options",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 1, 2025.",
+    "estimated_delivery": "2025-05-01"
+  },
+  {
+    "order_id": "ORD-1027",
+    "date": "2025-04-27",
+    "product": {
+      "id": "P028",
+      "name": "USB-C Hub Adapter",
+      "price": 39.99,
+      "category": "Electronics",
+      "description": "7-in-1 USB-C hub with HDMI, USB ports, and SD card readers",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 29, 2025.",
+    "estimated_delivery": "2025-05-03"
+  },
+  {
+    "order_id": "ORD-1028",
+    "date": "2025-04-27",
+    "product": {
+      "id": "P029",
+      "name": "Indoor Plant Collection",
+      "price": 49.99,
+      "category": "Home Decor",
+      "description": "Set of 3 easy-care indoor plants in decorative pots",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 29, 2025.",
+    "estimated_delivery": "2025-05-03"
+  },
+  {
+    "order_id": "ORD-1029",
+    "date": "2025-04-27",
+    "product": {
+      "id": "P030",
+      "name": "Smart Wi-Fi Thermostat",
+      "price": 129.99,
+      "category": "Smart Home",
+      "description": "Programmable Wi-Fi thermostat with energy-saving features and app control",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 29, 2025.",
+    "estimated_delivery": "2025-05-04"
+  },
+  {
+    "order_id": "ORD-1030",
+    "date": "2025-04-28",
+    "product": {
+      "id": "P031",
+      "name": "Skincare Gift Set",
+      "price": 59.99,
+      "category": "Personal Care",
+      "description": "Luxury skincare gift set with cleanser, toner, moisturizer, and serum",
+      "rating": 4.8,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by April 30, 2025.",
+    "estimated_delivery": "2025-05-04"
+  },
+  {
+    "order_id": "ORD-1031",
+    "date": "2025-04-28",
+    "product": {
+      "id": "P032",
+      "name": "Portable Blender",
+      "price": 29.99,
+      "category": "Kitchen Appliances",
+      "description": "USB rechargeable portable blender for smoothies and shakes on the go",
+      "rating": 4.1,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 59.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by April 30, 2025.",
+    "estimated_delivery": "2025-05-04"
+  },
+  {
+    "order_id": "ORD-1032",
+    "date": "2025-04-28",
+    "product": {
+      "id": "P033",
+      "name": "Wireless Earbuds with Charging Case",
+      "price": 49.99,
+      "category": "Electronics",
+      "description": "Sweat-resistant wireless earbuds with touch controls and long battery life",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 3, 2025.",
+    "estimated_delivery": "2025-05-03"
+  },
+  {
+    "order_id": "ORD-1033",
+    "date": "2025-04-29",
+    "product": {
+      "id": "P034",
+      "name": "Smart Video Doorbell",
+      "price": 129.99,
+      "category": "Smart Home",
+      "description": "HD video doorbell with motion detection, two-way talk, and cloud storage",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 1, 2025.",
+    "estimated_delivery": "2025-05-05"
+  },
+  {
+    "order_id": "ORD-1034",
+    "date": "2025-04-29",
+    "product": {
+      "id": "P035",
+      "name": "Weighted Blanket",
+      "price": 69.99,
+      "category": "Home Goods",
+      "description": "15-pound weighted blanket with soft, breathable cover for better sleep",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 69.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 1, 2025.",
+    "estimated_delivery": "2025-05-05"
+  },
+  {
+    "order_id": "ORD-1035",
+    "date": "2025-04-29",
+    "product": {
+      "id": "P036",
+      "name": "Silicone Baking Mat Set",
+      "price": 19.99,
+      "category": "Kitchen & Dining",
+      "description": "Non-stick silicone baking mats with measurement guides",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 39.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 1, 2025.",
+    "estimated_delivery": "2025-05-05"
+  },
+  {
+    "order_id": "ORD-1036",
+    "date": "2025-04-30",
+    "product": {
+      "id": "P037",
+      "name": "Gaming Headset",
+      "price": 79.99,
+      "category": "Electronics",
+      "description": "Over-ear gaming headset with surround sound and noise-canceling microphone",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 2, 2025.",
+    "estimated_delivery": "2025-05-06"
+  },
+  {
+    "order_id": "ORD-1037",
+    "date": "2025-04-30",
+    "product": {
+      "id": "P038",
+      "name": "Sunrise Alarm Clock",
+      "price": 39.99,
+      "category": "Home Goods",
+      "description": "Wake-up light alarm clock with sunset simulation and nature sounds",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 2, 2025.",
+    "estimated_delivery": "2025-05-06"
+  },
+  {
+    "order_id": "ORD-1038",
+    "date": "2025-04-30",
+    "product": {
+      "id": "P039",
+      "name": "Home Office Desk",
+      "price": 159.99,
+      "category": "Furniture",
+      "description": "Modern home office desk with storage shelves and cable management",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 159.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 3, 2025.",
+    "estimated_delivery": "2025-05-08"
+  },
+  {
+    "order_id": "ORD-1039",
+    "date": "2025-05-01",
+    "product": {
+      "id": "P040",
+      "name": "Fitness Jump Rope",
+      "price": 14.99,
+      "category": "Fitness",
+      "description": "Adjustable jump rope with comfortable handles and ball bearings",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 14.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 3, 2025.",
+    "estimated_delivery": "2025-05-07"
+  },
+  {
+    "order_id": "ORD-1040",
+    "date": "2025-05-01",
+    "product": {
+      "id": "P041",
+      "name": "Sous Vide Precision Cooker",
+      "price": 129.99,
+      "category": "Kitchen Appliances",
+      "description": "WiFi-enabled sous vide precision cooker for restaurant-quality results at home",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 3, 2025.",
+    "estimated_delivery": "2025-05-08"
+  },
+  {
+    "order_id": "ORD-1041",
+    "date": "2025-05-01",
+    "product": {
+      "id": "P042",
+      "name": "Wireless Computer Mouse",
+      "price": 24.99,
+      "category": "Electronics",
+      "description": "Ergonomic wireless mouse with adjustable DPI and silent clicking",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 6, 2025.",
+    "estimated_delivery": "2025-05-06"
+  },
+  {
+    "order_id": "ORD-1042",
+    "date": "2025-05-02",
+    "product": {
+      "id": "P043",
+      "name": "Slow Cooker",
+      "price": 49.99,
+      "category": "Kitchen Appliances",
+      "description": "Programmable slow cooker with digital timer and keep-warm function",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 4, 2025.",
+    "estimated_delivery": "2025-05-09"
+  },
+  {
+    "order_id": "ORD-1043",
+    "date": "2025-05-02",
+    "product": {
+      "id": "P044",
+      "name": "Foam Roller",
+      "price": 19.99,
+      "category": "Fitness",
+      "description": "High-density foam roller for muscle recovery and physical therapy",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 4, 2025.",
+    "estimated_delivery": "2025-05-08"
+  },
+  {
+    "order_id": "ORD-1044",
+    "date": "2025-05-02",
+    "product": {
+      "id": "P045",
+      "name": "Emergency Weather Radio",
+      "price": 34.99,
+      "category": "Electronics",
+      "description": "Hand-crank emergency radio with solar charging, flashlight, and phone charger",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 4, 2025.",
+    "estimated_delivery": "2025-05-08"
+  },
+  {
+    "order_id": "ORD-1045",
+    "date": "2025-05-03",
+    "product": {
+      "id": "P046",
+      "name": "Storage Ottoman",
+      "price": 59.99,
+      "category": "Furniture",
+      "description": "Foldable storage ottoman with padded seat and linen exterior",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 119.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 5, 2025.",
+    "estimated_delivery": "2025-05-10"
+  },
+  {
+    "order_id": "ORD-1046",
+    "date": "2025-05-03",
+    "product": {
+      "id": "P047",
+      "name": "Makeup Brush Set",
+      "price": 29.99,
+      "category": "Beauty",
+      "description": "Professional makeup brush set with synthetic bristles and travel case",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 5, 2025.",
+    "estimated_delivery": "2025-05-09"
+  },
+  {
+    "order_id": "ORD-1047",
+    "date": "2025-05-03",
+    "product": {
+      "id": "P048",
+      "name": "Bluetooth Car Adapter",
+      "price": 19.99,
+      "category": "Electronics",
+      "description": "Bluetooth adapter for car audio systems with hands-free calling",
+      "rating": 4.1,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 5, 2025.",
+    "estimated_delivery": "2025-05-09"
+  },
+  {
+    "order_id": "ORD-1048",
+    "date": "2025-05-04",
+    "product": {
+      "id": "P049",
+      "name": "Stainless Steel Mixing Bowls",
+      "price": 29.99,
+      "category": "Kitchen & Dining",
+      "description": "Nesting stainless steel mixing bowls with lids and non-slip bases",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 6, 2025.",
+    "estimated_delivery": "2025-05-10"
+  },
+  {
+    "order_id": "ORD-1049",
+    "date": "2025-05-04",
+    "product": {
+      "id": "P050",
+      "name": "External SSD 1TB",
+      "price": 129.99,
+      "category": "Electronics",
+      "description": "Portable solid state drive with fast data transfer and shock resistance",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 6, 2025.",
+    "estimated_delivery": "2025-05-10"
+  },
+  {
+    "order_id": "ORD-1050",
+    "date": "2025-05-04",
+    "product": {
+      "id": "P051",
+      "name": "Bathroom Scale",
+      "price": 34.99,
+      "category": "Personal Care",
+      "description": "Digital bathroom scale with backlit display and precision sensors",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 9, 2025.",
+    "estimated_delivery": "2025-05-09"
+  },
+  {
+    "order_id": "ORD-1051",
+    "date": "2025-05-05",
+    "product": {
+      "id": "P052",
+      "name": "Cordless Drill Set",
+      "price": 79.99,
+      "category": "Tools",
+      "description": "20V cordless drill with lithium battery and 50-piece accessory kit",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 7, 2025.",
+    "estimated_delivery": "2025-05-12"
+  },
+  {
+    "order_id": "ORD-1052",
+    "date": "2025-05-05",
+    "product": {
+      "id": "P053",
+      "name": "LED Desk Lamp",
+      "price": 39.99,
+      "category": "Home Goods",
+      "description": "Adjustable LED desk lamp with multiple brightness levels and color temperatures",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 79.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 7, 2025.",
+    "estimated_delivery": "2025-05-11"
+  },
+  {
+    "order_id": "ORD-1053",
+    "date": "2025-05-05",
+    "product": {
+      "id": "P054",
+      "name": "Reusable Food Storage Bags",
+      "price": 14.99,
+      "category": "Kitchen & Dining",
+      "description": "Eco-friendly silicone food storage bags for sustainable food storage",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 29.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 7, 2025.",
+    "estimated_delivery": "2025-05-11"
+  },
+  {
+    "order_id": "ORD-1054",
+    "date": "2025-05-06",
+    "product": {
+      "id": "P055",
+      "name": "Wireless Keyboard",
+      "price": 49.99,
+      "category": "Electronics",
+      "description": "Slim wireless keyboard with multi-device connectivity and backlit keys",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 49.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 8, 2025.",
+    "estimated_delivery": "2025-05-12"
+  },
+  {
+    "order_id": "ORD-1055",
+    "date": "2025-05-06",
+    "product": {
+      "id": "P056",
+      "name": "Electric Kettle",
+      "price": 29.99,
+      "category": "Kitchen Appliances",
+      "description": "Fast-boiling electric kettle with temperature control and auto shut-off",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 8, 2025.",
+    "estimated_delivery": "2025-05-12"
+  },
+  {
+    "order_id": "ORD-1056",
+    "date": "2025-05-06",
+    "product": {
+      "id": "P057",
+      "name": "Smart Plug (2-pack)",
+      "price": 24.99,
+      "category": "Smart Home",
+      "description": "WiFi enabled smart plugs compatible with voice assistants and app control",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 49.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 8, 2025.",
+    "estimated_delivery": "2025-05-12"
+  },
+  {
+    "order_id": "ORD-1057",
+    "date": "2025-05-07",
+    "product": {
+      "id": "P058",
+      "name": "Compression Socks (3-pair)",
+      "price": 19.99,
+      "category": "Clothing",
+      "description": "Graduated compression socks for improved circulation and reduced fatigue",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 9, 2025.",
+    "estimated_delivery": "2025-05-13"
+  },
+  {
+    "order_id": "ORD-1058",
+    "date": "2025-05-07",
+    "product": {
+      "id": "P059",
+      "name": "Smartphone Gimbal Stabilizer",
+      "price": 89.99,
+      "category": "Electronics",
+      "description": "3-axis smartphone gimbal for smooth video recording and tracking",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 89.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 9, 2025.",
+    "estimated_delivery": "2025-05-14"
+  },
+  {
+    "order_id": "ORD-1059",
+    "date": "2025-05-07",
+    "product": {
+      "id": "P060",
+      "name": "Indoor Herb Garden Kit",
+      "price": 39.99,
+      "category": "Home & Garden",
+      "description": "Self-watering indoor herb garden with built-in grow light",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 12, 2025.",
+    "estimated_delivery": "2025-05-12"
+  },
+  {
+    "order_id": "ORD-1060",
+    "date": "2025-05-08",
+    "product": {
+      "id": "P061",
+      "name": "Waterproof Phone Case",
+      "price": 19.99,
+      "category": "Electronics",
+      "description": "Universal waterproof phone case with lanyard for beach and water activities",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 39.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 10, 2025.",
+    "estimated_delivery": "2025-05-14"
+  },
+  {
+    "order_id": "ORD-1061",
+    "date": "2025-05-08",
+    "product": {
+      "id": "P062",
+      "name": "Storage Bins (6-pack)",
+      "price": 29.99,
+      "category": "Home Organization",
+      "description": "Collapsible fabric storage bins with labels and handles",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 10, 2025.",
+    "estimated_delivery": "2025-05-14"
+  },
+  {
+    "order_id": "ORD-1062",
+    "date": "2025-05-08",
+    "product": {
+      "id": "P063",
+      "name": "Adjustable Laptop Stand",
+      "price": 34.99,
+      "category": "Office Supplies",
+      "description": "Ergonomic laptop stand with adjustable height and cooling vents",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 10, 2025.",
+    "estimated_delivery": "2025-05-14"
+  },
+  {
+    "order_id": "ORD-1063",
+    "date": "2025-05-09",
+    "product": {
+      "id": "P064",
+      "name": "WiFi Range Extender",
+      "price": 39.99,
+      "category": "Electronics",
+      "description": "Dual-band WiFi range extender for improved coverage throughout your home",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 11, 2025.",
+    "estimated_delivery": "2025-05-15"
+  },
+  {
+    "order_id": "ORD-1064",
+    "date": "2025-05-09",
+    "product": {
+      "id": "P065",
+      "name": "Insulated Lunch Bag",
+      "price": 19.99,
+      "category": "Kitchen & Dining",
+      "description": "Leakproof insulated lunch bag with multiple compartments and shoulder strap",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 11, 2025.",
+    "estimated_delivery": "2025-05-15"
+  },
+  {
+    "order_id": "ORD-1065",
+    "date": "2025-05-09",
+    "product": {
+      "id": "P066",
+      "name": "Oil Diffuser Bracelet",
+      "price": 14.99,
+      "category": "Jewelry",
+      "description": "Lava stone essential oil diffuser bracelet with adjustable cord",
+      "rating": 4.1,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 29.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 11, 2025.",
+    "estimated_delivery": "2025-05-15"
+  },
+  {
+    "order_id": "ORD-1066",
+    "date": "2025-05-10",
+    "product": {
+      "id": "P067",
+      "name": "USB Wall Charger (2-port)",
+      "price": 14.99,
+      "category": "Electronics",
+      "description": "Dual-port fast charging wall adapter with foldable plug",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 29.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 12, 2025.",
+    "estimated_delivery": "2025-05-16"
+  },
+  {
+    "order_id": "ORD-1067",
+    "date": "2025-05-10",
+    "product": {
+      "id": "P068",
+      "name": "Bamboo Cutting Board Set",
+      "price": 29.99,
+      "category": "Kitchen & Dining",
+      "description": "3-piece bamboo cutting board set with juice grooves and handles",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 12, 2025.",
+    "estimated_delivery": "2025-05-16"
+  },
+  {
+    "order_id": "ORD-1068",
+    "date": "2025-05-10",
+    "product": {
+      "id": "P069",
+      "name": "Posture Corrector",
+      "price": 24.99,
+      "category": "Health & Wellness",
+      "description": "Adjustable posture corrector for back and shoulder support",
+      "rating": 4.0,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 12, 2025.",
+    "estimated_delivery": "2025-05-16"
+  },
+  {
+    "order_id": "ORD-1069",
+    "date": "2025-05-11",
+    "product": {
+      "id": "P070",
+      "name": "Wireless Doorbell Kit",
+      "price": 29.99,
+      "category": "Home Improvement",
+      "description": "Waterproof wireless doorbell with 58 chimes and 1000-foot range",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 13, 2025.",
+    "estimated_delivery": "2025-05-17"
+  },
+  {
+    "order_id": "ORD-1070",
+    "date": "2025-05-11",
+    "product": {
+      "id": "P071",
+      "name": "Handheld Garment Steamer",
+      "price": 34.99,
+      "category": "Home Appliances",
+      "description": "Portable garment steamer with fast heat-up and automatic shut-off",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 13, 2025.",
+    "estimated_delivery": "2025-05-17"
+  },
+  {
+    "order_id": "ORD-1071",
+    "date": "2025-05-11",
+    "product": {
+      "id": "P072",
+      "name": "Car Phone Mount",
+      "price": 19.99,
+      "category": "Automotive",
+      "description": "Dashboard and windshield car phone mount with one-touch locking",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 13, 2025.",
+    "estimated_delivery": "2025-05-17"
+  },
+  {
+    "order_id": "ORD-1072",
+    "date": "2025-05-12",
+    "product": {
+      "id": "P073",
+      "name": "Digital Meat Thermometer",
+      "price": 19.99,
+      "category": "Kitchen & Dining",
+      "description": "Instant-read digital meat thermometer with backlit display and foldable probe",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 14, 2025.",
+    "estimated_delivery": "2025-05-18"
+  },
+  {
+    "order_id": "ORD-1073",
+    "date": "2025-05-12",
+    "product": {
+      "id": "P074",
+      "name": "USB Microphone",
+      "price": 59.99,
+      "category": "Electronics",
+      "description": "Plug-and-play USB condenser microphone for podcasting and streaming",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 14, 2025.",
+    "estimated_delivery": "2025-05-18"
+  },
+  {
+    "order_id": "ORD-1074",
+    "date": "2025-05-12",
+    "product": {
+      "id": "P075",
+      "name": "Sleep Mask",
+      "price": 14.99,
+      "category": "Health & Wellness",
+      "description": "Contoured sleep mask with adjustable strap and memory foam padding",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 29.98,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 17, 2025.",
+    "estimated_delivery": "2025-05-17"
+  },
+  {
+    "order_id": "ORD-1075",
+    "date": "2025-05-13",
+    "product": {
+      "id": "P076",
+      "name": "Shower Head with Filter",
+      "price": 39.99,
+      "category": "Home Improvement",
+      "description": "High-pressure shower head with water-saving mode and filter",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 15, 2025.",
+    "estimated_delivery": "2025-05-19"
+  },
+  {
+    "order_id": "ORD-1076",
+    "date": "2025-05-13",
+    "product": {
+      "id": "P077",
+      "name": "Tennis Racket",
+      "price": 79.99,
+      "category": "Sports & Outdoors",
+      "description": "Lightweight aluminum tennis racket with vibration dampening technology",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 15, 2025.",
+    "estimated_delivery": "2025-05-19"
+  },
+  {
+    "order_id": "ORD-1077",
+    "date": "2025-05-13",
+    "product": {
+      "id": "P078",
+      "name": "Plant-Based Protein Powder",
+      "price": 29.99,
+      "category": "Grocery & Gourmet Food",
+      "description": "Organic plant-based protein powder with 25g protein per serving",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 15, 2025.",
+    "estimated_delivery": "2025-05-19"
+  },
+  {
+    "order_id": "ORD-1078",
+    "date": "2025-05-14",
+    "product": {
+      "id": "P079",
+      "name": "Cable Management Box",
+      "price": 19.99,
+      "category": "Office Supplies",
+      "description": "Cable management box for hiding power strips and organizing cords",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 39.98,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 16, 2025.",
+    "estimated_delivery": "2025-05-20"
+  },
+  {
+    "order_id": "ORD-1079",
+    "date": "2025-05-14",
+    "product": {
+      "id": "P080",
+      "name": "Silk Pillowcase (Set of 2)",
+      "price": 39.99,
+      "category": "Bedding",
+      "description": "Pure mulberry silk pillowcases for hair and skin care",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 16, 2025.",
+    "estimated_delivery": "2025-05-20"
+  },
+  {
+    "order_id": "ORD-1080",
+    "date": "2025-05-14",
+    "product": {
+      "id": "P081",
+      "name": "Bluetooth Beanie Hat",
+      "price": 24.99,
+      "category": "Clothing",
+      "description": "Knit beanie with built-in Bluetooth headphones for wireless music listening",
+      "rating": 4.0,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 16, 2025.",
+    "estimated_delivery": "2025-05-20"
+  },
+  {
+    "order_id": "ORD-1081",
+    "date": "2025-05-15",
+    "product": {
+      "id": "P082",
+      "name": "Digital Luggage Scale",
+      "price": 14.99,
+      "category": "Travel & Luggage",
+      "description": "Compact digital luggage scale with backlit display and auto-off feature",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 14.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 17, 2025.",
+    "estimated_delivery": "2025-05-21"
+  },
+  {
+    "order_id": "ORD-1082",
+    "date": "2025-05-15",
+    "product": {
+      "id": "P083",
+      "name": "Smart Watch",
+      "price": 129.99,
+      "category": "Wearables",
+      "description": "Fitness and health tracking smart watch with heart rate monitor and GPS",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 17, 2025.",
+    "estimated_delivery": "2025-05-22"
+  },
+  {
+    "order_id": "ORD-1083",
+    "date": "2025-05-15",
+    "product": {
+      "id": "P084",
+      "name": "Travel Neck Pillow",
+      "price": 19.99,
+      "category": "Travel & Luggage",
+      "description": "Memory foam travel neck pillow with washable cover and travel bag",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 39.98,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 20, 2025.",
+    "estimated_delivery": "2025-05-20"
+  },
+  {
+    "order_id": "ORD-1084",
+    "date": "2025-05-16",
+    "product": {
+      "id": "P085",
+      "name": "Emergency First Aid Kit",
+      "price": 24.99,
+      "category": "Health & Wellness",
+      "description": "Comprehensive first aid kit with 150 pieces for home, office, and travel",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 18, 2025.",
+    "estimated_delivery": "2025-05-22"
+  },
+  {
+    "order_id": "ORD-1085",
+    "date": "2025-05-16",
+    "product": {
+      "id": "P086",
+      "name": "Food Processor",
+      "price": 69.99,
+      "category": "Kitchen Appliances",
+      "description": "8-cup food processor with multiple blades and slicing attachments",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 69.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 18, 2025.",
+    "estimated_delivery": "2025-05-23"
+  },
+  {
+    "order_id": "ORD-1086",
+    "date": "2025-05-16",
+    "product": {
+      "id": "P087",
+      "name": "Wireless Noise Cancelling Headphones",
+      "price": 199.99,
+      "category": "Electronics",
+      "description": "Over-ear noise cancelling headphones with ambient sound mode and 30-hour battery life",
+      "rating": 4.8,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 199.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 18, 2025.",
+    "estimated_delivery": "2025-05-22"
+  },
+  {
+    "order_id": "ORD-1087",
+    "date": "2025-05-17",
+    "product": {
+      "id": "P088",
+      "name": "Motion Sensor Night Light",
+      "price": 19.99,
+      "category": "Home Goods",
+      "description": "Battery-operated motion sensor night lights with adjustable brightness",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 3,
+    "total": 59.97,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 19, 2025.",
+    "estimated_delivery": "2025-05-23"
+  },
+  {
+    "order_id": "ORD-1088",
+    "date": "2025-05-17",
+    "product": {
+      "id": "P089",
+      "name": "Yoga Block Set",
+      "price": 19.99,
+      "category": "Fitness",
+      "description": "High-density foam yoga blocks with non-slip surface for stability and balance",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 19, 2025.",
+    "estimated_delivery": "2025-05-23"
+  },
+  {
+    "order_id": "ORD-1089",
+    "date": "2025-05-17",
+    "product": {
+      "id": "P090",
+      "name": "Slow Masticating Juicer",
+      "price": 129.99,
+      "category": "Kitchen Appliances",
+      "description": "Quiet slow juicer that preserves nutrients with reverse function to prevent clogging",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 19, 2025.",
+    "estimated_delivery": "2025-05-24"
+  },
+  {
+    "order_id": "ORD-1090",
+    "date": "2025-05-18",
+    "product": {
+      "id": "P091",
+      "name": "Smart Pet Feeder",
+      "price": 89.99,
+      "category": "Pet Supplies",
+      "description": "Programmable pet feeder with camera and smartphone control",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 89.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 20, 2025.",
+    "estimated_delivery": "2025-05-25"
+  },
+  {
+    "order_id": "ORD-1091",
+    "date": "2025-05-18",
+    "product": {
+      "id": "P092",
+      "name": "Portable Mini Projector",
+      "price": 149.99,
+      "category": "Electronics",
+      "description": "Pocket-sized HD projector with built-in speaker and multiple connectivity options",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 149.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 20, 2025.",
+    "estimated_delivery": "2025-05-24"
+  },
+  {
+    "order_id": "ORD-1092",
+    "date": "2025-05-18",
+    "product": {
+      "id": "P093",
+      "name": "Cast Iron Dutch Oven",
+      "price": 69.99,
+      "category": "Kitchen & Dining",
+      "description": "Enameled cast iron dutch oven with lid for slow cooking and roasting",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 69.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 20, 2025.",
+    "estimated_delivery": "2025-05-25"
+  },
+  {
+    "order_id": "ORD-1093",
+    "date": "2025-05-19",
+    "product": {
+      "id": "P094",
+      "name": "Reusable Grocery Bags (Set of 5)",
+      "price": 19.99,
+      "category": "Home & Garden",
+      "description": "Durable reusable shopping bags that fold into pouches for easy storage",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 21, 2025.",
+    "estimated_delivery": "2025-05-25"
+  },
+  {
+    "order_id": "ORD-1094",
+    "date": "2025-05-19",
+    "product": {
+      "id": "P095",
+      "name": "Bluetooth FM Transmitter",
+      "price": 24.99,
+      "category": "Electronics",
+      "description": "Bluetooth car adapter with FM transmitter and dual USB charging ports",
+      "rating": 4.1,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 21, 2025.",
+    "estimated_delivery": "2025-05-25"
+  },
+  {
+    "order_id": "ORD-1095",
+    "date": "2025-05-19",
+    "product": {
+      "id": "P096",
+      "name": "Massage Gun",
+      "price": 89.99,
+      "category": "Health & Wellness",
+      "description": "Percussion massage gun with 6 interchangeable heads and 20 speed levels",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 89.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 21, 2025.",
+    "estimated_delivery": "2025-05-26"
+  },
+  {
+    "order_id": "ORD-1096",
+    "date": "2025-05-20",
+    "product": {
+      "id": "P097",
+      "name": "Hanging Closet Organizer",
+      "price": 19.99,
+      "category": "Home Organization",
+      "description": "5-shelf hanging closet organizer with side pockets for accessories",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 2,
+    "total": 39.98,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 22, 2025.",
+    "estimated_delivery": "2025-05-26"
+  },
+  {
+    "order_id": "ORD-1097",
+    "date": "2025-05-20",
+    "product": {
+      "id": "P098",
+      "name": "Wireless Meat Thermometer",
+      "price": 59.99,
+      "category": "Kitchen & Dining",
+      "description": "Bluetooth meat thermometer with app alerts and preset cooking temperatures",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 22, 2025.",
+    "estimated_delivery": "2025-05-26"
+  },
+  {
+    "order_id": "ORD-1098",
+    "date": "2025-05-20",
+    "product": {
+      "id": "P099",
+      "name": "Lap Desk",
+      "price": 34.99,
+      "category": "Office Supplies",
+      "description": "Lap desk with device holder, wrist rest, and mouse pad for comfortable work",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Shipped",
+    "status_details": "Your order is on the way. Expected delivery by May 25, 2025.",
+    "estimated_delivery": "2025-05-25"
+  },
+  {
+    "order_id": "ORD-1099",
+    "date": "2025-05-21",
+    "product": {
+      "id": "P100",
+      "name": "Smart Water Bottle",
+      "price": 44.99,
+      "category": "Health & Wellness",
+      "description": "Smart water bottle that tracks hydration and glows to remind you to drink",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 44.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 23, 2025.",
+    "estimated_delivery": "2025-05-27"
+  },
+  {
+    "order_id": "ORD-1100",
+    "date": "2025-05-21",
+    "product": {
+      "id": "P101",
+      "name": "Vinyl Record Player",
+      "price": 129.99,
+      "category": "Electronics",
+      "description": "3-speed turntable with built-in speakers and Bluetooth connectivity",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 129.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 23, 2025.",
+    "estimated_delivery": "2025-05-28"
+  },
+  {
+    "order_id": "ORD-1101",
+    "date": "2025-05-21",
+    "product": {
+      "id": "P102",
+      "name": "Hiking Backpack",
+      "price": 59.99,
+      "category": "Sports & Outdoors",
+      "description": "40L hiking backpack with hydration sleeve and rain cover",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 23, 2025.",
+    "estimated_delivery": "2025-05-27"
+  },
+  {
+    "order_id": "ORD-1102",
+    "date": "2025-05-22",
+    "product": {
+      "id": "P103",
+      "name": "Ice Roller for Face",
+      "price": 14.99,
+      "category": "Beauty",
+      "description": "Facial ice roller for reducing puffiness and soothing skin",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 14.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 24, 2025.",
+    "estimated_delivery": "2025-05-28"
+  },
+  {
+    "order_id": "ORD-1103",
+    "date": "2025-05-22",
+    "product": {
+      "id": "P104",
+      "name": "Glass Food Storage Containers (Set of 5)",
+      "price": 39.99,
+      "category": "Kitchen & Dining",
+      "description": "Meal prep glass containers with snap-lock lids and different compartments",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 24, 2025.",
+    "estimated_delivery": "2025-05-28"
+  },
+  {
+    "order_id": "ORD-1104",
+    "date": "2025-05-22",
+    "product": {
+      "id": "P105",
+      "name": "UV Phone Sanitizer",
+      "price": 39.99,
+      "category": "Electronics",
+      "description": "UV-C sanitizer box that kills 99.9% of germs on phones and small items",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 24, 2025.",
+    "estimated_delivery": "2025-05-28"
+  },
+  {
+    "order_id": "ORD-1105",
+    "date": "2025-05-23",
+    "product": {
+      "id": "P106",
+      "name": "Cotton Weighted Blanket",
+      "price": 79.99,
+      "category": "Bedding",
+      "description": "100% cotton weighted blanket with glass bead filling for better sleep",
+      "rating": 4.7,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 79.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 25, 2025.",
+    "estimated_delivery": "2025-05-29"
+  },
+  {
+    "order_id": "ORD-1106",
+    "date": "2025-05-23",
+    "product": {
+      "id": "P107",
+      "name": "Bike Phone Mount",
+      "price": 19.99,
+      "category": "Sports & Outdoors",
+      "description": "Universal bike phone mount with 360-degree rotation and secure grip",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 19.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 25, 2025.",
+    "estimated_delivery": "2025-05-29"
+  },
+  {
+    "order_id": "ORD-1107",
+    "date": "2025-05-23",
+    "product": {
+      "id": "P108",
+      "name": "Floating Wall Shelves (Set of 3)",
+      "price": 29.99,
+      "category": "Home Decor",
+      "description": "Rustic wood floating shelves for wall decor and storage",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 25, 2025.",
+    "estimated_delivery": "2025-05-29"
+  },
+  {
+    "order_id": "ORD-1108",
+    "date": "2025-05-24",
+    "product": {
+      "id": "P109",
+      "name": "Smart WiFi Digital Picture Frame",
+      "price": 99.99,
+      "category": "Electronics",
+      "description": "WiFi-enabled digital frame that receives photos via app",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 99.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 26, 2025.",
+    "estimated_delivery": "2025-05-30"
+  },
+  {
+    "order_id": "ORD-1109",
+    "date": "2025-05-24",
+    "product": {
+      "id": "P110",
+      "name": "Stainless Steel Compost Bin",
+      "price": 24.99,
+      "category": "Home & Garden",
+      "description": "Countertop compost bin with charcoal filter to eliminate odors",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 26, 2025.",
+    "estimated_delivery": "2025-05-30"
+  },
+  {
+    "order_id": "ORD-1110",
+    "date": "2025-05-24",
+    "product": {
+      "id": "P111",
+      "name": "Heated Eye Mask",
+      "price": 29.99,
+      "category": "Health & Wellness",
+      "description": "USB heated eye mask with temperature control and timer settings",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 26, 2025.",
+    "estimated_delivery": "2025-05-30"
+  },
+  {
+    "order_id": "ORD-1111",
+    "date": "2025-05-25",
+    "product": {
+      "id": "P112",
+      "name": "Vacuum Storage Bags (10-pack)",
+      "price": 29.99,
+      "category": "Home Organization",
+      "description": "Space-saving vacuum storage bags for clothes, bedding, and seasonal items",
+      "rating": 4.2,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 29.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 27, 2025.",
+    "estimated_delivery": "2025-05-31"
+  },
+  {
+    "order_id": "ORD-1112",
+    "date": "2025-05-25",
+    "product": {
+      "id": "P113",
+      "name": "Foldable Laptop Stand",
+      "price": 24.99,
+      "category": "Office Supplies",
+      "description": "Portable aluminum laptop stand with adjustable height and angle",
+      "rating": 4.5,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 24.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 27, 2025.",
+    "estimated_delivery": "2025-05-31"
+  },
+  {
+    "order_id": "ORD-1113",
+    "date": "2025-05-25",
+    "product": {
+      "id": "P114",
+      "name": "Indoor Herb Garden Kit",
+      "price": 34.99,
+      "category": "Home & Garden",
+      "description": "Indoor herb garden starter kit with 5 culinary herbs and wooden planter",
+      "rating": 4.3,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 34.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 27, 2025.",
+    "estimated_delivery": "2025-05-31"
+  },
+  {
+    "order_id": "ORD-1114",
+    "date": "2025-05-26",
+    "product": {
+      "id": "P115",
+      "name": "Waterproof Bluetooth Speaker",
+      "price": 59.99,
+      "category": "Electronics",
+      "description": "IPX7 waterproof Bluetooth speaker with 24-hour battery life and floating design",
+      "rating": 4.6,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 59.99,
+    "status": "Processing",
+    "status_details": "Your order is being processed. Expected to ship by May 28, 2025.",
+    "estimated_delivery": "2025-06-01"
+  },
+  {
+    "order_id": "ORD-1115",
+    "date": "2025-05-26",
+    "product": {
+      "id": "P116",
+      "name": "Smart Body Fat Scale",
+      "price": 39.99,
+      "category": "Health & Wellness",
+      "description": "Bluetooth body composition scale that tracks 13 metrics with smartphone app",
+      "rating": 4.4,
+      "in_stock": true
+    },
+    "quantity": 1,
+    "total": 39.99,
+    "status": "Placed",
+    "status_details": "Your order has been placed. Expected to ship by May 28, 2025.",
+    "estimated_delivery": "2025-06-01"
+  }
+]
