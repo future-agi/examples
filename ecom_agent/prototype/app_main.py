@@ -59,7 +59,7 @@ eval_tag = [
 
 trace_provider = register(
     project_type=ProjectType.EXPERIMENT,
-    project_name="ecom_agent_experiment-3",
+    project_name="ECOMMERCE_AGENT",
     project_version_name="v1",
     eval_tags=eval_tag
 )

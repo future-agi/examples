@@ -106,10 +106,16 @@ class EcommerceAgentObserve:
         """
         scenarios = {
             "basic": [
-                "Bluetooth Headphones .",
-                "Show me the products under $50.",
-                "I want to order the Bluetooth Headphones.",
-                "Yes, please place the order."
+                "show me Bluetooth Headphones .",
+                "show me the products under $50.",
+                "Find me a wireless keyboard under $100.",
+                "Generate an image of a modern office setup.",
+                "Change the color of the office chair to blue.",
+                "Find me a gaming mouse with RGB lighting.",
+                "Show me the best rated laptops.",
+                "Generate an image of a office chair.",
+                "Create a picture of a book shelves.",
+                "Search for noise-cancelling headphones."
             ],
             "image_recommendation": [
                 {"message": "Can you recommend a product based on this image?", "image": "test_images/living_room.jpg"},
