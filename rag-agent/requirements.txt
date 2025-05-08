@@ -1,0 +1,9 @@
+langchain
+langchain-core
+langchain-community
+langchain-experimental
+langchain-openai
+beautifulsoup4
+chromadb
+gradio
+traceAI-langchain
