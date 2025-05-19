@@ -9,6 +9,7 @@ import gradio as gr
 from dotenv import load_dotenv
 import base64
 from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+from eval_tags import eval_tags
 
 # Create necessary files
 def create_env_file():
@@ -36,7 +37,10 @@ from traceai_openai import OpenAIInstrumentor
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
+    # project_version_name='font_recommender_agent',
     project_name="image_font_project",
+    # eval_tags=eval_tags
+    session_name="font_recommender_agent"
 )
 
 # OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
@@ -80,7 +84,6 @@ def search_fonts(text_input, api_key=None):
                 "emotion_weights": emotion_weights,
                 "occasion_weights": occasion_weights
             })
-            span.set_attribute(SpanAttributes.OUTPUT_VALUE, output_value)
             child.set_attribute(SpanAttributes.OUTPUT_VALUE, output_value)
 
         # Get font suggestions based on weights
@@ -99,6 +102,9 @@ def search_fonts(text_input, api_key=None):
         ) as tool_span:
             font_suggestions = get_fonts_by_weights(emotion_weights, occasion_weights, top_n=5)
             tool_span.set_attribute(
+                SpanAttributes.OUTPUT_VALUE, json.dumps(font_suggestions)
+            )
+            span.set_attribute(
                 SpanAttributes.OUTPUT_VALUE, json.dumps(font_suggestions)
             )
     

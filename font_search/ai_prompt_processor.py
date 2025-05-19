@@ -82,10 +82,15 @@ def analyze_text_with_openai(text, emotions, occasions):
             result = response.choices[0].message.content
 
             # Set Span attributes
+            span.set_attribute(SpanAttributes.INPUT_VALUE, text)
             span.set_attribute("llm.input_messages.0.message.role", "user")
             span.set_attribute("llm.input_messages.0.message.content", prompt)
             span.set_attribute("llm.output_messages.0.message.role", "assistant")
             span.set_attribute("llm.output_messages.0.message.content", result)
+            span.set_attribute(SpanAttributes.OUTPUT_VALUE, result)
+            span.set_attribute(SpanAttributes.LLM_TOKEN_COUNT_TOTAL, response.usage.total_tokens)
+            span.set_attribute(SpanAttributes.LLM_TOKEN_COUNT_COMPLETION, response.usage.completion_tokens)
+            span.set_attribute(SpanAttributes.LLM_TOKEN_COUNT_PROMPT, response.usage.prompt_tokens)
             span.set_attribute("llm.output_messages.0.message.tool_calls.0.tool_call.function.name", "get_fonts_by_weights")
             
             # Extract JSON from the response
