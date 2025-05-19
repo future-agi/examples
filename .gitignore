@@ -70,3 +70,7 @@ generated_images/
 
 # Rendered products
 rendered_products/
+
+*/chroma_db/*
+**.pickle
+credentials.json
