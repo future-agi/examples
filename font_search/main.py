@@ -8,6 +8,7 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 import base64
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
 # Create necessary files
 def create_env_file():
@@ -38,8 +39,7 @@ trace_provider = register(
     project_name="image_font_project",
 )
 
-
-OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
+# OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
 
 from opentelemetry import trace
 
@@ -62,28 +62,44 @@ def search_fonts(text_input, api_key=None):
         os.environ["OPENAI_API_KEY"] = api_key.strip()
     
     # Process user input to get emotion and occasion weights
-    with tracer.start_as_current_span("process_user_input") as span:
-        with tracer.start_as_current_span("process_user_input") as child:
+    with tracer.start_as_current_span(
+        name="process_user_input", 
+        attributes={
+            SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.AGENT.value,
+            SpanAttributes.INPUT_VALUE: text_input}) as span:
+        
+        with tracer.start_as_current_span(
+            name="process_user_input", 
+            attributes={
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.CHAIN.value,
+                SpanAttributes.INPUT_VALUE: text_input}) as child:
+            
             emotion_weights, occasion_weights = process_user_input(text_input)
         
+            output_value = json.dumps({
+                "emotion_weights": emotion_weights,
+                "occasion_weights": occasion_weights
+            })
+            span.set_attribute(SpanAttributes.OUTPUT_VALUE, output_value)
+            child.set_attribute(SpanAttributes.OUTPUT_VALUE, output_value)
+
         # Get font suggestions based on weights
         with tracer.start_as_current_span(
             name="Tool - specific tool",
             attributes={
                 # Set these attributes prior to invoking the tool, in case the tool raises an exception
                 **{
-                    "fi.span.kind": "TOOL",
-                    "input.value": {
+                    SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.TOOL.value,
+                    SpanAttributes.INPUT_VALUE: json.dumps({
                         "emotion_weights": emotion_weights,
                         "occasion_weights": occasion_weights
-                    },
-                    "message.tool_calls.0.tool_call.function.name": "get_fonts_by_weights"
+                    })
                 },
             },
         ) as tool_span:
             font_suggestions = get_fonts_by_weights(emotion_weights, occasion_weights, top_n=5)
             tool_span.set_attribute(
-                "message.tool_calls.0.tool_call.function.output", json.dumps(font_suggestions)
+                SpanAttributes.OUTPUT_VALUE, json.dumps(font_suggestions)
             )
     
     # Format results as HTML

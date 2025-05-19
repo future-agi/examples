@@ -19,6 +19,7 @@ AI Font Finder is a Gradio application that helps you find the perfect font base
   - python-dotenv
   - pillow
   - requests
+  - traceAI-openai
 
 ## Installation
 
@@ -26,7 +27,7 @@ AI Font Finder is a Gradio application that helps you find the perfect font base
 
 2. Install the required dependencies:
 ```bash
-pip install gradio openai python-dotenv pillow requests
+pip install gradio openai python-dotenv pillow requests traceAI-openai
 ```
 
 3. (Optional) Set up your OpenAI API key:
@@ -38,7 +39,7 @@ pip install gradio openai python-dotenv pillow requests
 
 1. Navigate to the application directory:
 ```bash
-cd path/to/font_finder
+cd font_search
 ```
 
 2. Run the application:

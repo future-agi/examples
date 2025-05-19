@@ -8,14 +8,18 @@ import openai
 from dotenv import load_dotenv
 import json
 
+
 # Import font database to access all emotions and occasions
 from font_database import get_all_emotions, get_all_occasions
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+from opentelemetry import trace
 
 # Load environment variables (for OpenAI API key)
 load_dotenv()
 
 # Set OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY", "")
+tracer = trace.get_tracer(__name__)
 
 def analyze_text_with_openai(text, emotions, occasions):
     """
@@ -32,62 +36,79 @@ def analyze_text_with_openai(text, emotions, occasions):
     if not openai_api_key:
         # If no API key is available, use fallback method
         return fallback_text_analysis(text, emotions, occasions)
-    
-    try:
-        # Format emotions and occasions as comma-separated strings
-        emotions_str = ", ".join(emotions)
-        occasions_str = ", ".join(occasions)
-        
-        # Create the prompt for OpenAI
-        prompt = f"""
-        Analyze the following text that describes a purpose or occasion for font selection.
-        
-        Text: "{text}"
-        
-        Based on this text, assign weights (0.0 to 1.0) to the following emotions and occasions,
-        where 0.0 means not relevant at all and 1.0 means extremely relevant.
-        
-        Emotions: {emotions_str}
-        Occasions: {occasions_str}
-        
-        Return your analysis as a JSON object with two properties:
-        1. "emotion_weights": A dictionary mapping emotions to weights
-        2. "occasion_weights": A dictionary mapping occasions to weights
-        
-        Only include emotions and occasions with weights > 0.
-        """
-        
-        # Call OpenAI API
-        client = openai.OpenAI(api_key=openai_api_key)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an AI assistant that analyzes text to determine relevant emotions and occasions for font selection."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=500
-        )
-        
-        # Extract and parse the response
-        result = response.choices[0].message.content
-        
-        # Extract JSON from the response
-        json_str = result
-        if "```json" in result:
-            json_str = result.split("```json")[1].split("```")[0].strip()
-        elif "```" in result:
-            json_str = result.split("```")[1].split("```")[0].strip()
+    with tracer.start_as_current_span(
+        name="Chat Completion",
+        attributes={
+            SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
+        }) as span:
+        try:
+            # Format emotions and occasions as comma-separated strings
+            emotions_str = ", ".join(emotions)
+            occasions_str = ", ".join(occasions)
             
-        # Parse JSON
-        weights = json.loads(json_str)
-        
-        return weights["emotion_weights"], weights["occasion_weights"]
-        
-    except Exception as e:
-        print(f"Error using OpenAI API: {e}")
-        # Fallback to simpler method if API call fails
-        return fallback_text_analysis(text, emotions, occasions)
+            # Create the prompt for OpenAI
+            prompt = f"""
+            Analyze the following text that describes a purpose or occasion for font selection.
+            
+            Text: "{text}"
+            
+            Based on this text, assign weights (0.0 to 1.0) to the following emotions and occasions,
+            where 0.0 means not relevant at all and 1.0 means extremely relevant.
+            
+            Emotions: {emotions_str}
+            Occasions: {occasions_str}
+            
+            Return your analysis as a JSON object with two properties:
+            1. "emotion_weights": A dictionary mapping emotions to weights
+            2. "occasion_weights": A dictionary mapping occasions to weights
+            
+            Only include emotions and occasions with weights > 0.
+            """
+            
+            # Call OpenAI API
+
+            client = openai.OpenAI(api_key=openai_api_key)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an AI assistant that analyzes text to determine relevant emotions and occasions for font selection."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=500
+            )
+            
+            # Extract and parse the response
+            result = response.choices[0].message.content
+
+            # Set Span attributes
+            span.set_attribute("llm.input_messages.0.message.role", "user")
+            span.set_attribute("llm.input_messages.0.message.content", prompt)
+            span.set_attribute("llm.output_messages.0.message.role", "assistant")
+            span.set_attribute("llm.output_messages.0.message.content", result)
+            span.set_attribute("llm.output_messages.0.message.tool_calls.0.tool_call.function.name", "get_fonts_by_weights")
+            
+            # Extract JSON from the response
+            json_str = result
+            if "```json" in result:
+                json_str = result.split("```json")[1].split("```")[0].strip()
+            elif "```" in result:
+                json_str = result.split("```")[1].split("```")[0].strip()
+                
+            # Parse JSON
+            weights = json.loads(json_str)
+            span.set_attribute("llm.output_messages.0.message.tool_calls.0.tool_call.function.arguments", json.dumps(
+                {
+                    "emotion_weights": weights["emotion_weights"],
+                    "occasion_weights": weights["occasion_weights"]
+                }
+            ))
+            return weights["emotion_weights"], weights["occasion_weights"]
+            
+        except Exception as e:
+            print(f"Error using OpenAI API: {e}")
+            # Fallback to simpler method if API call fails
+            return fallback_text_analysis(text, emotions, occasions)
 
 def fallback_text_analysis(text, emotions, occasions):
     """
