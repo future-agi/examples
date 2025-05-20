@@ -75,3 +75,5 @@ rendered_products/
 **.pickle
 credentials.json
 */chroma_db/*
+
+*/output/*
