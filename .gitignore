@@ -72,3 +72,8 @@ generated_images/
 rendered_products/
 
 */chroma_db/*
+**.pickle
+credentials.json
+*/chroma_db/*
+
+*/output/*
