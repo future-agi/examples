@@ -1,0 +1,9 @@
+traceAI-langchain
+langgraph
+langchain_community
+langchain_anthropic
+langchain_experimental
+python-dotenv
+typing_extensions
+IPython
+langchain_openai
