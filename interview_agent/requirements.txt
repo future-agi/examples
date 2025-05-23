@@ -1,0 +1,11 @@
+"""
+Interview Agent - Requirements File
+Lists all required Python packages
+"""
+
+openai>=1.0.0
+chromadb>=0.4.0
+gradio>=5.0.0
+pydub>=0.25.0
+tqdm>=4.0.0
+python-dotenv
