@@ -3,8 +3,7 @@ sentence-transformers>=4.0.0
 langchain>=0.3.0
 openai>=1.0.0
 gradio>=5.0.0
-fi-instrumentation
+fi-instrumentation-otel
 futureagi
 traceAI-openai
-opentelemetry>=2.0.0
-python-dotenv>=1.0.0
+python-dotenv
