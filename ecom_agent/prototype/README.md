@@ -211,3 +211,16 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Gradio for the interactive interface
 - OpenAI for image processing capabilities
+
+
+# Run a specific conversation dataset
+python prototype.py --dataset shopping_journey
+
+# Run all datasets
+python prototype.py --all-datasets
+
+# Run with custom delay and save results
+python prototype.py --all-datasets --delay 2.0 --save-results
+
+# Interactive mode
+python prototype.py --interactive
