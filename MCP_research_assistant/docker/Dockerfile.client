@@ -1,0 +1,35 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir langchain-mcp-adapters==0.0.5 \
+    langchain==0.3.17 \
+    langchain==0.3.17 \
+    langchain-community==0.3.16 \
+    langchain-core==0.3.45 \
+    langchain-mcp-adapters==0.0.5 \
+    langchain-openai==0.2.14 \
+    langchain-text-splitters==0.3.4 \
+    langcodes==3.5.0 \
+    langgraph==0.2.61 \
+    langgraph-checkpoint==2.0.9 \
+    langgraph-sdk==0.1.48 \
+    fastapi==0.115.6 \
+    fastapi-cli==0.0.7 \
+    uvicorn==0.34.0 \
+    python-dotenv==1.0.1 \
+    pydantic==2.10.5 \
+    pydantic-settings==2.7.1 \
+    pydantic_core==2.27.2 \
+    ai-evaluation==0.1.0 \
+    futureagi \
+    traceAI-langchain==0.1.9 
+
+EXPOSE 8080
+
+COPY client_server.py .
+COPY .env .
+COPY langgraph.json .
+
+
+CMD ["python", "client_server.py"]

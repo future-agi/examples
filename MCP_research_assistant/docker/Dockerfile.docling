@@ -1,0 +1,28 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir mcp==1.4.1 \
+    docling==2.15.1 \
+    docling-core==2.15.1 \
+    docling-ibm-models==3.2.1 \
+    docling-parse==3.1.1 \
+    langchain==0.3.17 \
+    langchain-community==0.3.16 \
+    langchain-core==0.3.45 \
+    langchain-mcp-adapters==0.0.5 \
+    langchain-openai==0.2.14 \
+    langchain-text-splitters==0.3.4 \
+    langcodes==3.5.0 \
+    langgraph==0.2.61 \
+    langgraph-checkpoint==2.0.9 \
+    langgraph-sdk==0.1.48 \
+    tiktoken==0.8.0
+
+
+EXPOSE 8001
+
+COPY docling_server.py .
+COPY .env .
+
+CMD ["python", "docling_server.py"]
