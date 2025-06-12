@@ -1,0 +1,191 @@
+[
+      {
+      "id": 1,
+      "name": "Blue Cotton T-Shirt",
+      "category": "clothing",
+      "subcategory": "t-shirts",
+      "price": 19.99,
+      "rating": 4.5,
+      "colors": [
+        "blue",
+        "navy",
+        "light blue"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Comfortable cotton t-shirt in various shades of blue",
+      "in_stock": true,
+      "stock_count": 150,
+      "image_url": "generated_products/blue_cotton_t_shirt.png"
+    },
+      {
+      "id": 2,
+      "name": "Black Leather Jacket",
+      "category": "clothing",
+      "subcategory": "jackets",
+      "price": 89.99,
+      "rating": 4.8,
+      "colors": [
+        "black"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "Classic black leather jacket with silver zippers",
+      "in_stock": true,
+      "stock_count": 75,
+      "image_url": "generated_products/black_leather_jacket.png"
+    },
+      {
+      "id": 3,
+      "name": "Wireless Bluetooth Headphones",
+      "category": "electronics",
+      "subcategory": "audio",
+      "price": 129.99,
+      "rating": 4.6,
+      "colors": [
+        "black",
+        "white",
+        "silver"
+      ],
+      "description": "High-quality wireless headphones with noise cancellation",
+      "in_stock": true,
+      "stock_count": 200,
+      "image_url": "generated_products/wireless_bluetooth_headphones.png"
+    },
+      {
+      "id": 4,
+      "name": "Smartphone Stand",
+      "category": "electronics",
+      "subcategory": "accessories",
+      "price": 15.99,
+      "rating": 4.3,
+      "colors": [
+        "black",
+        "silver",
+        "rose gold"
+      ],
+      "description": "Adjustable stand for smartphones and tablets",
+      "in_stock": true,
+      "stock_count": 300,
+      "image_url": "generated_products/smartphone_stand.png"
+    },
+      {
+      "id": 5,
+      "name": "Running Shoes",
+      "category": "footwear",
+      "subcategory": "athletic",
+      "price": 79.99,
+      "rating": 4.7,
+      "colors": [
+        "black/white",
+        "blue/gray",
+        "red/black"
+      ],
+      "sizes": [
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "description": "Lightweight running shoes with cushioned soles",
+      "in_stock": true,
+      "stock_count": 120,
+      "image_url": "generated_products/running_shoes.png"
+    },
+      {
+      "id": 6,
+      "name": "Leather Wallet",
+      "category": "accessories",
+      "subcategory": "wallets",
+      "price": 39.99,
+      "rating": 4.4,
+      "colors": [
+        "brown",
+        "black"
+      ],
+      "description": "Genuine leather wallet with multiple card slots",
+      "in_stock": true,
+      "stock_count": 85,
+      "image_url": "generated_products/leather_wallet.png"
+    },
+      {
+      "id": 7,
+      "name": "Coffee Maker",
+      "category": "home",
+      "subcategory": "kitchen",
+      "price": 59.99,
+      "rating": 4.2,
+      "colors": [
+        "black",
+        "silver",
+        "white"
+      ],
+      "description": "Programmable coffee maker with 12-cup capacity",
+      "in_stock": true,
+      "stock_count": 60,
+      "image_url": "generated_products/coffee_maker.png"
+    },
+      {
+      "id": 8,
+      "name": "Yoga Mat",
+      "category": "fitness",
+      "subcategory": "yoga",
+      "price": 29.99,
+      "rating": 4.5,
+      "colors": [
+        "purple",
+        "blue",
+        "green",
+        "black"
+      ],
+      "description": "Non-slip yoga mat with carrying strap",
+      "in_stock": true,
+      "stock_count": 100,
+      "image_url": "generated_products/yoga_mat.png"
+    },
+      {
+      "id": 9,
+      "name": "Stainless Steel Water Bottle",
+      "category": "home",
+      "subcategory": "drinkware",
+      "price": 24.99,
+      "rating": 4.6,
+      "colors": [
+        "silver",
+        "black",
+        "blue",
+        "red"
+      ],
+      "description": "Insulated water bottle that keeps drinks cold for 24 hours",
+      "in_stock": true,
+      "stock_count": 150,
+      "image_url": "generated_products/stainless_steel_water_bottle.png"
+    },
+      {
+      "id": 10,
+      "name": "Wireless Charging Pad",
+      "category": "electronics",
+      "subcategory": "chargers",
+      "price": 34.99,
+      "rating": 4.4,
+      "colors": [
+        "black",
+        "white"
+      ],
+      "description": "Fast wireless charging pad compatible with most smartphones",
+      "in_stock": true,
+      "stock_count": 90,
+      "image_url": "generated_products/wireless_charging_pad.png"
+    }
+]
