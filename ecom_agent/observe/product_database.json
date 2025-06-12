@@ -1,191 +1,155 @@
 [
       {
       "id": 1,
-      "name": "Blue Cotton T-Shirt",
-      "category": "clothing",
-      "subcategory": "t-shirts",
-      "price": 19.99,
-      "rating": 4.5,
+      "name": "Kobalt 24V Max Cordless Drill",
+      "category": "tools",
+      "subcategory": "power-tools",
+      "price": 89.99,
+      "rating": 4.7,
       "colors": [
-        "blue",
-        "navy",
-        "light blue"
+        "blue"
       ],
-      "sizes": [
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
-      "description": "Comfortable cotton t-shirt in various shades of blue",
+      "description": "24V Max lithium-ion cordless drill with 2.0 Ah battery",
       "in_stock": true,
-      "stock_count": 150,
-      "image_url": "generated_products/blue_cotton_t_shirt.png"
+      "stock_count": 45,
+      "image_url": "generated_products/kobalt_drill.png"
     },
       {
       "id": 2,
-      "name": "Black Leather Jacket",
-      "category": "clothing",
-      "subcategory": "jackets",
-      "price": 89.99,
-      "rating": 4.8,
+      "name": "Scotts Turf Builder Lawn Food",
+      "category": "garden",
+      "subcategory": "fertilizer",
+      "price": 39.99,
+      "rating": 4.5,
       "colors": [
-        "black"
+        "green"
       ],
-      "sizes": [
-        "S",
-        "M",
-        "L",
-        "XL",
-        "XXL"
-      ],
-      "description": "Classic black leather jacket with silver zippers",
+      "description": "20 lb bag of lawn fertilizer for thick, green grass",
       "in_stock": true,
-      "stock_count": 75,
-      "image_url": "generated_products/black_leather_jacket.png"
+      "stock_count": 120,
+      "image_url": "generated_products/scotts_turf_builder.png"
     },
       {
       "id": 3,
-      "name": "Wireless Bluetooth Headphones",
-      "category": "electronics",
-      "subcategory": "audio",
-      "price": 129.99,
+      "name": "Kobalt 40V Max Lawn Mower",
+      "category": "outdoor",
+      "subcategory": "lawn-mowers",
+      "price": 399.99,
       "rating": 4.6,
       "colors": [
         "black",
-        "white",
-        "silver"
+        "blue"
       ],
-      "description": "High-quality wireless headphones with noise cancellation",
+      "description": "Battery-powered lawn mower with 40V lithium-ion battery",
       "in_stock": true,
-      "stock_count": 200,
-      "image_url": "generated_products/wireless_bluetooth_headphones.png"
+      "stock_count": 25,
+      "image_url": "generated_products/kobalt_mower.png"
     },
       {
       "id": 4,
-      "name": "Smartphone Stand",
-      "category": "electronics",
-      "subcategory": "accessories",
-      "price": 15.99,
+      "name": "Project Source LED Light Bulbs",
+      "category": "lighting",
+      "subcategory": "bulbs",
+      "price": 12.99,
       "rating": 4.3,
       "colors": [
-        "black",
-        "silver",
-        "rose gold"
+        "white",
+        "warm-white",
+        "daylight"
       ],
-      "description": "Adjustable stand for smartphones and tablets",
+      "description": "4-pack of energy-efficient LED light bulbs",
       "in_stock": true,
       "stock_count": 300,
-      "image_url": "generated_products/smartphone_stand.png"
+      "image_url": "generated_products/led_bulbs.png"
     },
       {
       "id": 5,
-      "name": "Running Shoes",
-      "category": "footwear",
-      "subcategory": "athletic",
-      "price": 79.99,
-      "rating": 4.7,
+      "name": "Kobalt 2000 PSI Pressure Washer",
+      "category": "outdoor",
+      "subcategory": "pressure-washers",
+      "price": 149.99,
+      "rating": 4.4,
       "colors": [
-        "black/white",
-        "blue/gray",
-        "red/black"
+        "blue"
       ],
-      "sizes": [
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12"
-      ],
-      "description": "Lightweight running shoes with cushioned soles",
+      "description": "Electric pressure washer with 2000 PSI cleaning power",
       "in_stock": true,
-      "stock_count": 120,
-      "image_url": "generated_products/running_shoes.png"
+      "stock_count": 35,
+      "image_url": "generated_products/pressure_washer.png"
     },
       {
       "id": 6,
-      "name": "Leather Wallet",
-      "category": "accessories",
-      "subcategory": "wallets",
-      "price": 39.99,
-      "rating": 4.4,
+      "name": "Scotts Miracle-Gro Potting Mix",
+      "category": "garden",
+      "subcategory": "soil",
+      "price": 14.99,
+      "rating": 4.6,
       "colors": [
-        "brown",
-        "black"
+        "brown"
       ],
-      "description": "Genuine leather wallet with multiple card slots",
+      "description": "8 qt bag of premium potting soil for indoor and outdoor plants",
       "in_stock": true,
-      "stock_count": 85,
-      "image_url": "generated_products/leather_wallet.png"
+      "stock_count": 200,
+      "image_url": "generated_products/potting_mix.png"
     },
       {
       "id": 7,
-      "name": "Coffee Maker",
-      "category": "home",
-      "subcategory": "kitchen",
-      "price": 59.99,
-      "rating": 4.2,
+      "name": "Kobalt 80V Max String Trimmer",
+      "category": "outdoor",
+      "subcategory": "trimmers",
+      "price": 179.99,
+      "rating": 4.5,
       "colors": [
-        "black",
-        "silver",
-        "white"
+        "blue"
       ],
-      "description": "Programmable coffee maker with 12-cup capacity",
+      "description": "Battery-powered string trimmer with 80V lithium-ion battery",
       "in_stock": true,
-      "stock_count": 60,
-      "image_url": "generated_products/coffee_maker.png"
+      "stock_count": 40,
+      "image_url": "generated_products/string_trimmer.png"
     },
       {
       "id": 8,
-      "name": "Yoga Mat",
-      "category": "fitness",
-      "subcategory": "yoga",
-      "price": 29.99,
-      "rating": 4.5,
+      "name": "Project Source Paint Roller Set",
+      "category": "paint",
+      "subcategory": "supplies",
+      "price": 19.99,
+      "rating": 4.4,
       "colors": [
-        "purple",
-        "blue",
-        "green",
-        "black"
+        "white"
       ],
-      "description": "Non-slip yoga mat with carrying strap",
+      "description": "9-piece paint roller set with tray and accessories",
       "in_stock": true,
-      "stock_count": 100,
-      "image_url": "generated_products/yoga_mat.png"
+      "stock_count": 85,
+      "image_url": "generated_products/paint_roller.png"
     },
       {
       "id": 9,
-      "name": "Stainless Steel Water Bottle",
-      "category": "home",
-      "subcategory": "drinkware",
-      "price": 24.99,
-      "rating": 4.6,
+      "name": "Kobalt 24V Max Leaf Blower",
+      "category": "outdoor",
+      "subcategory": "leaf-blowers",
+      "price": 129.99,
+      "rating": 4.5,
       "colors": [
-        "silver",
-        "black",
-        "blue",
-        "red"
+        "blue"
       ],
-      "description": "Insulated water bottle that keeps drinks cold for 24 hours",
+      "description": "Cordless leaf blower with 24V lithium-ion battery",
       "in_stock": true,
-      "stock_count": 150,
-      "image_url": "generated_products/stainless_steel_water_bottle.png"
+      "stock_count": 55,
+      "image_url": "generated_products/leaf_blower.png"
     },
       {
       "id": 10,
-      "name": "Wireless Charging Pad",
-      "category": "electronics",
-      "subcategory": "chargers",
-      "price": 34.99,
-      "rating": 4.4,
+      "name": "Project Source Storage Totes",
+      "category": "storage",
+      "subcategory": "containers",
+      "price": 24.99,
+      "rating": 4.3,
       "colors": [
-        "black",
-        "white"
+        "clear"
       ],
-      "description": "Fast wireless charging pad compatible with most smartphones",
+      "description": "Set of 3 clear plastic storage totes with lids",
       "in_stock": true,
-      "stock_count": 90,
-      "image_url": "generated_products/wireless_charging_pad.png"
+      "stock_count": 75,
+      "image_url": "generated_products/storage_totes.png"
     }
 ]
