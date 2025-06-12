@@ -30,6 +30,95 @@ class ProductRecommender:
             print(f"Error loading product database: {str(e)}")
             return []
     
+    def ensure_product_images_exist(self, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Ensure that product images exist, generate if missing"""
+        os.makedirs("generated_products", exist_ok=True)
+        
+        for product in products:
+            image_path = product.get("image_url", "")
+            if image_path and not os.path.exists(image_path):
+                logger.info(f"Generating image for product: {product['name']}")
+                
+                # Generate product image using DALL-E
+                generated_path = self.generate_product_image_dalle(product)
+                if generated_path:
+                    product["image_url"] = generated_path
+                    logger.info(f"Generated image saved to: {generated_path}")
+                else:
+                    # Fallback: create a placeholder image
+                    product["image_url"] = self.create_placeholder_image(product)
+        
+        return products
+
+    def generate_product_image_dalle(self, product: Dict[str, Any]) -> Optional[str]:
+        """Generate a product image using DALL-E"""
+        try:
+            # Create a detailed prompt for the product
+            prompt = f"A high-quality product photo of {product['name']}: {product['description']}. "
+            prompt += f"Professional e-commerce style, clean white background, well-lit, "
+            
+            if product.get('colors'):
+                color_str = ', '.join(product['colors'][:2])  # Use first 2 colors
+                prompt += f"featuring {color_str} color. "
+            
+            prompt += "Product photography, commercial quality, detailed and sharp."
+            
+            # Call OpenAI DALL-E
+            result = self.openai_helper.generate_image(prompt)
+            
+            if result["success"]:
+                # Save the image
+                filename = f"generated_products/{product['name'].lower().replace(' ', '_').replace('-', '_')}.png"
+                
+                import requests
+                response = requests.get(result["image_url"])
+                if response.status_code == 200:
+                    with open(filename, 'wb') as f:
+                        f.write(response.content)
+                    return filename
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error generating image for product {product['name']}: {str(e)}")
+            return None
+
+    def create_placeholder_image(self, product: Dict[str, Any]) -> str:
+        """Create a placeholder image for products"""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            
+            # Create a simple placeholder image
+            img = Image.new('RGB', (300, 300), color='lightgray')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use a default font
+            try:
+                font = ImageFont.truetype("arial.ttf", 16)
+            except:
+                font = ImageFont.load_default()
+            
+            # Add product name to the image
+            text = product['name']
+            text_bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = text_bbox[2] - text_bbox[0]
+            text_height = text_bbox[3] - text_bbox[1]
+            
+            # Center the text
+            x = (300 - text_width) // 2
+            y = (300 - text_height) // 2
+            
+            draw.text((x, y), text, fill='black', font=font)
+            
+            # Save placeholder
+            filename = f"generated_products/placeholder_{product['id']}.png"
+            img.save(filename)
+            return filename
+            
+        except Exception as e:
+            logger.error(f"Error creating placeholder for product {product['name']}: {str(e)}")
+            return "generated_products/default_placeholder.png"
+    
     def analyze_user_image(self, image_path: str, query: str = "") -> Dict[str, Any]:
         """Analyze a user-provided image using GPT-4 Vision"""
         if not os.path.exists(image_path):
@@ -137,20 +226,24 @@ class ProductRecommender:
              logger.warning("LLM recommendation failed or returned no valid IDs. Falling back to top filtered candidates.")
              recommended_products = candidate_products[:3] # Take top 3 from filtered list
 
-        # Step 5: Prepare and store response
+        # Step 5: Ensure product images exist
+        recommended_products = self.ensure_product_images_exist(recommended_products)
+
+        # Step 6: Prepare and store response
         recommendations_response = {
-            "type": "recommendation_result", # Changed type for clarity
+            "type": "recommendation_result",
             "image_path": image_path,
             "query": query,
             "search_criteria": search_criteria,
             "recommendations": recommended_products,
-            "message": "Here are some products you might like:"
+            "message": "Here are some products you might like:",
+            "has_images": True
         }
             
         if self.memory_system:
              self.memory_system.add("product_recommendations", recommendations_response)
             
-        logger.info(f"Returning {len(recommended_products)} recommendations.")
+        logger.info(f"Returning {len(recommended_products)} recommendations with images.")
         return recommendations_response
 
     def _filter_products(self, criteria: Dict[str, Any]) -> List[Dict[str, Any]]:

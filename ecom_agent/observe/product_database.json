@@ -1,0 +1,155 @@
+[
+      {
+      "id": 1,
+      "name": "Kobalt 24V Max Cordless Drill",
+      "category": "tools",
+      "subcategory": "power-tools",
+      "price": 89.99,
+      "rating": 4.7,
+      "colors": [
+        "blue"
+      ],
+      "description": "24V Max lithium-ion cordless drill with 2.0 Ah battery",
+      "in_stock": true,
+      "stock_count": 45,
+      "image_url": "generated_products/kobalt_drill.png"
+    },
+      {
+      "id": 2,
+      "name": "Scotts Turf Builder Lawn Food",
+      "category": "garden",
+      "subcategory": "fertilizer",
+      "price": 39.99,
+      "rating": 4.5,
+      "colors": [
+        "green"
+      ],
+      "description": "20 lb bag of lawn fertilizer for thick, green grass",
+      "in_stock": true,
+      "stock_count": 120,
+      "image_url": "generated_products/scotts_turf_builder.png"
+    },
+      {
+      "id": 3,
+      "name": "Kobalt 40V Max Lawn Mower",
+      "category": "outdoor",
+      "subcategory": "lawn-mowers",
+      "price": 399.99,
+      "rating": 4.6,
+      "colors": [
+        "black",
+        "blue"
+      ],
+      "description": "Battery-powered lawn mower with 40V lithium-ion battery",
+      "in_stock": true,
+      "stock_count": 25,
+      "image_url": "generated_products/kobalt_mower.png"
+    },
+      {
+      "id": 4,
+      "name": "Project Source LED Light Bulbs",
+      "category": "lighting",
+      "subcategory": "bulbs",
+      "price": 12.99,
+      "rating": 4.3,
+      "colors": [
+        "white",
+        "warm-white",
+        "daylight"
+      ],
+      "description": "4-pack of energy-efficient LED light bulbs",
+      "in_stock": true,
+      "stock_count": 300,
+      "image_url": "generated_products/led_bulbs.png"
+    },
+      {
+      "id": 5,
+      "name": "Kobalt 2000 PSI Pressure Washer",
+      "category": "outdoor",
+      "subcategory": "pressure-washers",
+      "price": 149.99,
+      "rating": 4.4,
+      "colors": [
+        "blue"
+      ],
+      "description": "Electric pressure washer with 2000 PSI cleaning power",
+      "in_stock": true,
+      "stock_count": 35,
+      "image_url": "generated_products/pressure_washer.png"
+    },
+      {
+      "id": 6,
+      "name": "Scotts Miracle-Gro Potting Mix",
+      "category": "garden",
+      "subcategory": "soil",
+      "price": 14.99,
+      "rating": 4.6,
+      "colors": [
+        "brown"
+      ],
+      "description": "8 qt bag of premium potting soil for indoor and outdoor plants",
+      "in_stock": true,
+      "stock_count": 200,
+      "image_url": "generated_products/potting_mix.png"
+    },
+      {
+      "id": 7,
+      "name": "Kobalt 80V Max String Trimmer",
+      "category": "outdoor",
+      "subcategory": "trimmers",
+      "price": 179.99,
+      "rating": 4.5,
+      "colors": [
+        "blue"
+      ],
+      "description": "Battery-powered string trimmer with 80V lithium-ion battery",
+      "in_stock": true,
+      "stock_count": 40,
+      "image_url": "generated_products/string_trimmer.png"
+    },
+      {
+      "id": 8,
+      "name": "Project Source Paint Roller Set",
+      "category": "paint",
+      "subcategory": "supplies",
+      "price": 19.99,
+      "rating": 4.4,
+      "colors": [
+        "white"
+      ],
+      "description": "9-piece paint roller set with tray and accessories",
+      "in_stock": true,
+      "stock_count": 85,
+      "image_url": "generated_products/paint_roller.png"
+    },
+      {
+      "id": 9,
+      "name": "Kobalt 24V Max Leaf Blower",
+      "category": "outdoor",
+      "subcategory": "leaf-blowers",
+      "price": 129.99,
+      "rating": 4.5,
+      "colors": [
+        "blue"
+      ],
+      "description": "Cordless leaf blower with 24V lithium-ion battery",
+      "in_stock": true,
+      "stock_count": 55,
+      "image_url": "generated_products/leaf_blower.png"
+    },
+      {
+      "id": 10,
+      "name": "Project Source Storage Totes",
+      "category": "storage",
+      "subcategory": "containers",
+      "price": 24.99,
+      "rating": 4.3,
+      "colors": [
+        "clear"
+      ],
+      "description": "Set of 3 clear plastic storage totes with lids",
+      "in_stock": true,
+      "stock_count": 75,
+      "image_url": "generated_products/storage_totes.png"
+    }
+]
