@@ -1,0 +1,17 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir langchain-mcp-adapters==0.0.5 \
+    mcp==1.4.1 \
+    arxiv==2.1.3 \
+    pydantic==2.10.5 \
+    pydantic-settings==2.7.1 \
+    pydantic_core==2.27.2
+
+EXPOSE 8000
+
+COPY arxiv_server.py .
+COPY .env .
+
+CMD ["python", "arxiv_server.py"]

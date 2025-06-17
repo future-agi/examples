@@ -176,7 +176,7 @@ class OrderSkill:
             logger.debug(f"Created plan with task_id: {task_id}, Steps: {[s['description'] for s in plan['steps']]}")
             # Verify plan has expected steps
             if len(plan.get("steps", [])) != 7:
-                 logger.warning(f"Planner did not generate the expected 7 steps for order placement. Generated {len(plan.get("steps", []))} steps.")
+                 logger.warning("Planner did not generate the expected 7 steps for order placement. Generated %s steps.", len(plan.get("steps", [])))
                  # Handle this? Fallback? For now, continue and hope IDs match.
 
         # Step 1: Identify product (ID 0)
