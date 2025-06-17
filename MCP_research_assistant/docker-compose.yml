@@ -1,0 +1,33 @@
+services:
+  arxiv-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.arxiv
+    ports:
+      - "8000:8000"
+  
+  docling-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.docling
+    ports:
+      - "8001:8001"
+  
+  client-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+    ports:
+      - "8080:8080"
+    depends_on:
+      - arxiv-server
+      - docling-server
+
+  streamlit-app:
+      build:
+        context: .
+        dockerfile: docker/Dockerfile.streamlit
+      ports:
+        - "8501:8501"
+      depends_on:
+        - client-server
