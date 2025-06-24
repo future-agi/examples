@@ -9,10 +9,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 from opentelemetry import trace
 from fi_instrumentation import register
-from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues
+from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues, ModelChoices
 
 load_dotenv()
 
+# Register once at module level to avoid signal handler issues
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
     project_name="ecom_agent_observe",
@@ -204,6 +205,10 @@ class IntegratedEcommerceAgent:
         return "Conversation cleared."
     
     def process_query(self, query: str, image: Optional[str] = None) -> Tuple[str, Optional[str]]:
+        # Create a unique session identifier for each request
+        import time
+        session_id = f"session_{int(time.time() * 1000)}"
+        
         with tracer.start_as_current_span("process_query", 
             attributes={
                 SpanAttributes.INPUT_VALUE: query,
@@ -211,6 +216,8 @@ class IntegratedEcommerceAgent:
                 "llm.input_messages.0.message.role": "user",
                 "llm.input_messages.0.message.content": query,
                 SpanAttributes.RAW_INPUT: query,
+                "session.id": session_id,
+                "session.name": "Ecom Chat Session",
         }) as span:
             """Process a user query and return a response and optional image path"""
             try:
@@ -598,7 +605,6 @@ if __name__ == "__main__":
             server_name="0.0.0.0",  # Listen on all network interfaces
             server_port=7860,       # Use the standard Gradio port
             share=True,             # Create a shareable link
-            queue=False             # Disable the queue system to fix 405 errors
         )
         logger.info("Integrated e-commerce agent is running")
     except Exception as e:

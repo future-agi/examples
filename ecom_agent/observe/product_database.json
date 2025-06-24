@@ -152,4 +152,279 @@
       "stock_count": 75,
       "image_url": "generated_products/storage_totes.png"
     }
-]
+,
+    {
+      "id": 11,
+      "name": "Carhartt Men's Work Jacket",
+      "category": "clothing",
+      "subcategory": "jackets",
+      "price": 89.99,
+      "rating": 4.7,
+      "colors": [
+        "brown",
+        "black",
+        "navy"
+      ],
+      "description": "Durable canvas work jacket with multiple pockets",
+      "in_stock": true,
+      "stock_count": 32,
+      "image_url": "generated_products/work_jacket.png"
+    },
+    {
+      "id": 12,
+      "name": "Dickies Work Pants",
+      "category": "clothing",
+      "subcategory": "pants",
+      "price": 34.99,
+      "rating": 4.5,
+      "colors": [
+        "khaki",
+        "navy",
+        "black"
+      ],
+      "description": "Heavy-duty work pants with reinforced knees",
+      "in_stock": true,
+      "stock_count": 68,
+      "image_url": "generated_products/work_pants.png"
+    },
+    {
+      "id": 13,
+      "name": "Red Kap Work Shirt",
+      "category": "clothing",
+      "subcategory": "shirts",
+      "price": 24.99,
+      "rating": 4.4,
+      "colors": [
+        "blue",
+        "gray",
+        "white"
+      ],
+      "description": "Short sleeve work shirt with button-down collar",
+      "in_stock": true,
+      "stock_count": 45,
+      "image_url": "generated_products/work_shirt.png"
+    },
+    {
+      "id": 14,
+      "name": "Timberland Steel Toe Boots",
+      "category": "clothing",
+      "subcategory": "footwear",
+      "price": 149.99,
+      "rating": 4.8,
+      "colors": [
+        "brown",
+        "black"
+      ],
+      "description": "Safety boots with steel toe protection and slip-resistant sole",
+      "in_stock": true,
+      "stock_count": 28,
+      "image_url": "generated_products/steel_toe_boots.png"
+    },
+    {
+      "id": 15,
+      "name": "Mechanix Work Gloves",
+      "category": "clothing",
+      "subcategory": "gloves",
+      "price": 19.99,
+      "rating": 4.6,
+      "colors": [
+        "black",
+        "gray",
+        "blue"
+      ],
+      "description": "Synthetic leather work gloves with reinforced palm",
+      "in_stock": true,
+      "stock_count": 92,
+      "image_url": "generated_products/work_gloves.png"
+    },
+    {
+      "id": 16,
+      "name": "Carhartt Insulated Coveralls",
+      "category": "clothing",
+      "subcategory": "coveralls",
+      "price": 179.99,
+      "rating": 4.7,
+      "colors": [
+        "brown",
+        "navy"
+      ],
+      "description": "Insulated coveralls for cold weather work",
+      "in_stock": true,
+      "stock_count": 18,
+      "image_url": "generated_products/coveralls.png"
+    },
+    {
+      "id": 17,
+      "name": "Levi's 501 Original Jeans",
+      "category": "clothing",
+      "subcategory": "jeans",
+      "price": 69.99,
+      "rating": 4.5,
+      "colors": [
+        "blue",
+        "black",
+        "gray"
+      ],
+      "description": "Classic straight-leg jeans with authentic fit and vintage styling",
+      "in_stock": true,
+      "stock_count": 85,
+      "image_url": "generated_products/levis_jeans.png"
+    },
+    {
+      "id": 18,
+      "name": "Nike Air Max Sneakers",
+      "category": "clothing",
+      "subcategory": "footwear",
+      "price": 129.99,
+      "rating": 4.7,
+      "colors": [
+        "white",
+        "black",
+        "red",
+        "blue"
+      ],
+      "description": "Comfortable athletic sneakers with Air Max cushioning technology",
+      "in_stock": true,
+      "stock_count": 64,
+      "image_url": "generated_products/nike_sneakers.png"
+    },
+    {
+      "id": 19,
+      "name": "Ralph Lauren Polo Shirt",
+      "category": "clothing",
+      "subcategory": "shirts",
+      "price": 89.99,
+      "rating": 4.6,
+      "colors": [
+        "white",
+        "navy",
+        "red",
+        "green"
+      ],
+      "description": "Classic cotton polo shirt with embroidered logo",
+      "in_stock": true,
+      "stock_count": 72,
+      "image_url": "generated_products/polo_shirt.png"
+    },
+    {
+      "id": 20,
+      "name": "Adidas Track Jacket",
+      "category": "clothing",
+      "subcategory": "jackets",
+      "price": 79.99,
+      "rating": 4.4,
+      "colors": [
+        "black",
+        "navy",
+        "gray"
+      ],
+      "description": "Sporty track jacket with three-stripe design and full zip",
+      "in_stock": true,
+      "stock_count": 45,
+      "image_url": "generated_products/track_jacket.png"
+    },
+    {
+      "id": 21,
+      "name": "Calvin Klein Dress Shirt",
+      "category": "clothing",
+      "subcategory": "shirts",
+      "price": 59.99,
+      "rating": 4.5,
+      "colors": [
+        "white",
+        "blue",
+        "gray"
+      ],
+      "description": "Slim-fit dress shirt perfect for business or formal occasions",
+      "in_stock": true,
+      "stock_count": 38,
+      "image_url": "generated_products/dress_shirt.png"
+    },
+    {
+      "id": 22,
+      "name": "Tommy Hilfiger Chino Pants",
+      "category": "clothing",
+      "subcategory": "pants",
+      "price": 69.99,
+      "rating": 4.3,
+      "colors": [
+        "khaki",
+        "navy",
+        "black"
+      ],
+      "description": "Classic chino pants with tailored fit and stretch comfort",
+      "in_stock": true,
+      "stock_count": 56,
+      "image_url": "generated_products/chino_pants.png"
+    },
+    {
+      "id": 23,
+      "name": "Converse Chuck Taylor Sneakers",
+      "category": "clothing",
+      "subcategory": "footwear",
+      "price": 59.99,
+      "rating": 4.6,
+      "colors": [
+        "white",
+        "black",
+        "red",
+        "navy"
+      ],
+      "description": "Iconic canvas sneakers with classic high-top design",
+      "in_stock": true,
+      "stock_count": 89,
+      "image_url": "generated_products/converse_sneakers.png"
+    },
+    {
+      "id": 24,
+      "name": "H&M Casual Hoodie",
+      "category": "clothing",
+      "subcategory": "hoodies",
+      "price": 39.99,
+      "rating": 4.2,
+      "colors": [
+        "gray",
+        "black",
+        "navy",
+        "burgundy"
+      ],
+      "description": "Comfortable cotton-blend hoodie with kangaroo pocket",
+      "in_stock": true,
+      "stock_count": 103,
+      "image_url": "generated_products/casual_hoodie.png"
+    },
+    {
+      "id": 25,
+      "name": "Zara Leather Jacket",
+      "category": "clothing",
+      "subcategory": "jackets",
+      "price": 199.99,
+      "rating": 4.7,
+      "colors": [
+        "black",
+        "brown"
+      ],
+      "description": "Genuine leather jacket with modern cut and metal hardware",
+      "in_stock": true,
+      "stock_count": 22,
+      "image_url": "generated_products/leather_jacket.png"
+    },
+    {
+      "id": 26,
+      "name": "Uniqlo Merino Wool Sweater",
+      "category": "clothing",
+      "subcategory": "sweaters",
+      "price": 49.99,
+      "rating": 4.5,
+      "colors": [
+        "gray",
+        "navy",
+        "beige",
+        "burgundy"
+      ],
+      "description": "Soft merino wool crew neck sweater with refined finish",
+      "in_stock": true,
+      "stock_count": 67,
+      "image_url": "generated_products/wool_sweater.png"
+    }
+  ]
