@@ -1,0 +1,43 @@
+# Brand Campaign Agent Configuration
+
+# OpenAI API Settings
+openai:
+  api_key: "${OPENAI_API_KEY}"  # Set via environment variable
+  model_text: "gpt-4o"
+  model_image: "gpt-image-1"
+  max_tokens: 2000
+  temperature: 0.7
+
+# Image Generation Settings
+image_generation:
+  enabled: true
+  size: "1024x1024"
+  quality: "standard"
+  
+# Content Generation Limits
+content_limits:
+  max_headlines: 5
+  max_taglines: 3
+  max_ad_copy_variants: 3
+  max_social_posts: 3
+
+# Output Settings
+output:
+  directory: "./output"
+  create_subdirectories: true
+  save_json: true
+  save_markdown: true
+
+# Brand Analysis Settings
+brand_analysis:
+  enabled: true
+  include_color_psychology: true
+  include_typography_analysis: true
+  include_competitor_analysis: false
+
+# Quality Control
+quality_control:
+  validate_outputs: true
+  check_brand_consistency: true
+  content_appropriateness_check: true
+

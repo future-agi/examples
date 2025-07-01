@@ -40,7 +40,7 @@ Each variation will use the same template structure but with modified descriptio
 
 The OpenAI 4o image generation API will be called with these parameters:
 
-- **Model**: "dall-e-3" (or the latest available model supporting 4o)
+- **Model**: "gpt-image-1" (or the latest available model supporting 4o)
 - **Prompt**: The crafted prompt for font generation
 - **n**: 1 (generate one image per request)
 - **size**: "1024x1024" (high resolution for clear font details)

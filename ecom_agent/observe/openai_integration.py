@@ -203,7 +203,7 @@ class OpenAIHelper:
                     "success": False
                 } 
     
-    def generate_image(self, prompt: str, model: str = "dall-e-3", size: str = "1024x1024", quality: str = "standard") -> Dict[str, Any]:
+    def generate_image(self, prompt: str, model: str = "gpt-image-1", size: str = "1024x1024", quality: str = "standard") -> Dict[str, Any]:
         """Generate an image using DALL-E"""
         with tracer.start_as_current_span("generate_image", 
             attributes={
