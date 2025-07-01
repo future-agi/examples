@@ -4,6 +4,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from openai_integration import OpenAIHelper
+from PIL import Image, ImageDraw, ImageFont
 
 logger = logging.getLogger("ecommerce_agent.search_skill")
 
@@ -21,10 +22,13 @@ class SearchSkill:
     def _load_product_database(self) -> List[Dict[str, Any]]:
         """Load or create a simulated product database"""
         try:
-            # Try to load existing database
-            if os.path.exists("ecom_agent/prototype/product_database.json"):
-                with open("ecom_agent/prototype/product_database.json", "r") as f:
-                    return json.load(f)
+            # Try to load existing database from multiple locations
+            for db_path in ["product_database.json", "ecom_agent/observe/product_database.json", "ecom_agent/prototype/product_database.json"]:
+                if os.path.exists(db_path):
+                    with open(db_path, "r") as f:
+                        data = json.load(f)
+                        logger.info(f"Loaded product database from {db_path}")
+                        return data
         except Exception as e:
             logger.error(f"Error loading product database: {str(e)}")
         
@@ -230,6 +234,9 @@ class SearchSkill:
             # Step 5 (Fallback): Rank results
             ranked_results = self._rank_results(search_results, context)
             logger.info(f"Fallback search completed with {len(ranked_results)} results.")
+        
+        # Ensure product images exist for all results
+        ranked_results = self.ensure_product_images_exist(ranked_results)
         # --- End Conditional Execution Path --- 
 
         # Prepare response (consistent structure)
@@ -242,6 +249,7 @@ class SearchSkill:
             "filters": filters,         # Will be empty if category path taken
             "results": ranked_results,  # Contains either category results or ranked fallback results
             "total_results": len(ranked_results),
+            "has_images": True,  # Indicate that results include images
             "timestamp": datetime.now().isoformat()
         }
         
@@ -437,3 +445,132 @@ class SearchSkill:
         ranked_results = sorted(results, key=lambda x: x["ranking_score"], reverse=True)
         
         return ranked_results
+
+    def ensure_product_images_exist(self, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Ensure all products have images, generating them if needed."""
+        updated_products = []
+        
+        for product in products:
+            # Create a copy to avoid modifying the original
+            product_copy = product.copy()
+            
+            image_path = product_copy.get('image_url')
+            if image_path and os.path.exists(image_path):
+                logger.debug(f"Image exists for product {product_copy['id']}: {image_path}")
+            else:
+                logger.info(f"Generating image for product {product_copy['id']}: {product_copy['name']}")
+                generated_path = self.generate_product_image_dalle(product_copy)
+                if generated_path:
+                    product_copy['image_url'] = generated_path
+                    logger.info(f"Generated image: {generated_path}")
+                else:
+                    # Fallback to placeholder
+                    placeholder_path = self.create_placeholder_image(product_copy)
+                    product_copy['image_url'] = placeholder_path
+                    logger.warning(f"Using placeholder image: {placeholder_path}")
+            
+            updated_products.append(product_copy)
+        
+        return updated_products
+
+    def generate_product_image_dalle(self, product: Dict[str, Any]) -> Optional[str]:
+        """Generate a product image using DALL-E 3."""
+        try:
+            # Create category-specific prompts
+            category_prompts = {
+                "clothing": "Professional product photography of {name} on white background, studio lighting, high quality, commercial photography style",
+                "electronics": "Clean product shot of {name} on white background, modern minimalist style, studio lighting, professional photography",
+                "footwear": "Professional shoe photography of {name} on white background, side angle, studio lighting, commercial quality",
+                "accessories": "Elegant product photography of {name} on white background, luxury style, professional lighting",
+                "home": "Clean lifestyle product shot of {name} on white background, modern minimalist style, professional photography",
+                "fitness": "Professional product photography of {name} on white background, clean modern style, studio lighting"
+            }
+            
+            category = product.get('category', 'general')
+            base_prompt = category_prompts.get(category, "Professional product photography of {name} on white background, studio lighting, high quality")
+            
+            # Create detailed prompt
+            prompt = base_prompt.format(name=product['name'])
+            if 'description' in product:
+                prompt += f", {product['description']}"
+            
+            # Create output directory
+            os.makedirs("generated_products", exist_ok=True)
+            
+            # Generate filename
+            safe_name = "".join(c for c in product['name'].lower() if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_name = safe_name.replace(' ', '_')
+            output_path = f"generated_products/{safe_name}.png"
+            
+            # Skip if already exists
+            if os.path.exists(output_path):
+                logger.info(f"Image already exists: {output_path}")
+                return output_path
+            
+            # Generate image using DALL-E
+            logger.info(f"Generating image with DALL-E for: {product['name']}")
+            result = self.openai_helper.generate_image(prompt, output_path)
+            
+            if result.get('success'):
+                logger.info(f"Successfully generated image: {output_path}")
+                return output_path
+            else:
+                logger.error(f"DALL-E generation failed: {result.get('error')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error generating product image: {str(e)}")
+            return None
+
+    def create_placeholder_image(self, product: Dict[str, Any]) -> str:
+        """Create a placeholder image for the product."""
+        try:
+            # Create output directory
+            os.makedirs("generated_products", exist_ok=True)
+            
+            # Generate filename
+            safe_name = "".join(c for c in product['name'].lower() if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_name = safe_name.replace(' ', '_')
+            output_path = f"generated_products/{safe_name}_placeholder.png"
+            
+            # Skip if already exists
+            if os.path.exists(output_path):
+                return output_path
+            
+            # Create placeholder image
+            img = Image.new('RGB', (400, 400), color='lightgray')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to load a font, fallback to default if not available
+            try:
+                font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 24)
+            except:
+                font = ImageFont.load_default()
+            
+            # Add text
+            text = product['name']
+            text_bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = text_bbox[2] - text_bbox[0]
+            text_height = text_bbox[3] - text_bbox[1]
+            
+            x = (400 - text_width) // 2
+            y = (400 - text_height) // 2
+            
+            draw.text((x, y), text, fill='black', font=font)
+            
+            # Add price
+            price_text = f"${product['price']}"
+            price_bbox = draw.textbbox((0, 0), price_text, font=font)
+            price_width = price_bbox[2] - price_bbox[0]
+            price_x = (400 - price_width) // 2
+            price_y = y + text_height + 20
+            
+            draw.text((price_x, price_y), price_text, fill='darkgreen', font=font)
+            
+            img.save(output_path)
+            logger.info(f"Created placeholder image: {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Error creating placeholder image: {str(e)}")
+            return None

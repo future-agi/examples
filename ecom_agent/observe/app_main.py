@@ -1,18 +1,22 @@
 import os
 import sys
 import logging
-from typing import Dict, Any, Optional, Tuple
+import base64
+from typing import Dict, Any, Optional, Tuple, List
 import gradio as gr
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageFont
 
 from opentelemetry import trace
 from fi_instrumentation import register
-from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues
+from fi_instrumentation.fi_types import ProjectType, EvalTag, EvalName, EvalTagType, EvalSpanKind, SpanAttributes, FiSpanKindValues, ModelChoices
 
+load_dotenv()
 
+# Register once at module level to avoid signal handler issues
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="ecom_agent_observe-2",
+    project_name="ecom_agent_observe",
     session_name="ecom_agent_observe",
 )
 
@@ -72,6 +76,118 @@ class IntegratedEcommerceAgent:
         
         logger.info("IntegratedEcommerceAgent initialized (without ProductRecommender)")
     
+    def get_image_base64(self, image_path: str) -> Optional[str]:
+        """Convert image to base64 string for span attributes."""
+        try:
+            if not os.path.exists(image_path):
+                logger.warning(f"Image file does not exist: {image_path}")
+                return None
+            
+            with open(image_path, "rb") as image_file:
+                # Read the raw image data and encode as base64
+                image_data = image_file.read()
+                base64_string = base64.b64encode(image_data).decode('utf-8')
+                logger.debug(f"Converted image to base64: {image_path} ({len(base64_string)} chars)")
+                return base64_string
+                
+        except Exception as e:
+            logger.error(f"Error converting image to base64: {str(e)}")
+            return None
+    
+    def create_product_composite_image(self, image_paths: List[str], products: List[Dict[str, Any]]) -> Optional[str]:
+        """Create a composite image showing multiple products in a grid layout."""
+        try:
+            if not image_paths:
+                return None
+            
+            # Create output directory
+            os.makedirs("rendered_products", exist_ok=True)
+            
+            # Load images
+            images = []
+            for path in image_paths:
+                if os.path.exists(path):
+                    img = Image.open(path)
+                    # Resize to standard size
+                    img = img.resize((300, 300), Image.Resampling.LANCZOS)
+                    images.append(img)
+            
+            if not images:
+                return None
+            
+            # Calculate grid dimensions
+            num_images = len(images)
+            if num_images == 1:
+                cols, rows = 1, 1
+            elif num_images == 2:
+                cols, rows = 2, 1
+            elif num_images <= 4:
+                cols, rows = 2, 2
+            else:
+                cols, rows = 3, 2  # Max 6 images
+                images = images[:6]
+            
+            # Create composite image
+            img_width, img_height = 300, 300
+            padding = 20
+            composite_width = cols * img_width + (cols + 1) * padding
+            composite_height = rows * img_height + (rows + 1) * padding + 100  # Extra space for text
+            
+            composite = Image.new('RGB', (composite_width, composite_height), color='white')
+            draw = ImageDraw.Draw(composite)
+            
+            # Try to load a font
+            try:
+                font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 16)
+                title_font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 24)
+            except:
+                font = ImageFont.load_default()
+                title_font = ImageFont.load_default()
+            
+            # Add title
+            title = f"Search Results ({len(images)} products)"
+            title_bbox = draw.textbbox((0, 0), title, font=title_font)
+            title_width = title_bbox[2] - title_bbox[0]
+            title_x = (composite_width - title_width) // 2
+            draw.text((title_x, 10), title, fill='black', font=title_font)
+            
+            # Place images in grid
+            for i, img in enumerate(images):
+                row = i // cols
+                col = i % cols
+                
+                x = padding + col * (img_width + padding)
+                y = 50 + padding + row * (img_height + padding)
+                
+                composite.paste(img, (x, y))
+                
+                # Add product name below image
+                if i < len(products):
+                    product_name = products[i].get('name', f'Product {i+1}')
+                    price = products[i].get('price', 0)
+                    text = f"{product_name}\n${price}"
+                    
+                    # Calculate text position
+                    text_bbox = draw.textbbox((0, 0), text, font=font)
+                    text_width = text_bbox[2] - text_bbox[0]
+                    text_x = x + (img_width - text_width) // 2
+                    text_y = y + img_height + 5
+                    
+                    draw.text((text_x, text_y), text, fill='black', font=font)
+            
+            # Save composite image
+            import time
+            timestamp = int(time.time())
+            output_path = f"rendered_products/search_results_{timestamp}.png"
+            composite.save(output_path)
+            
+            logger.info(f"Created composite image with {len(images)} products: {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Error creating composite image: {str(e)}")
+            return None
+    
     def add_to_conversation(self, role, content):
         """Add a message to the conversation history"""
         self.conversation_history.append({"role": role, "content": content})
@@ -89,6 +205,10 @@ class IntegratedEcommerceAgent:
         return "Conversation cleared."
     
     def process_query(self, query: str, image: Optional[str] = None) -> Tuple[str, Optional[str]]:
+        # Create a unique session identifier for each request
+        import time
+        session_id = f"session_{int(time.time() * 1000)}"
+        
         with tracer.start_as_current_span("process_query", 
             attributes={
                 SpanAttributes.INPUT_VALUE: query,
@@ -96,8 +216,10 @@ class IntegratedEcommerceAgent:
                 "llm.input_messages.0.message.role": "user",
                 "llm.input_messages.0.message.content": query,
                 SpanAttributes.RAW_INPUT: query,
+                "session.id": session_id,
+                "session.name": "Ecom Chat Session",
         }) as span:
-            """Process a user query and return a response"""
+            """Process a user query and return a response and optional image path"""
             try:
                 # --- Check for Pending Order Confirmation --- 
                 if self.pending_order_context:
@@ -155,10 +277,40 @@ class IntegratedEcommerceAgent:
                     # Format standard responses (including final order confirmation)
                     response = self._format_response(result)
                     image_path_result = result.get("image_path")
+                    
+                    # Handle images for search results and recommendations - create composite image
+                    if result.get("type") == "search_results" and result.get("has_images"):
+                        # Collect product images and create composite
+                        product_images = []
+                        products_with_images = []
+                        for product in result.get("results", [])[:6]:  # Show up to 6 images
+                            if product.get("image_url") and os.path.exists(product["image_url"]):
+                                product_images.append(product["image_url"])
+                                products_with_images.append(product)
+                        
+                        if product_images:
+                            # Create composite image
+                            composite_path = self.create_product_composite_image(product_images, products_with_images)
+                            if composite_path:
+                                image_path_result = composite_path
+                                logger.info(f"Created composite image with {len(product_images)} products: {composite_path}")
+                    elif result.get("type") == "recommendation_result" and result.get("has_images"):
+                        product_images = []
+                        products_with_images = []
+                        for product in result.get("recommendations", []):
+                            if product.get("image_url") and os.path.exists(product["image_url"]):
+                                product_images.append(product["image_url"])
+                                products_with_images.append(product)
+                        
+                        if product_images:
+                            composite_path = self.create_product_composite_image(product_images, products_with_images)
+                            if composite_path:
+                                image_path_result = composite_path
+                                logger.info(f"Created composite image with {len(product_images)} recommendations: {composite_path}")
 
                 # --- Add Assistant Response to History --- 
                 assistant_message = {"role": "assistant", "content": response}
-                # Add image ONLY if it came from the result (gen/edit/render)
+                # Add image ONLY if it came from the result (gen/edit/render/composite)
                 # Don't add the user's uploaded image to the assistant message
                 if image_path_result:
                     assistant_message["image"] = image_path_result
@@ -166,11 +318,23 @@ class IntegratedEcommerceAgent:
                 # self.conversation_history = self.conversation_history[-MAX_HISTORY:] 
                 self.conversation_history.append(assistant_message)
                 
-                # Update span (no change)
+                # Update span with response and image
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", response)
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, response)
                 span.set_attribute(SpanAttributes.RAW_OUTPUT, response)
+                
+                # Add image attribute if we have one (composite or single)
+                if image_path_result:
+                    # Convert image to base64 for span attribute (OpenTelemetry requirement)
+                    image_base64 = self.get_image_base64(image_path_result)
+                    if image_base64:
+                        span.set_attribute("llm.outputMessages.0.message.contents.1.messageContent.role", "assistant")
+                        span.set_attribute("llm.outputMessages.0.message.contents.1.messageContent.type", "image")
+                        span.set_attribute("llm.outputMessages.0.message.contents.1.messageContent.image", image_base64)
+                        logger.debug(f"Added base64 image to span: {image_path_result} ({len(image_base64)} chars)")
+                    else:
+                        logger.warning(f"Failed to convert image to base64: {image_path_result}")
 
                 return response, image_path_result 
                 
@@ -182,6 +346,7 @@ class IntegratedEcommerceAgent:
                 span.set_attribute("error.message", str(e))
                 span.set_attribute("llm.output_messages.0.message.role", "assistant")
                 span.set_attribute("llm.output_messages.0.message.content", error_response)
+                # No image in error case, so no image attribute needed
 
                 # Clear pending context on error too?
                 self.pending_order_context = None
@@ -196,19 +361,28 @@ class IntegratedEcommerceAgent:
             return result.get("response", "")
         
         elif result_type == "search_results":
-            # Format search results
-            response = f"Here are the search results for '{result['query']}':\n\n"
+            # Format search results with enhanced styling
+            response = f"🔍 **Here are the search results for '{result['query']}':**\n\n"
             
             if not result.get("results"):
-                return "I couldn't find any products matching your search. Please try different search terms."
+                return "❌ I couldn't find any products matching your search. Please try different search terms."
             
             for i, product in enumerate(result["results"][:5]):  # Show top 5 results
-                response += f"{i+1}. {product['name']} - ${product['price']} (Rating: {product['rating']})\n"
+                # Add emojis and better formatting
+                rating_stars = "⭐" * int(product.get('rating', 0))
+                response += f"**{i+1}. {product['name']}** - 💰${product['price']} ({rating_stars} {product.get('rating', 'N/A')})\n"
                 if "description" in product:
-                    response += f"   {product['description']}\n"
+                    response += f"   📝 {product['description']}\n"
+                if "colors" in product and product["colors"]:
+                    colors_str = ", ".join(product["colors"])
+                    response += f"   🎨 Available colors: {colors_str}\n"
+                response += "\n"
             
             if len(result["results"]) > 5:
-                response += f"\nFound {len(result['results'])} products in total."
+                response += f"📊 Found {len(result['results'])} products in total. Showing top 5 results."
+            
+            if result.get("has_images"):
+                response += "\n\n🖼️ **Product images are shown below.**"
         
         elif result_type == "order_confirmation":
             # Format order confirmation
@@ -324,7 +498,7 @@ def create_interface():
             query_text = message if message else "Analyze this image."
 
             response, rendered_image_path = agent.process_query(query_text, image_path)
-            logger.debug(f"Agent response: '{response[:50]}...', Rendered image path from process_query: {rendered_image_path}")
+            logger.debug(f"Agent response: '{response[:50]}...', Rendered image path: {rendered_image_path}")
             
             # --- Add rendered image to history if present --- 
             current_history = agent.get_conversation_history()
@@ -349,13 +523,15 @@ def create_interface():
                 logger.info(f"Updating separate rendered_image component: {rendered_image_path}")
                 rendered_update = gr.update(visible=True, value=rendered_image_path)
             
+            # Product images are now embedded as composite images directly in the chat
+            logger.info("Product images are embedded as composite images in chat messages")
+            
             # Return empty input, formatted history, rendered image update, AND clear image input
             return "", gradio_display_history, rendered_update, gr.update(value=None)
 
         def format_history_for_gradio(history: list[dict]) -> list[dict]:
             """Formats the internal history list for Gradio Chatbot(type='messages').
-               Ensures output is List[Dict[str, str]] with keys 'role' and 'content'.
-               Adds a text note if an image was associated with the message.
+               Handles single images including composite product images.
             """
             gradio_history = []
             for i, msg in enumerate(history):
@@ -375,21 +551,19 @@ def create_interface():
                 else:
                      content_text = content_text.strip()
 
-                # --- Add simple text note for image --- 
-                final_content = content_text
-                if image_path and isinstance(image_path, str):
-                     image_note = "\n[Image Attached]"
-                     # Prepend or append note? Let's prepend for visibility.
-                     final_content = f"{image_note}\n\n{final_content}" if final_content else image_note
-                elif image_path: # Log if image path is not a string
-                     logger.warning(f"Image path in history is not a string (index {i}): {image_path}")
-                # --- End image note logic --- 
+                # Create the gradio message
+                gradio_msg = {"role": role, "content": content_text}
+                
+                # Handle image (single images, composite images, etc.)
+                if image_path and isinstance(image_path, str) and os.path.exists(image_path):
+                    gradio_msg["image"] = image_path
+                    logger.debug(f"Added image to message {i}: {image_path}")
 
-                if final_content is None:
-                     logger.error(f"Final content became None unexpectedly (index {i}). Skipping message: {msg}")
+                if content_text is None:
+                     logger.error(f"Content became None unexpectedly (index {i}). Skipping message: {msg}")
                      continue
                      
-                gradio_history.append({"role": role, "content": final_content})
+                gradio_history.append(gradio_msg)
 
             logger.debug(f"Final Gradio history format for messages: {gradio_history}")
             return gradio_history
@@ -401,7 +575,7 @@ def create_interface():
         def clear_conversation():
             logger.debug("Clear conversation function called")
             agent.clear_conversation()
-            return [], [] # Return empty list for chatbot
+            return [], [] # Return empty list for chatbot and memory
         
         # Set up event handlers
         submit_btn.click(
@@ -431,7 +605,6 @@ if __name__ == "__main__":
             server_name="0.0.0.0",  # Listen on all network interfaces
             server_port=7860,       # Use the standard Gradio port
             share=True,             # Create a shareable link
-            queue=False             # Disable the queue system to fix 405 errors
         )
         logger.info("Integrated e-commerce agent is running")
     except Exception as e:

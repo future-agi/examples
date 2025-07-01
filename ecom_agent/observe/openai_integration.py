@@ -202,3 +202,45 @@ class OpenAIHelper:
                     "error": error_message,
                     "success": False
                 } 
+    
+    def generate_image(self, prompt: str, model: str = "gpt-image-1", size: str = "1024x1024", quality: str = "standard") -> Dict[str, Any]:
+        """Generate an image using DALL-E"""
+        with tracer.start_as_current_span("generate_image", 
+            attributes={
+                SpanAttributes.INPUT_VALUE: prompt,
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.LLM.value,
+                SpanAttributes.RAW_INPUT: prompt,
+            }) as span:
+            try:
+                response = self.client.images.generate(
+                    model=model,
+                    prompt=prompt,
+                    size=size,
+                    quality=quality,
+                    n=1
+                )
+                
+                image_url = response.data[0].url
+                
+                span.set_attribute("image.generation.model", model)
+                span.set_attribute("image.generation.size", size)
+                span.set_attribute("image.generation.quality", quality)
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, image_url)
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, image_url)
+                
+                return {
+                    "image_url": image_url,
+                    "success": True
+                }
+            except Exception as e:
+                error_message = f"{type(e).__name__}: {str(e)}"
+                logger.error(f"DALL-E image generation failed: {error_message}", exc_info=True)
+                
+                span.set_attribute("error.message", error_message)
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, error_message)
+                span.set_attribute(SpanAttributes.RAW_OUTPUT, json.dumps({"error": error_message}))
+                
+                return {
+                    "error": error_message,
+                    "success": False
+                } 
