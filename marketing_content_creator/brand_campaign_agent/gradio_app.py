@@ -25,6 +25,25 @@ from dotenv import load_dotenv
 # Add src directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
+
+from dotenv import load_dotenv
+load_dotenv()
+import base64
+
+from traceai_openai import OpenAIInstrumentor
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType,SpanAttributes,FiSpanKindValues
+)
+
+trace_provider = register(
+    project_type=ProjectType.OBSERVE,
+    project_name="brand_campaign_agent"
+)
+
+OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
+tracer = FITracer(trace_provider.get_tracer(__name__))
+
 try:
     from models import *
     from openai_client import OpenAIClient
@@ -514,109 +533,111 @@ def create_gradio_interface(api_key: str):
         budget_range, timeline, additional_context
     ):
         """Generate campaign using Gradio inputs"""
-        
-        try:
-            # Parse inputs
-            key_features_list = [f.strip() for f in key_features.split(',') if f.strip()]
-            usps_list = [u.strip() for u in usps.split(',') if u.strip()] if usps else []
-            locations_list = [l.strip() for l in locations.split(',') if l.strip()]
-            interests_list = [i.strip() for i in interests.split(',') if i.strip()] if interests else []
-            values_list = [v.strip() for v in values.split(',') if v.strip()] if values else []
-            objectives_list = [CampaignObjective(obj) for obj in objectives]
-            platforms_list = [PlatformType(platform) for platform in platforms]
-            
-            # Create campaign brief
-            brief = CampaignBrief(
-                product_info=ProductInfo(
-                    name=product_name,
-                    category=product_category,
-                    description=product_description,
-                    key_features=key_features_list,
-                    price_point=price_point,
-                    unique_selling_propositions=usps_list
-                ),
-                demographics=Demographics(
-                    age_range=(age_min, age_max),
-                    income_level=income_level,
-                    geographic_location=locations_list,
-                    education_level=education_level,
-                    interests=interests_list,
-                    values=values_list
-                ),
-                objectives=objectives_list,
-                platforms=platforms_list,
-                budget_range=budget_range if budget_range else None,
-                timeline=timeline if timeline else None,
-                additional_context=additional_context if additional_context else None
-            )
-            
-            # Generate campaign
-            orchestrator = CampaignOrchestrator(api_key)
-            campaign = orchestrator.generate_complete_campaign(brief)
-            
-            # Format outputs
-            headlines_output = "\n".join([f"• {h}" for h in campaign.text_content.headlines])
-            taglines_output = "\n".join([f"• {t}" for t in campaign.text_content.taglines])
-            
-            # Ad copy by platform
-            ad_copy_output = ""
-            for platform, copies in campaign.text_content.ad_copy.items():
-                ad_copy_output += f"**{platform.upper()}:**\n"
-                for i, copy in enumerate(copies, 1):
-                    ad_copy_output += f"{i}. {copy}\n\n"
-                ad_copy_output += "---\n\n"
-            
-            # Brand elements
-            brand_output = f"""**Color Palette:**
-• Primary: {campaign.brand_elements.color_palette.primary}
-• Secondary: {campaign.brand_elements.color_palette.secondary}
-• Accent: {campaign.brand_elements.color_palette.accent}
-• Neutral: {campaign.brand_elements.color_palette.neutral}
-• Background: {campaign.brand_elements.color_palette.background}
-• Text: {campaign.brand_elements.color_palette.text}
+        with tracer.start_as_current_span("Campaign_agent") as agent_span:
+            agent_span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
 
-**Color Psychology:**
-{campaign.brand_elements.color_palette.psychology}
+            try:
+                # Parse inputs
+                key_features_list = [f.strip() for f in key_features.split(',') if f.strip()]
+                usps_list = [u.strip() for u in usps.split(',') if u.strip()] if usps else []
+                locations_list = [l.strip() for l in locations.split(',') if l.strip()]
+                interests_list = [i.strip() for i in interests.split(',') if i.strip()] if interests else []
+                values_list = [v.strip() for v in values.split(',') if v.strip()] if values else []
+                objectives_list = [CampaignObjective(obj) for obj in objectives]
+                platforms_list = [PlatformType(platform) for platform in platforms]
+                
+                # Create campaign brief
+                brief = CampaignBrief(
+                    product_info=ProductInfo(
+                        name=product_name,
+                        category=product_category,
+                        description=product_description,
+                        key_features=key_features_list,
+                        price_point=price_point,
+                        unique_selling_propositions=usps_list
+                    ),
+                    demographics=Demographics(
+                        age_range=(age_min, age_max),
+                        income_level=income_level,
+                        geographic_location=locations_list,
+                        education_level=education_level,
+                        interests=interests_list,
+                        values=values_list
+                    ),
+                    objectives=objectives_list,
+                    platforms=platforms_list,
+                    budget_range=budget_range if budget_range else None,
+                    timeline=timeline if timeline else None,
+                    additional_context=additional_context if additional_context else None
+                )
+                
+                # Generate campaign
+                orchestrator = CampaignOrchestrator(api_key)
+                campaign = orchestrator.generate_complete_campaign(brief)
+                
+                # Format outputs
+                headlines_output = "\n".join([f"• {h}" for h in campaign.text_content.headlines])
+                taglines_output = "\n".join([f"• {t}" for t in campaign.text_content.taglines])
+                
+                # Ad copy by platform
+                ad_copy_output = ""
+                for platform, copies in campaign.text_content.ad_copy.items():
+                    ad_copy_output += f"**{platform.upper()}:**\n"
+                    for i, copy in enumerate(copies, 1):
+                        ad_copy_output += f"{i}. {copy}\n\n"
+                    ad_copy_output += "---\n\n"
+                
+                # Brand elements
+                brand_output = f"""**Color Palette:**
+    • Primary: {campaign.brand_elements.color_palette.primary}
+    • Secondary: {campaign.brand_elements.color_palette.secondary}
+    • Accent: {campaign.brand_elements.color_palette.accent}
+    • Neutral: {campaign.brand_elements.color_palette.neutral}
+    • Background: {campaign.brand_elements.color_palette.background}
+    • Text: {campaign.brand_elements.color_palette.text}
 
-**Typography:**
-• Primary Font: {campaign.brand_elements.typography.primary_font}
-• Secondary Font: {campaign.brand_elements.typography.secondary_font}
-• Heading Style: {campaign.brand_elements.typography.heading_style}
-• Body Style: {campaign.brand_elements.typography.body_style}
-• Rationale: {campaign.brand_elements.typography.font_pairing_rationale}
+    **Color Psychology:**
+    {campaign.brand_elements.color_palette.psychology}
 
-**Brand Personality:**
-{campaign.brand_elements.brand_personality}
+    **Typography:**
+    • Primary Font: {campaign.brand_elements.typography.primary_font}
+    • Secondary Font: {campaign.brand_elements.typography.secondary_font}
+    • Heading Style: {campaign.brand_elements.typography.heading_style}
+    • Body Style: {campaign.brand_elements.typography.body_style}
+    • Rationale: {campaign.brand_elements.typography.font_pairing_rationale}
 
-**Visual Style:**
-{campaign.brand_elements.visual_style}
-"""
-            
-            # Product descriptions
-            descriptions_output = "\n\n---\n\n".join(campaign.text_content.product_descriptions)
-            
-            # Campaign summary and recommendations
-            summary_output = f"""**Campaign Summary:**
-{campaign.campaign_summary}
+    **Brand Personality:**
+    {campaign.brand_elements.brand_personality}
 
-**Implementation Recommendations:**
-"""
-            for i, rec in enumerate(campaign.recommendations, 1):
-                summary_output += f"{i}. {rec}\n"
-            
-            return (
-                f"✅ Campaign '{campaign.campaign_id}' generated successfully!",
-                headlines_output,
-                taglines_output,
-                ad_copy_output,
-                brand_output,
-                descriptions_output,
-                summary_output
-            )
-            
-        except Exception as e:
-            error_msg = f"❌ Campaign generation failed: {str(e)}"
-            return error_msg, "", "", "", "", "", ""
+    **Visual Style:**
+    {campaign.brand_elements.visual_style}
+    """
+                
+                # Product descriptions
+                descriptions_output = "\n\n---\n\n".join(campaign.text_content.product_descriptions)
+                
+                # Campaign summary and recommendations
+                summary_output = f"""**Campaign Summary:**
+    {campaign.campaign_summary}
+
+    **Implementation Recommendations:**
+    """
+                for i, rec in enumerate(campaign.recommendations, 1):
+                    summary_output += f"{i}. {rec}\n"
+                
+                return (
+                    f"✅ Campaign '{campaign.campaign_id}' generated successfully!",
+                    headlines_output,
+                    taglines_output,
+                    ad_copy_output,
+                    brand_output,
+                    descriptions_output,
+                    summary_output
+                )
+                
+            except Exception as e:
+                error_msg = f"❌ Campaign generation failed: {str(e)}"
+                return error_msg, "", "", "", "", "", ""
     
     # Create the Gradio interface
     with gr.Blocks(
