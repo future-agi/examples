@@ -1,0 +1,65 @@
+{
+  "product_info": {
+    "name": "EcoSmart Water Bottle",
+    "category": "sustainable lifestyle product",
+    "description": "A smart water bottle that tracks hydration and is made from recycled materials",
+    "key_features": [
+      "Smart hydration tracking",
+      "Made from 100% recycled materials",
+      "Temperature control technology",
+      "Mobile app integration"
+    ],
+    "price_point": "premium",
+    "unique_selling_propositions": [
+      "First fully recycled smart water bottle",
+      "AI-powered hydration coaching",
+      "Carbon-neutral manufacturing"
+    ],
+    "competitors": [
+      "Hydro Flask",
+      "S'well",
+      "Yeti"
+    ]
+  },
+  "demographics": {
+    "age_range": [
+      25,
+      45
+    ],
+    "gender_distribution": {
+      "male": 40.0,
+      "female": 60.0
+    },
+    "income_level": "high",
+    "geographic_location": [
+      "United States",
+      "Canada",
+      "Western Europe"
+    ],
+    "education_level": "college",
+    "interests": [
+      "fitness",
+      "sustainability",
+      "technology",
+      "wellness"
+    ],
+    "values": [
+      "environmental responsibility",
+      "health consciousness",
+      "innovation"
+    ]
+  },
+  "objectives": [
+    "awareness",
+    "conversion"
+  ],
+  "platforms": [
+    "instagram",
+    "facebook",
+    "google_ads",
+    "website"
+  ],
+  "budget_range": "$50,000 - $100,000",
+  "timeline": "6 weeks",
+  "additional_context": "Launching during Earth Day season to maximize environmental messaging impact"
+}
