@@ -535,6 +535,16 @@ def create_gradio_interface(api_key: str):
         """Generate campaign using Gradio inputs"""
         with tracer.start_as_current_span("Campaign_agent") as agent_span:
             agent_span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+            agent_span.set_attribute(SpanAttributes.RAW_INPUT, json.dumps({
+                "product_name": product_name,
+                "product_category": product_category,
+                "product_description": product_description,
+                "key_features": key_features,
+                "price_point": price_point,
+                "usps": usps,
+                "age_min": age_min,
+                "age_max": age_max,
+            }))
 
             try:
                 # Parse inputs
