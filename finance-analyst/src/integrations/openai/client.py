@@ -12,7 +12,25 @@ from openai import OpenAI, AsyncOpenAI
 from openai.types.chat import ChatCompletion
 from openai.types import CreateEmbeddingResponse
 
-from config.settings import config
+# Try to import config; fallback to env vars
+try:
+    from config.settings import config  # type: ignore
+except ModuleNotFoundError:
+    from dataclasses import dataclass
+    import os
+    @dataclass
+    class _OpenAIConfig:
+        api_key: str = os.getenv("OPENAI_API_KEY", "")
+        organization: str | None = os.getenv("OPENAI_ORG")
+        timeout: int = int(os.getenv("OPENAI_TIMEOUT", "30"))
+        temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.1"))
+
+    @dataclass
+    class _Config:
+        openai: _OpenAIConfig = _OpenAIConfig()
+
+    config = _Config()  # type: ignore
+
 from src.utils.logging import get_component_logger
 
 logger = get_component_logger("openai_client")

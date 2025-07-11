@@ -9,8 +9,12 @@ import sys
 import asyncio
 import logging
 import uuid
+import json
+import time
+import random
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from fi.evals import Protect 
 
 # Add src to path
 sys.path.insert(0, 'src')
@@ -18,10 +22,54 @@ sys.path.insert(0, 'src')
 import gradio as gr
 import yfinance as yf
 import re
+from integrations.market_data.data_provider import market_data_manager
+import requests
+import pandas as pd
+
+# Function calling schemas for LLM routing
+FUNCTION_SCHEMAS = [
+    {
+        "name": "analyze_stocks",
+        "description": "Perform real-time stock analysis on up to 3 ticker symbols.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "symbols": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of stock tickers (max 3)"
+                },
+                "original_query": {
+                    "type": "string",
+                    "description": "Original user query"
+                }
+            },
+            "required": ["symbols", "original_query"]
+        }
+    },
+    {
+        "name": "explain_concept",
+        "description": "Provide an educational explanation of a trading or finance concept.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "type": "string",
+                    "description": "Concept to explain (e.g., RSI, P/E ratio)"
+                }
+            },
+            "required": ["topic"]
+        }
+    }
+]
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Rate limiting for Yahoo Finance
+LAST_REQUEST_TIME = 0
+MIN_REQUEST_INTERVAL = 1.0  # 1 second between requests
 
 class AITradingAssistant:
     """
@@ -32,6 +80,21 @@ class AITradingAssistant:
     def __init__(self):
         """Initialize the AI trading assistant"""
         logger.info("Initializing AI Trading Assistant...")
+        
+        # Simple cache for stock data
+        self.stock_cache = {}
+        self.cache_timeout = 300  # 5 minutes
+        
+        # Chat history management
+        self.chat_history = []
+
+        self.protector = Protect()
+        self.protect_rules = [
+                                {
+                                    "metric": "Toxicity"
+                                }
+                            ]
+        self.action = "I am Sorry I can't assist with that query"
         
         # Initialize OpenAI client if available
         self.openai_client = None
@@ -46,23 +109,127 @@ class AITradingAssistant:
         logger.info("🤖 AI Trading Assistant initialized successfully")
     
     async def process_message(self, message: str) -> str:
-        """
-        Process user message with real analysis
-        """
+        """Route the user message using LLM function calling when available."""
         try:
-            # Extract stock symbols
-            stock_symbols = self._extract_stock_symbols(message)
+            # Input protection - check user input first
+            protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action)
+            print(protection_result)    
+
+            if protection_result.get("status") == "failed":
+                error_msg = protection_result.get("messages", "I cannot process this request")
+                logger.warning(f"Input protection failed: {protection_result.get('reason', 'Unknown reason')}")
+                # Add to history and return immediately - skip all processing
+                self.chat_history.append({"role": "user", "content": message})
+                self.chat_history.append({"role": "assistant", "content": error_msg})
+                return error_msg
             
+            # Add user message to history
+            self.chat_history.append({"role": "user", "content": message})
+            
+            # If OpenAI client exists, let the model decide what to do
+            if self.openai_client:
+                router_sys_prompt = (
+                    "You are a router for an AI trading assistant. "
+                    "If the user wants stock analysis, call the analyze_stocks function. "
+                    "If the user asks a conceptual question (education), call explain_concept. "
+                    "Otherwise, answer normally."
+                )
+
+                # Build messages with history for context
+                context_messages = [
+                    {"role": "system", "content": router_sys_prompt},
+                    *self.chat_history[-10:]  # Keep last 10 messages for context
+                ]
+
+                response = await self.openai_client.chat_completion(
+                    messages=context_messages,
+                    model=self.model_type,
+                    functions=FUNCTION_SCHEMAS,
+                    function_call="auto"
+                )
+
+                choice = response.choices[0]
+                if choice.finish_reason == "function_call":
+                    fn = choice.message.function_call
+                    args = json.loads(fn.arguments or "{}")
+
+                    if fn.name == "analyze_stocks":
+                        result = await self._analyze_stocks(args.get("symbols", []), args.get("original_query", message))
+                    elif fn.name == "explain_concept":
+                        topic = args.get("topic", message)
+                        result = await self._handle_general_query(topic)
+
+                        protected_result = self.protector.protect(inputs= result, protect_rules=self.protect_rules, 
+                                                                  action= self.action)
+                        
+                        print(protected_result)
+
+                        if protected_result.get("status") == "failed":
+                            result = "I am Sorry I can't assist with that query"
+                        else:
+                            result = result
+                    
+                    # Add assistant response to history
+                    self.chat_history.append({"role": "assistant", "content": result})
+                    return result
+                    
+                # If no function_call, return the assistant content directly
+                result = choice.message.content
+                protected_result = self.protector.protect(inputs= result, protect_rules=self.protect_rules, 
+                                                                  action= self.action)
+                print(protected_result) 
+                if protected_result.get("status") == "failed":
+                    result = "I am Sorry I can't assist with that query"
+                else:
+                    result = result
+                self.chat_history.append({"role": "assistant", "content": result})
+                return result
+
+            # Fallback path (no OpenAI client)
+            stock_symbols = self._extract_stock_symbols(message)
             if stock_symbols:
-                # Perform real stock analysis
-                return await self._analyze_stocks(stock_symbols, message)
+                result = await self._analyze_stocks(stock_symbols, message)
             else:
-                # Handle general queries
-                return await self._handle_general_query(message)
-                
+                result = await self._handle_general_query(message)
+            
+            protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, 
+                                                                  action= self.action)
+            print(protected_result) 
+            if protected_result.get("status") == "failed":
+                result = "I am Sorry I can't assist with that query"
+            else:
+                result = result
+            
+            # Add assistant response to history
+            self.chat_history.append({"role": "assistant", "content": result})
+            return result
+
         except Exception as e:
             logger.error(f"Error processing message: {e}")
-            return f"I encountered an error while processing your request: {str(e)}"
+            error_msg = f"I encountered an error while processing your request: {str(e)}"
+            self.chat_history.append({"role": "assistant", "content": error_msg})
+            return error_msg
+    
+    def get_chat_history(self) -> List[Dict[str, str]]:
+        """Get the current chat history"""
+        return self.chat_history.copy()
+    
+    def clear_chat_history(self):
+        """Clear the chat history"""
+        self.chat_history = []
+        logger.info("Chat history cleared")
+    
+    def get_conversation_context(self, last_n: int = 5) -> str:
+        """Get conversation context as a formatted string"""
+        if not self.chat_history:
+            return "No previous conversation."
+        
+        context_messages = self.chat_history[-last_n * 2:]  # Get last n exchanges
+        context_str = "\n".join([
+            f"{'User' if msg['role'] == 'user' else 'Assistant'}: {msg['content'][:100]}..."
+            for msg in context_messages
+        ])
+        return context_str
     
     async def _analyze_stocks(self, symbols: List[str], original_query: str) -> str:
         """Analyze stocks with real data"""
@@ -92,57 +259,191 @@ class AITradingAssistant:
             return f"I encountered an error analyzing the stocks: {str(e)}"
     
     async def _get_real_stock_data(self, symbol: str) -> Optional[Dict]:
-        """Get real stock data using yfinance"""
+        """Get real stock data using yfinance with rate limiting and retry logic"""
+        global LAST_REQUEST_TIME
+        
+        # Check cache first
+        current_time = time.time()
+        if symbol in self.stock_cache:
+            cached_data, timestamp = self.stock_cache[symbol]
+            if current_time - timestamp < self.cache_timeout:
+                logger.info(f"Using cached data for {symbol}")
+                return cached_data
+        
+        max_retries = 3
+        base_delay = 2.0
+        
+        for attempt in range(max_retries):
+            try:
+                # Rate limiting
+                current_time = time.time()
+                time_since_last = current_time - LAST_REQUEST_TIME
+                if time_since_last < MIN_REQUEST_INTERVAL:
+                    sleep_time = MIN_REQUEST_INTERVAL - time_since_last + random.uniform(0.1, 0.5)
+                    await asyncio.sleep(sleep_time)
+                
+                LAST_REQUEST_TIME = time.time()
+                
+                info = {}
+                try:
+                    # Fetch from Alpha Vantage directly (daily adjusted, compact = 100 rows)
+                    api_key = os.getenv("ALPHA_VANTAGE_API_KEY")
+                    if not api_key:
+                        logger.warning("ALPHA_VANTAGE_API_KEY not set; cannot fetch data")
+                        return None
+
+                    av_url = (
+                        f"https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY_ADJUSTED&symbol={symbol}&outputsize=compact&apikey={api_key}"
+                    )
+                    print(av_url)
+                    av_resp = requests.get(av_url, timeout=10)
+                    av_json = av_resp.json()
+                    ts = av_json.get("Weekly Adjusted Time Series", {})
+
+                    if not ts:
+                        logger.warning(f"Alpha Vantage returned no data for {symbol}: {av_json.get('Note') or av_json.get('Error Message')}")
+                        return None
+
+                    df_raw = pd.DataFrame.from_dict(ts, orient="index")
+
+                    rename_map = {
+                        "1. open": "Open",
+                        "2. high": "High",
+                        "3. low": "Low",
+                        "4. close": "Close",
+                        "5. adjusted close": "Adj Close",
+                        "6. volume": "Volume"
+                    }
+
+                    data = df_raw.rename(columns=rename_map)
+
+                    # Keep only columns we renamed (others like dividend amount removed)
+                    data = data[[c for c in rename_map.values() if c in data.columns]]
+
+                    # Convert to numeric types
+                    data = data.apply(pd.to_numeric, errors="coerce")
+                    data.index = pd.to_datetime(data.index)
+                    data = data.sort_index()
+                    hist = data.tail(120)  # About 6 months of trading days
+
+                    if hist.empty:
+                        logger.warning(f"No historical data for {symbol} from Alpha Vantage")
+                        return None
+                except Exception as hist_error:
+                    if "429" in str(hist_error):
+                        if attempt < max_retries - 1:
+                            delay = base_delay * (2 ** attempt) + random.uniform(1, 3)
+                            logger.warning(f"Rate limited for {symbol} history, retrying in {delay:.1f}s (attempt {attempt + 1})")
+                            await asyncio.sleep(delay)
+                            continue
+                        else:
+                            logger.error(f"Max retries exceeded for {symbol} history")
+                            return None
+                    raise hist_error
+                
+                # Calculate metrics
+                current_price = hist['Close'].iloc[-1]
+                prev_close = hist['Close'].iloc[-2] if len(hist) >= 2 else current_price
+                change = current_price - prev_close
+                change_pct = (change / prev_close) * 100 if prev_close else 0
+                
+                # Get company overview from Alpha Vantage
+                overview = {}
+                try:
+                    overview_url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={api_key}"
+                    overview_resp = requests.get(overview_url, timeout=10)
+                    overview = overview_resp.json()
+                    if "Note" in overview or "Error Message" in overview:
+                        logger.warning(f"Alpha Vantage overview API limit or error for {symbol}")
+                        overview = {}
+                except Exception as overview_err:
+                    logger.warning(f"Failed to fetch overview for {symbol}: {overview_err}")
+                    overview = {}
+
+                # Calculate technical indicators
+                sma_20 = hist['Close'].rolling(20).mean().iloc[-1] if len(hist) >= 20 else None
+                sma_50 = hist['Close'].rolling(50).mean().iloc[-1] if len(hist) >= 50 else None
+                
+                # RSI calculation
+                delta = hist['Close'].diff()
+                gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+                rs = gain / loss
+                rsi = 100 - (100 / (1 + rs))
+                current_rsi = rsi.iloc[-1] if not rsi.empty else None
+                
+                # Cache the successful result
+                result = {
+                    "symbol": symbol,
+                    "current_price": current_price,
+                    "change": change,
+                    "change_percent": change_pct,
+                    "volume": hist['Volume'].iloc[-1],
+                    "market_cap": float(overview.get('MarketCapitalization', 0)) if overview.get('MarketCapitalization') != 'None' else None,
+                    "pe_ratio": float(overview.get('PERatio', 0)) if overview.get('PERatio') != 'None' else None,
+                    "forward_pe": float(overview.get('ForwardPE', 0)) if overview.get('ForwardPE') != 'None' else None,
+                    "pb_ratio": float(overview.get('PriceToBookRatio', 0)) if overview.get('PriceToBookRatio') != 'None' else None,
+                    "dividend_yield": float(overview.get('DividendYield', 0)) * 100 if overview.get('DividendYield') not in [None, 'None', '0'] else 0,
+                    "beta": float(overview.get('Beta', 0)) if overview.get('Beta') != 'None' else None,
+                    "rsi": current_rsi,
+                    "sma_20": sma_20,
+                    "sma_50": sma_50,
+                    "52_week_high": float(overview.get('52WeekHigh', 0)) if overview.get('52WeekHigh') != 'None' else None,
+                    "52_week_low": float(overview.get('52WeekLow', 0)) if overview.get('52WeekLow') != 'None' else None,
+                    "sector": overview.get('Sector', 'N/A'),
+                    "industry": overview.get('Industry', 'N/A'),
+                    "company_name": overview.get('Name', symbol),
+                    "description": overview.get('Description', ''),
+                    "eps": float(overview.get('EPS', 0)) if overview.get('EPS') != 'None' else None,
+                    "revenue_ttm": float(overview.get('RevenueTTM', 0)) if overview.get('RevenueTTM') != 'None' else None,
+                    "profit_margin": float(overview.get('ProfitMargin', 0)) if overview.get('ProfitMargin') != 'None' else None
+                }
+                
+                # Store in cache
+                self.stock_cache[symbol] = (result, time.time())
+                
+                return result
+                
+            except Exception as e:
+                if "429" in str(e) and attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt) + random.uniform(1, 3)
+                    logger.warning(f"Rate limited for {symbol}, retrying in {delay:.1f}s (attempt {attempt + 1})")
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    logger.error(f"Error getting stock data for {symbol}: {e}")
+                    break
+        
+        # If yfinance fails entirely, attempt fallback to MarketDataManager
         try:
-            ticker = yf.Ticker(symbol)
-            info = ticker.info
-            hist = ticker.history(period="1y")
-            
-            if hist.empty:
-                return None
-            
-            current_price = hist['Close'].iloc[-1]
-            prev_close = info.get('previousClose', current_price)
-            change = current_price - prev_close
-            change_pct = (change / prev_close) * 100 if prev_close else 0
-            
-            # Calculate technical indicators
-            sma_20 = hist['Close'].rolling(20).mean().iloc[-1] if len(hist) >= 20 else None
-            sma_50 = hist['Close'].rolling(50).mean().iloc[-1] if len(hist) >= 50 else None
-            
-            # RSI calculation
-            delta = hist['Close'].diff()
-            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-            rs = gain / loss
-            rsi = 100 - (100 / (1 + rs))
-            current_rsi = rsi.iloc[-1] if not rsi.empty else None
-            
-            return {
-                "symbol": symbol,
-                "current_price": current_price,
-                "change": change,
-                "change_percent": change_pct,
-                "volume": hist['Volume'].iloc[-1],
-                "market_cap": info.get('marketCap'),
-                "pe_ratio": info.get('trailingPE'),
-                "forward_pe": info.get('forwardPE'),
-                "pb_ratio": info.get('priceToBook'),
-                "dividend_yield": info.get('dividendYield', 0) * 100 if info.get('dividendYield') else 0,
-                "beta": info.get('beta'),
-                "rsi": current_rsi,
-                "sma_20": sma_20,
-                "sma_50": sma_50,
-                "52_week_high": info.get('fiftyTwoWeekHigh'),
-                "52_week_low": info.get('fiftyTwoWeekLow'),
-                "sector": info.get('sector'),
-                "industry": info.get('industry'),
-                "company_name": info.get('longName', symbol)
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting stock data for {symbol}: {e}")
-            return None
+            context = await market_data_manager.get_market_context(symbol)
+            if context and context.get("current_price"):
+                logger.info(f"Used MarketDataManager fallback for {symbol}")
+                return {
+                    "symbol": symbol,
+                    "current_price": context.get("current_price"),
+                    "change": None,
+                    "change_percent": None,
+                    "volume": context.get("volume_data", [{}])[-1].get("volume", 0) if context.get("volume_data") else 0,
+                    "market_cap": None,
+                    "pe_ratio": None,
+                    "forward_pe": None,
+                    "pb_ratio": None,
+                    "dividend_yield": None,
+                    "beta": None,
+                    "rsi": context.get("market_indicators", {}).get("rsi"),
+                    "sma_20": context.get("market_indicators", {}).get("sma_20"),
+                    "sma_50": context.get("market_indicators", {}).get("sma_50"),
+                    "52_week_high": None,
+                    "52_week_low": None,
+                    "sector": None,
+                    "industry": None,
+                    "company_name": symbol
+                }
+        except Exception as fallback_err:
+            logger.error(f"Fallback market data failed for {symbol}: {fallback_err}")
+        
+        return None
     
     async def _perform_real_analysis(self, symbol: str, data: Dict, query: str) -> str:
         """Perform real analysis with actual data"""
@@ -160,36 +461,49 @@ class AITradingAssistant:
     async def _ai_analysis(self, symbol: str, data: Dict, query: str) -> str:
         """AI-powered analysis using OpenAI"""
         try:
-            analysis_prompt = f"""
-            Analyze {symbol} stock based on the following real market data:
-            
-            Company: {data.get('company_name', 'N/A')}
-            Current Price: ${data.get('current_price', 0):.2f}
-            Change: {data.get('change_percent', 0):+.2f}%
-            Volume: {data.get('volume', 0):,}
-            Market Cap: ${data.get('market_cap', 0):,} if data.get('market_cap') else 'N/A'
-            P/E Ratio: {data.get('pe_ratio', 'N/A')}
-            P/B Ratio: {data.get('pb_ratio', 'N/A')}
-            Dividend Yield: {data.get('dividend_yield', 0):.2f}%
-            Beta: {data.get('beta', 'N/A')}
-            RSI: {data.get('rsi', 'N/A'):.1f if data.get('rsi') else 'N/A'}
-            20-day SMA: ${data.get('sma_20', 0):.2f if data.get('sma_20') else 'N/A'}
-            50-day SMA: ${data.get('sma_50', 0):.2f if data.get('sma_50') else 'N/A'}
-            52-week Range: ${data.get('52_week_low', 0):.2f} - ${data.get('52_week_high', 0):.2f}
-            Sector: {data.get('sector', 'N/A')}
-            Industry: {data.get('industry', 'N/A')}
-            
-            User Query: {query}
-            
-            Provide a comprehensive analysis including:
-            1. Technical analysis (RSI, moving averages, trend)
-            2. Fundamental analysis (valuation, financial health)
-            3. Clear BUY/SELL/HOLD recommendation with confidence level
-            4. Risk assessment
-            5. Key actionable insights
-            
-            Format as a professional analysis report with clear sections.
-            """
+            def fmt_num(val, fmt=".2f", default="N/A"):
+                return format(val, fmt) if isinstance(val, (int, float)) else default
+
+            current_price = fmt_num(data.get("current_price"))
+            change_pct = fmt_num(data.get("change_percent"), "+.2f")
+            volume = f"{int(data.get('volume', 0)):,}"
+            mcap = f"${int(data.get('market_cap')):,}" if data.get("market_cap") else "N/A"
+            pe_ratio = fmt_num(data.get("pe_ratio"), ".1f")
+            pb_ratio = fmt_num(data.get("pb_ratio"), ".2f")
+            dividend_yield = fmt_num(data.get("dividend_yield"), ".2f")
+            beta = fmt_num(data.get("beta"), ".2f")
+            rsi_val = fmt_num(data.get("rsi"), ".1f")
+            sma20 = fmt_num(data.get("sma_20"))
+            sma50 = fmt_num(data.get("sma_50"))
+            wk_low = fmt_num(data.get("52_week_low"))
+            wk_high = fmt_num(data.get("52_week_high"))
+
+            analysis_prompt = (
+                f"Analyze {symbol} stock based on the following real market data:\n\n"
+                f"Company: {data.get('company_name', 'N/A')}\n"
+                f"Current Price: ${current_price}\n"
+                f"Change: {change_pct}%\n"
+                f"Volume: {volume}\n"
+                f"Market Cap: {mcap}\n"
+                f"P/E Ratio: {pe_ratio}\n"
+                f"P/B Ratio: {pb_ratio}\n"
+                f"Dividend Yield: {dividend_yield}%\n"
+                f"Beta: {beta}\n"
+                f"RSI: {rsi_val}\n"
+                f"20-day SMA: ${sma20}\n"
+                f"50-day SMA: ${sma50}\n"
+                f"52-week Range: ${wk_low} - ${wk_high}\n"
+                f"Sector: {data.get('sector', 'N/A')}\n"
+                f"Industry: {data.get('industry', 'N/A')}\n\n"
+                f"User Query: {query}\n\n"
+                "Provide a comprehensive analysis including:\n"
+                "1. Technical analysis (RSI, moving averages, trend)\n"
+                "2. Fundamental analysis (valuation, financial health)\n"
+                "3. Clear BUY/SELL/HOLD recommendation with confidence level\n"
+                "4. Risk assessment\n"
+                "5. Key actionable insights\n\n"
+                "Format as a professional analysis report with clear sections."
+            )
             
             messages = [
                 {"role": "system", "content": "You are an expert financial analyst. Provide detailed, actionable stock analysis based on real market data."},
@@ -406,7 +720,7 @@ I'm here to help you with stock analysis and trading education!
         
         # Filter out common words that aren't stocks
         exclude_words = {
-            'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE', 'OUR', 'HAD', 'BUT', 'WHAT', 'WERE', 'THEY', 'WE', 'BEEN', 'HAVE', 'THEIR', 'SAID', 'EACH', 'WHICH', 'SHE', 'DO', 'HOW', 'IF', 'WILL', 'UP', 'OTHER', 'ABOUT', 'OUT', 'MANY', 'THEN', 'THEM', 'THESE', 'SO', 'SOME', 'HER', 'WOULD', 'MAKE', 'LIKE', 'INTO', 'HIM', 'HAS', 'TWO', 'MORE', 'VERY', 'TO', 'OF', 'IN', 'IS', 'IT', 'WITH', 'AS', 'BE', 'ON', 'BY', 'THIS', 'THAT', 'FROM', 'OR', 'AN', 'AT', 'MY', 'YOUR', 'HIS', 'ME', 'US', 'WHO', 'WHEN', 'WHERE', 'WHY', 'STOCK', 'STOCKS', 'MARKET', 'PRICE', 'ANALYSIS', 'TRADING', 'INVEST', 'BUY', 'SELL', 'HOLD'
+            'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE', 'OUR', 'HAD', 'WHAT', 'WERE', 'THEY', 'WE', 'BEEN', 'HAVE', 'THEIR', 'SAID', 'EACH', 'WHICH', 'SHE', 'DO', 'HOW', 'IF', 'WILL', 'UP', 'OTHER', 'ABOUT', 'OUT', 'MANY', 'THEN', 'THEM', 'THESE', 'SO', 'SOME', 'HER', 'WOULD', 'MAKE', 'LIKE', 'INTO', 'HIM', 'HAS', 'TWO', 'MORE', 'VERY', 'TO', 'OF', 'IN', 'IS', 'IT', 'WITH', 'AS', 'BE', 'ON', 'BY', 'THIS', 'THAT', 'FROM', 'OR', 'AN', 'AT', 'MY', 'YOUR', 'HIS', 'ME', 'US', 'WHO', 'WHEN', 'WHERE', 'WHY', 'STOCK', 'STOCKS', 'MARKET', 'PRICE', 'ANALYSIS', 'TRADING', 'INVEST', 'BUY', 'SELL', 'HOLD', 'HEY', 'HI', 'HELLO', 'PLEASE', 'TELL'
         }
         
         # Common ticker symbol corrections for frequent mistakes
@@ -461,11 +775,14 @@ def create_gradio_interface():
             return history
         
         try:
-            # Process message
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            # Process message (reuse existing event loop if available)
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
             response = loop.run_until_complete(assistant.process_message(message))
-            loop.close()
             
             # Update history
             history.append({"role": "user", "content": message})
@@ -480,27 +797,92 @@ def create_gradio_interface():
             history.append({"role": "assistant", "content": error_response})
             return history
     
-    # Professional CSS
+    def clear_conversation():
+        """Clear the conversation history"""
+        assistant.clear_chat_history()
+        return []  # Return empty history for Gradio
+    
+    # Modern dark theme CSS
     css = """
-    .gradio-container {
-        max-width: 1200px !important;
-        margin: auto !important;
-        background-color: #f8f9fa !important;
+    body {
+        background-color: #0d1117;
+        color: #c9d1d9;
     }
-    .chat-container {
-        height: 600px !important;
-        background-color: #ffffff !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
+    .gradio-container {
+        max-width: 1000px !important;
+        margin: 0 auto !important;
+        background-color: #161b22 !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8px;
+        padding: 10px 0 20px 0;
     }
     .professional-header {
-        background-color: #212529;
-        color: white;
+        background-color: #21262d;
+        color: #f0f6fc;
         padding: 20px;
         border-radius: 8px;
-        margin-bottom: 20px;
+        margin: 0 12px 20px 12px;
         text-align: center;
-        border: 1px solid #343a40;
+        border: 1px solid #30363d;
+    }
+    .chatbot {
+        background-color: #0d1117 !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+        height: 550px !important;
+        overflow-y: auto !important;
+    }
+    .chatbot .message {
+        max-width: 600px !important;
+    }
+ 
+    .message-row.bubble,
+    .message-row.bubble > div {
+        border: none !important;
+        box-shadow: none !important;
+        background-image: none !important;
+    }
+    .message-row.bubble::before,
+    .message-row.bubble::after {
+        display: none !important;
+        content: none !important;
+    }
+ 
+    .chatbot ul {
+        margin-left: 18px;
+    }
+    .message.user {
+        background-color: #238636 !important;
+        color: #fff !important;
+    }
+    .message.bot {
+        background-color: #30363d !important;
+        color: #c9d1d9 !important;
+    }
+    .sidebar-box {
+        background-color: #21262d;
+        color: #c9d1d9;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 18px;
+    }
+    .gr-button.primary {
+        background-color: #238636 !important;
+        border-color: #2ea043 !important;
+        color: #fff !important;
+    }
+    .gr-button.primary:hover {
+        background-color: #2ea043 !important;
+    }
+    .gr-text-input input {
+        background-color: #0d1117 !important;
+        color: #c9d1d9 !important;
+        border: 1px solid #30363d !important;
+    }
+    .chatbot .message > div:first-child::before{
+        display:none !important;
     }
     """
     
@@ -518,10 +900,11 @@ def create_gradio_interface():
             with gr.Column(scale=3):
                 chatbot = gr.Chatbot(
                     value=[],
-                    height=650,
+                    height=550,
                     show_label=False,
                     avatar_images=("👤", "🤖"),
-                    type="messages"
+                    type="messages",
+                    elem_classes=["chatbot"]
                 )
                 
                 with gr.Row():
@@ -532,55 +915,52 @@ def create_gradio_interface():
                         show_label=False
                     )
                     submit_btn = gr.Button("Send", variant="primary", scale=1)
+                
+                with gr.Row():
+                    clear_btn = gr.Button("Clear Conversation", variant="secondary", scale=1)
             
             # Sidebar
             with gr.Column(scale=1):
                 gr.HTML("""
-                <div style="background-color: #495057; color: white; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
+                <div class="sidebar-box" style="text-align:center;">
                     <h3>🎯 Real Analysis Features</h3>
                 </div>
                 """)
-                
+
                 gr.HTML("""
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dee2e6;">
-                    <div style="background-color: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
-                        <h4>📊 Live Market Data</h4>
-                        <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>Real-time stock prices</li>
-                            <li>Technical indicators (RSI, SMA)</li>
-                            <li>Fundamental metrics (P/E, Market Cap)</li>
-                            <li>Volume and volatility data</li>
-                        </ul>
-                    </div>
+                <div class="sidebar-box">
+                    <h4>📊 Live Market Data</h4>
+                    <ul>
+                        <li>Real-time stock prices</li>
+                        <li>Technical indicators (RSI, SMA)</li>
+                        <li>Fundamental metrics (P/E, Market Cap)</li>
+                        <li>Volume &amp; volatility data</li>
+                    </ul>
                 </div>
                 """)
-                
+
                 gr.HTML("""
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dee2e6;">
-                    <div style="background-color: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
-                        <h4>🧠 Smart Analysis</h4>
-                        <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>AI-powered insights (when available)</li>
-                            <li>Rule-based analysis fallback</li>
-                            <li>BUY/SELL/HOLD recommendations</li>
-                            <li>Confidence levels and reasoning</li>
-                        </ul>
-                    </div>
+                <div class="sidebar-box">
+                    <h4>🧠 Smart Analysis</h4>
+                    <ul>
+                        <li>AI-powered insights (when available)</li>
+                        <li>Rule-based analysis fallback</li>
+                        <li>BUY/SELL/HOLD recommendations</li>
+                        <li>Confidence levels &amp; reasoning</li>
+                    </ul>
                 </div>
                 """)
-                
+
                 gr.HTML("""
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dee2e6;">
-                    <div style="background-color: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
-                        <h4>💡 Try These Queries:</h4>
-                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
-                            <li>"Analyze AAPL"</li>
-                            <li>"Compare AAPL vs MSFT"</li>
-                            <li>"What is RSI?"</li>
-                            <li>"Explain P/E ratio"</li>
-                            <li>"Analyze TSLA stock"</li>
-                        </ul>
-                    </div>
+                <div class="sidebar-box">
+                    <h4>💡 Try These Queries:</h4>
+                    <ul style="font-size:0.9em;">
+                        <li>Analyze AAPL</li>
+                        <li>Compare AAPL vs MSFT</li>
+                        <li>What is RSI?</li>
+                        <li>Explain P/E ratio</li>
+                        <li>Analyze TSLA stock</li>
+                    </ul>
                 </div>
                 """)
         
@@ -591,6 +971,7 @@ def create_gradio_interface():
         submit_btn.click(process_message, [msg, chatbot], [chatbot]).then(
             lambda: "", None, [msg]
         )
+        clear_btn.click(clear_conversation, [], [chatbot])
     
     return interface
 
