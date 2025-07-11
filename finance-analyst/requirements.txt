@@ -126,3 +126,5 @@ numba==0.58.1
 cython==3.0.6
 multiprocessing-logging==0.3.4
 
+
+ai-evaluation
