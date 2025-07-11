@@ -8,13 +8,7 @@ This guide will get your Banking AI Agent system up and running quickly for test
 
 ## ⚡ **SUPER QUICK START**
 
-### **1. Extract and Navigate**
-```bash
-unzip banking_ai_complete_package.zip
-cd banking_ai_complete_package
-```
-
-### **2. Start Backend**
+### **1. Start Backend**
 ```bash
 cd banking_ai_agent
 python -m venv venv
@@ -23,7 +17,7 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-### **3. Start Gradio Demo** (New Terminal)
+### **2. Start Gradio Demo** (New Terminal)
 ```bash
 cd banking_ai_agent
 source venv/bin/activate
@@ -53,7 +47,7 @@ python gradio_demo.py
 
 ---
 
-## 🖥️ **ALL THREE INTERFACES**
+## 🖥️ **ALL INTERFACES**
 
 ### **1. Gradio Demo** (Recommended for Testing)
 ```bash
@@ -63,16 +57,8 @@ python gradio_demo.py
 ```
 **Perfect for**: Stakeholder demos, user testing, quick validation
 
-### **2. React Frontend** (Full Application)
-```bash
-cd banking-ai-frontend
-npm install
-npm run dev --host
-# Access: http://localhost:5173
-```
-**Perfect for**: Complete banking application experience
 
-### **3. Backend API** (Developer Access)
+### **2. Backend API** (Developer Access)
 ```bash
 curl http://localhost:5000/health
 ```
@@ -108,7 +94,7 @@ Test all 6 AI capabilities:
 Ask: "I want to transfer money and check my balance"
 → AI creates multi-step execution plan
 
-### **2. RAG** ✅
+### **2¯. RAG** ✅
 Ask: "What loan products do you offer?"
 → AI retrieves information from knowledge base
 

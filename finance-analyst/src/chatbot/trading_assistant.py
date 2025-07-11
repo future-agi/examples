@@ -140,11 +140,12 @@ Ready to help you make smarter trading decisions! What would you like to analyze
             return self._get_error_response(str(e))
     
     def _extract_stock_symbols(self, message: str) -> List[str]:
-        """Extract stock symbols from user message"""
-        # Common patterns for stock symbols
+        """Extract stock symbols from message"""
         patterns = [
-            r'\b([A-Z]{1,5})\b',  # 1-5 uppercase letters
+            r'\b([A-Z]{1,5})\b',  # Standard format (AAPL, MSFT, etc.)
             r'\$([A-Z]{1,5})\b',  # $SYMBOL format
+            r'([A-Z]{1,5})\s*stock',  # SYMBOL stock format
+            r'([A-Z]{1,5})\s*shares',  # SYMBOL shares format
         ]
         
         symbols = []
@@ -154,6 +155,19 @@ Ready to help you make smarter trading decisions! What would you like to analyze
         
         # Filter out common words that might match
         common_words = {'THE', 'AND', 'OR', 'BUT', 'FOR', 'AT', 'TO', 'FROM', 'UP', 'ON', 'IN', 'OUT', 'OFF', 'OVER', 'UNDER', 'AGAIN', 'FURTHER', 'THEN', 'ONCE', 'HERE', 'THERE', 'WHEN', 'WHERE', 'WHY', 'HOW', 'ALL', 'ANY', 'BOTH', 'EACH', 'FEW', 'MORE', 'MOST', 'OTHER', 'SOME', 'SUCH', 'NO', 'NOR', 'NOT', 'ONLY', 'OWN', 'SAME', 'SO', 'THAN', 'TOO', 'VERY', 'CAN', 'WILL', 'JUST', 'SHOULD', 'NOW', 'GET', 'GOT', 'HAS', 'HAD', 'HIS', 'HER', 'ITS', 'OUR', 'THEIR', 'WHAT', 'WHICH', 'WHO', 'WHOM', 'THIS', 'THAT', 'THESE', 'THOSE', 'AM', 'IS', 'ARE', 'WAS', 'WERE', 'BE', 'BEEN', 'BEING', 'HAVE', 'DO', 'DOES', 'DID', 'DONE', 'DOING', 'WOULD', 'COULD', 'MIGHT', 'MUST', 'SHALL', 'MAY'}
+        
+        # Common ticker symbol corrections for frequent mistakes
+        ticker_corrections = {
+            'APPL': 'AAPL',    # Apple Inc. - common typo
+            'GOOGL': 'GOOGL',  # Already correct
+            'GOOG': 'GOOGL',   # Google Class A -> Class A (GOOGL)
+            'MSFT': 'MSFT',    # Already correct
+            'AMZN': 'AMZN',    # Already correct
+            'TSLA': 'TSLA',    # Already correct
+            'META': 'META',    # Already correct
+            'NVDA': 'NVDA',    # Already correct
+            'NFLX': 'NFLX',    # Already correct
+        }
         
         # Also check for company names
         company_symbols = {
@@ -200,9 +214,20 @@ Ready to help you make smarter trading decisions! What would you like to analyze
         # Remove duplicates and common words
         unique_symbols = list(set([s for s in symbols if s not in common_words and len(s) <= 5]))
         
+        # Apply ticker symbol corrections
+        corrected_symbols = []
+        for symbol in unique_symbols:
+            if symbol in ticker_corrections:
+                corrected_symbol = ticker_corrections[symbol]
+                if symbol != corrected_symbol:
+                    logger.info(f"Corrected ticker symbol: {symbol} -> {corrected_symbol}")
+                corrected_symbols.append(corrected_symbol)
+            else:
+                corrected_symbols.append(symbol)
+        
         # Validate symbols (basic check)
         valid_symbols = []
-        for symbol in unique_symbols:
+        for symbol in corrected_symbols:
             if len(symbol) >= 1 and symbol.isalpha():
                 valid_symbols.append(symbol)
         

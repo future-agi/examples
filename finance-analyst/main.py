@@ -409,14 +409,38 @@ I'm here to help you with stock analysis and trading education!
             'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE', 'OUR', 'HAD', 'BUT', 'WHAT', 'WERE', 'THEY', 'WE', 'BEEN', 'HAVE', 'THEIR', 'SAID', 'EACH', 'WHICH', 'SHE', 'DO', 'HOW', 'IF', 'WILL', 'UP', 'OTHER', 'ABOUT', 'OUT', 'MANY', 'THEN', 'THEM', 'THESE', 'SO', 'SOME', 'HER', 'WOULD', 'MAKE', 'LIKE', 'INTO', 'HIM', 'HAS', 'TWO', 'MORE', 'VERY', 'TO', 'OF', 'IN', 'IS', 'IT', 'WITH', 'AS', 'BE', 'ON', 'BY', 'THIS', 'THAT', 'FROM', 'OR', 'AN', 'AT', 'MY', 'YOUR', 'HIS', 'ME', 'US', 'WHO', 'WHEN', 'WHERE', 'WHY', 'STOCK', 'STOCKS', 'MARKET', 'PRICE', 'ANALYSIS', 'TRADING', 'INVEST', 'BUY', 'SELL', 'HOLD'
         }
         
+        # Common ticker symbol corrections for frequent mistakes
+        ticker_corrections = {
+            'APPL': 'AAPL',    # Apple Inc. - common typo
+            'GOOGL': 'GOOGL',  # Already correct
+            'GOOG': 'GOOGL',   # Google Class A -> Class A (GOOGL)
+            'MSFT': 'MSFT',    # Already correct
+            'AMZN': 'AMZN',    # Already correct
+            'TSLA': 'TSLA',    # Already correct
+            'META': 'META',    # Already correct
+            'NVDA': 'NVDA',    # Already correct
+            'NFLX': 'NFLX',    # Already correct
+        }
+        
         # Known stock symbols to prioritize
         known_stocks = {
             'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 'BABA', 'V', 'JPM', 'JNJ', 'WMT', 'PG', 'UNH', 'HD', 'MA', 'DIS', 'PYPL', 'ADBE', 'CRM', 'NFLX', 'CMCSA', 'PEP', 'ABT', 'COST', 'TMO', 'AVGO', 'XOM', 'NKE', 'LLY', 'ABBV', 'ACN', 'DHR', 'VZ', 'TXN', 'QCOM', 'BMY', 'PM', 'HON', 'UNP', 'IBM', 'SBUX', 'LOW', 'AMD', 'INTC', 'CVX', 'ORCL', 'MDT', 'AMGN', 'NEE', 'PFE', 'T', 'MO', 'GE', 'CAT', 'BA', 'GS', 'MMM', 'AXP', 'WBA', 'CVS', 'KO', 'MCD', 'RTX'
         }
         
+        # Apply ticker symbol corrections first
+        corrected_symbols = []
+        for symbol in symbols:
+            if symbol in ticker_corrections:
+                corrected_symbol = ticker_corrections[symbol]
+                if symbol != corrected_symbol:
+                    logger.info(f"Corrected ticker symbol: {symbol} -> {corrected_symbol}")
+                corrected_symbols.append(corrected_symbol)
+            else:
+                corrected_symbols.append(symbol)
+        
         # Filter symbols
         filtered_symbols = []
-        for symbol in symbols:
+        for symbol in corrected_symbols:
             if symbol in known_stocks:
                 filtered_symbols.append(symbol)
             elif symbol not in exclude_words and len(symbol) <= 5:
@@ -424,15 +448,7 @@ I'm here to help you with stock analysis and trading education!
                 if not any(char.isdigit() for char in symbol):  # No numbers
                     filtered_symbols.append(symbol)
         
-        # Remove duplicates while preserving order
-        seen = set()
-        result = []
-        for symbol in filtered_symbols:
-            if symbol not in seen:
-                seen.add(symbol)
-                result.append(symbol)
-        
-        return result[:5]  # Limit to 5 symbols
+        return filtered_symbols[:3]  # Limit to 3 symbols
 
 
 def create_gradio_interface():
