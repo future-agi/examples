@@ -1,0 +1,952 @@
+Banking AI Agent - Test Report
+==================================================
+Generated: 2025-07-10 16:20:54
+
+Summary:
+Total Test Suites: 4
+Passed: 0
+Failed: 4
+Errors/Timeouts: 0
+Success Rate: 0.0%
+
+
+Unit Tests - ❌ FAILED
+------------------------------
+Duration: 16.60s
+STDOUT:
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-8.4.1, pluggy-1.6.0 -- /home/ubuntu/banking_ai_agent/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/banking_ai_agent
+plugins: anyio-4.9.0, langsmith-0.4.4, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 18 items
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry FAILED [  5%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request FAILED [ 11%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request FAILED [ 16%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request FAILED [ 22%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario FAILED [ 27%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request FAILED [ 33%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario FAILED [ 38%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario FAILED [ 44%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario FAILED [ 50%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment FAILED [ 55%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_planning_module_task_classification PASSED [ 61%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_rag_system_knowledge_retrieval PASSED [ 66%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance ERROR [ 72%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling ERROR [ 77%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization ERROR [ 83%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id ERROR [ 88%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery ERROR [ 94%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling ERROR [100%]
+
+==================================== ERRORS ====================================
+___ ERROR at setup of TestPerformanceMetrics.test_response_time_performance ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 354
+      @pytest.mark.asyncio
+      async def test_response_time_performance(self, banking_agent):
+          """Test response time performance"""
+          query = "What's my account balance?"
+          customer_id = "CUST001"
+
+          start_time = datetime.now()
+          result = await banking_agent.process_query(
+              query=query,
+              customer_id=customer_id,
+              session_id="test_session"
+          )
+          end_time = datetime.now()
+
+          response_time = (end_time - start_time).total_seconds()
+
+          assert result['success'] is True
+          assert response_time < 30  # Should respond within 30 seconds
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:354
+__ ERROR at setup of TestPerformanceMetrics.test_concurrent_requests_handling __
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 373
+      def test_concurrent_requests_handling(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:373
+___ ERROR at setup of TestPerformanceMetrics.test_memory_usage_optimization ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 379
+      def test_memory_usage_optimization(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:379
+_________ ERROR at setup of TestErrorHandling.test_invalid_customer_id _________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 388
+      @pytest.mark.asyncio
+      async def test_invalid_customer_id(self, banking_agent):
+          """Test handling of invalid customer ID"""
+          query = "What's my account balance?"
+          customer_id = "INVALID_CUSTOMER"
+
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.return_value = {
+                  'success': False,
+                  'error': 'Customer not found',
+                  'error_code': 'CUSTOMER_NOT_FOUND'
+              }
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id=customer_id,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle gracefully even with invalid customer
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:388
+________ ERROR at setup of TestErrorHandling.test_system_error_recovery ________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 410
+      @pytest.mark.asyncio
+      async def test_system_error_recovery(self, banking_agent):
+          """Test system error recovery"""
+          query = "What's my account balance?"
+
+          # Simulate system error
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.side_effect = Exception("Database connection failed")
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id="CUST001",
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should provide graceful error response
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:410
+______ ERROR at setup of TestErrorHandling.test_malformed_query_handling _______
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 428
+      @pytest.mark.asyncio
+      async def test_malformed_query_handling(self, banking_agent):
+          """Test handling of malformed or unclear queries"""
+          malformed_queries = [
+              "",  # Empty query
+              "asdfghjkl",  # Random characters
+              "What is the meaning of life?",  # Non-banking query
+              "Transfer money to account number 1234567890123456789012345678901234567890"  # Extremely long
+          ]
+
+          for query in malformed_queries:
+              result = await banking_agent.process_query(
+                  query=query,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle all queries gracefully
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:428
+=================================== FAILURES ===================================
+______________ TestBankingScenarios.test_account_balance_inquiry _______________
+tests/test_banking_scenarios.py:50: in test_account_balance_inquiry
+    with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'tools_manager'
+____________ TestBankingScenarios.test_transaction_history_request _____________
+tests/test_banking_scenarios.py:83: in test_transaction_history_request
+    with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts, \
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'tools_manager'
+_______________ TestBankingScenarios.test_fund_transfer_request ________________
+tests/test_banking_scenarios.py:120: in test_fund_transfer_request
+    with patch.object(banking_agent.compliance_checker, 'check_query') as mock_compliance:
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'compliance_checker'
+____________ TestBankingScenarios.test_product_information_request _____________
+tests/test_banking_scenarios.py:146: in test_product_information_request
+    with patch.object(banking_agent.tools_manager, 'get_product_information') as mock_product:
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'tools_manager'
+___________ TestBankingScenarios.test_compliance_violation_scenario ____________
+tests/test_banking_scenarios.py:171: in test_compliance_violation_scenario
+    with patch.object(banking_agent.compliance_checker, 'check_query') as mock_compliance:
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'compliance_checker'
+__________ TestBankingScenarios.test_unauthenticated_account_request ___________
+tests/test_banking_scenarios.py:197: in test_unauthenticated_account_request
+    result = await banking_agent.process_query(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'process_query'
+____________ TestBankingScenarios.test_complex_multi_step_scenario _____________
+tests/test_banking_scenarios.py:213: in test_complex_multi_step_scenario
+    with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts, \
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'tools_manager'
+______________ TestBankingScenarios.test_fraud_detection_scenario ______________
+tests/test_banking_scenarios.py:263: in test_fraud_detection_scenario
+    with patch.object(banking_agent.tools_manager, 'check_fraud_risk') as mock_fraud:
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'tools_manager'
+____________ TestBankingScenarios.test_memory_and_context_scenario _____________
+tests/test_banking_scenarios.py:289: in test_memory_and_context_scenario
+    result1 = await banking_agent.process_query(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'process_query'
+_________ TestBankingScenarios.test_self_reflection_quality_assessment _________
+tests/test_banking_scenarios.py:311: in test_self_reflection_quality_assessment
+    result = await banking_agent.process_query(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'async_generator' object has no attribute 'process_query'
+=============================== warnings summary ===============================
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_account_balance_inquiry' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_account_balance_inquiry' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_transaction_history_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_transaction_history_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_fund_transfer_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_fund_transfer_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_product_information_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_product_information_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_compliance_violation_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_compliance_violation_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_unauthenticated_account_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_unauthenticated_account_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_complex_multi_step_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_complex_multi_step_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_fraud_detection_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_fraud_detection_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_memory_and_context_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_memory_and_context_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_self_reflection_quality_assessment' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_self_reflection_quality_assessment' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_planning_module_task_classification
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_planning_module_task_classification' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_rag_system_knowledge_retrieval
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_rag_system_knowledge_retrieval' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling
+============= 10 failed, 2 passed, 22 warnings, 6 errors in 11.32s =============
+
+
+Banking Scenarios - ❌ FAILED
+------------------------------
+Duration: 10.49s
+STDOUT:
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-8.4.1, pluggy-1.6.0 -- /home/ubuntu/banking_ai_agent/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/banking_ai_agent
+plugins: anyio-4.9.0, langsmith-0.4.4, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 18 items
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry FAILED [  5%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request FAILED [ 11%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request FAILED [ 16%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request FAILED [ 22%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario FAILED [ 27%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request FAILED [ 33%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario FAILED [ 38%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario FAILED [ 44%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario FAILED [ 50%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment FAILED [ 55%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_planning_module_task_classification PASSED [ 61%]
+tests/test_banking_scenarios.py::TestBankingScenarios::test_rag_system_knowledge_retrieval PASSED [ 66%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance ERROR [ 72%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling ERROR [ 77%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization ERROR [ 83%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id ERROR [ 88%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery ERROR [ 94%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling ERROR [100%]
+
+==================================== ERRORS ====================================
+___ ERROR at setup of TestPerformanceMetrics.test_response_time_performance ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 354
+      @pytest.mark.asyncio
+      async def test_response_time_performance(self, banking_agent):
+          """Test response time performance"""
+          query = "What's my account balance?"
+          customer_id = "CUST001"
+
+          start_time = datetime.now()
+          result = await banking_agent.process_query(
+              query=query,
+              customer_id=customer_id,
+              session_id="test_session"
+          )
+          end_time = datetime.now()
+
+          response_time = (end_time - start_time).total_seconds()
+
+          assert result['success'] is True
+          assert response_time < 30  # Should respond within 30 seconds
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:354
+__ ERROR at setup of TestPerformanceMetrics.test_concurrent_requests_handling __
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 373
+      def test_concurrent_requests_handling(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:373
+___ ERROR at setup of TestPerformanceMetrics.test_memory_usage_optimization ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 379
+      def test_memory_usage_optimization(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:379
+_________ ERROR at setup of TestErrorHandling.test_invalid_customer_id _________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 388
+      @pytest.mark.asyncio
+      async def test_invalid_customer_id(self, banking_agent):
+          """Test handling of invalid customer ID"""
+          query = "What's my account balance?"
+          customer_id = "INVALID_CUSTOMER"
+
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.return_value = {
+                  'success': False,
+                  'error': 'Customer not found',
+                  'error_code': 'CUSTOMER_NOT_FOUND'
+              }
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id=customer_id,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle gracefully even with invalid customer
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:388
+________ ERROR at setup of TestErrorHandling.test_system_error_recovery ________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 410
+      @pytest.mark.asyncio
+      async def test_system_error_recovery(self, banking_agent):
+          """Test system error recovery"""
+          query = "What's my account balance?"
+
+          # Simulate system error
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.side_effect = Exception("Database connection failed")
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id="CUST001",
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should provide graceful error response
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:410
+______ ERROR at setup of TestErrorHandling.test_malformed_query_handling _______
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 428
+      @pytest.mark.asyncio
+      async def test_malformed_query_handling(self, banking_agent):
+          """Test handling of malformed or unclear queries"""
+          malformed_queries = [
+              "",  # Empty query
+              "asdfghjkl",  # Random characters
+              "What is the meaning of life?",  # Non-banking query
+              "Transfer money to account number 1234567890123456789012345678901234567890"  # Extremely long
+          ]
+
+          for query in malformed_queries:
+              result = await banking_agent.process_query(
+                  query=query,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle all queries gracefully
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:428
+=================================== FAILURES ===================================
+______________ TestBankingScenarios.test_account_balance_inquiry _______________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c375e10>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd861b33e00>
+
+    @pytest.mark.asyncio
+    async def test_account_balance_inquiry(self, banking_agent):
+        """Test account balance inquiry scenario"""
+        query = "What's my account balance?"
+        customer_id = "CUST001"
+    
+        # Mock the tools manager response
+>       with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'async_generator' object has no attribute 'tools_manager'
+
+tests/test_banking_scenarios.py:50: AttributeError
+____________ TestBankingScenarios.test_transaction_history_request _____________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c376cd0>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4d9b90>
+
+    @pytest.mark.asyncio
+    async def test_transaction_history_request(self, banking_agent):
+        """Test transaction history request scenario"""
+        query = "Show me my recent transactions"
+        customer_id = "CUST001"
+    
+        # Mock the tools manager responses
+>       with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts, \
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             patch.object(banking_agent.tools_manager, 'get_transaction_history') as mock_transactions:
+E            AttributeError: 'async_generator' object has no attribute 'tools_manager'
+
+tests/test_banking_scenarios.py:83: AttributeError
+_______________ TestBankingScenarios.test_fund_transfer_request ________________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c3775d0>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4d9df0>
+
+    @pytest.mark.asyncio
+    async def test_fund_transfer_request(self, banking_agent):
+        """Test fund transfer request scenario"""
+        query = "I want to transfer $500 from checking to savings"
+        customer_id = "CUST001"
+    
+        # Mock compliance check
+>       with patch.object(banking_agent.compliance_checker, 'check_query') as mock_compliance:
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'async_generator' object has no attribute 'compliance_checker'
+
+tests/test_banking_scenarios.py:120: AttributeError
+____________ TestBankingScenarios.test_product_information_request _____________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c377f50>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4da050>
+
+    @pytest.mark.asyncio
+    async def test_product_information_request(self, banking_agent):
+        """Test product information request scenario"""
+        query = "Tell me about your credit cards"
+    
+        # Mock product information
+>       with patch.object(banking_agent.tools_manager, 'get_product_information') as mock_product:
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'async_generator' object has no attribute 'tools_manager'
+
+tests/test_banking_scenarios.py:146: AttributeError
+___________ TestBankingScenarios.test_compliance_violation_scenario ____________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c377510>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4d9df0>
+
+    @pytest.mark.asyncio
+    async def test_compliance_violation_scenario(self, banking_agent):
+        """Test scenario with compliance violations"""
+        query = "I need to transfer $50,000 in cash to an overseas account"
+        customer_id = "CUST001"
+    
+        # Mock compliance check with violation
+>       with patch.object(banking_agent.compliance_checker, 'check_query') as mock_compliance:
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'async_generator' object has no attribute 'compliance_checker'
+
+tests/test_banking_scenarios.py:171: AttributeError
+__________ TestBankingScenarios.test_unauthenticated_account_request ___________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c384850>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4da2b0>
+
+    @pytest.mark.asyncio
+    async def test_unauthenticated_account_request(self, banking_agent):
+        """Test account request without customer authentication"""
+        query = "What's my account balance?"
+        # No customer_id provided
+    
+>       result = await banking_agent.process_query(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            query=query,
+            session_id="test_session"
+        )
+E       AttributeError: 'async_generator' object has no attribute 'process_query'
+
+tests/test_banking_scenarios.py:197: AttributeError
+____________ TestBankingScenarios.test_complex_multi_step_scenario _____________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c384cd0>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4da510>
+
+    @pytest.mark.asyncio
+    async def test_complex_multi_step_scenario(self, banking_agent):
+        """Test complex scenario requiring multiple steps"""
+        query = "I want to open a new savings account and transfer $1000 from my checking account"
+        customer_id = "CUST001"
+    
+        # Mock various responses
+>       with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts, \
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             patch.object(banking_agent.tools_manager, 'get_product_information') as mock_product, \
+             patch.object(banking_agent.compliance_checker, 'check_query') as mock_compliance:
+E            AttributeError: 'async_generator' object has no attribute 'tools_manager'
+
+tests/test_banking_scenarios.py:213: AttributeError
+______________ TestBankingScenarios.test_fraud_detection_scenario ______________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c385350>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4da770>
+
+    @pytest.mark.asyncio
+    async def test_fraud_detection_scenario(self, banking_agent):
+        """Test fraud detection scenario"""
+        query = "I want to transfer $25,000 to a new account I've never used before"
+        customer_id = "CUST001"
+    
+        # Mock fraud risk check
+>       with patch.object(banking_agent.tools_manager, 'check_fraud_risk') as mock_fraud:
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'async_generator' object has no attribute 'tools_manager'
+
+tests/test_banking_scenarios.py:263: AttributeError
+____________ TestBankingScenarios.test_memory_and_context_scenario _____________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c385bd0>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4da2b0>
+
+    @pytest.mark.asyncio
+    async def test_memory_and_context_scenario(self, banking_agent):
+        """Test memory and context handling"""
+        customer_id = "CUST001"
+        session_id = "test_session"
+    
+        # First interaction
+>       result1 = await banking_agent.process_query(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            query="What's my checking account balance?",
+            customer_id=customer_id,
+            session_id=session_id
+        )
+E       AttributeError: 'async_generator' object has no attribute 'process_query'
+
+tests/test_banking_scenarios.py:289: AttributeError
+_________ TestBankingScenarios.test_self_reflection_quality_assessment _________
+
+self = <tests.test_banking_scenarios.TestBankingScenarios object at 0x7fd76c386410>
+banking_agent = <async_generator object TestBankingScenarios.banking_agent at 0x7fd76c4d9cc0>
+
+    @pytest.mark.asyncio
+    async def test_self_reflection_quality_assessment(self, banking_agent):
+        """Test self-reflection and quality assessment"""
+        query = "What are the benefits of your premium checking account?"
+    
+>       result = await banking_agent.process_query(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            query=query,
+            session_id="test_session"
+        )
+E       AttributeError: 'async_generator' object has no attribute 'process_query'
+
+tests/test_banking_scenarios.py:311: AttributeError
+=============================== warnings summary ===============================
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_account_balance_inquiry' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_account_balance_inquiry' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_transaction_history_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_transaction_history_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_fund_transfer_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_fund_transfer_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_product_information_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_product_information_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_compliance_violation_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_compliance_violation_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_unauthenticated_account_request' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_unauthenticated_account_request' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_complex_multi_step_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_complex_multi_step_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_fraud_detection_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_fraud_detection_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_memory_and_context_scenario' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_memory_and_context_scenario' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_self_reflection_quality_assessment' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:723: PytestDeprecationWarning: asyncio test 'test_self_reflection_quality_assessment' requested async @pytest.fixture 'banking_agent' in strict mode. You might want to use @pytest_asyncio.fixture or switch to auto mode. This will become an error in future versions of flake8-asyncio.
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_planning_module_task_classification
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_planning_module_task_classification' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+tests/test_banking_scenarios.py::TestBankingScenarios::test_rag_system_knowledge_retrieval
+  /home/ubuntu/banking_ai_agent/venv/lib/python3.11/site-packages/_pytest/fixtures.py:1181: PytestRemovedIn9Warning: 'test_rag_system_knowledge_retrieval' requested an async fixture 'banking_agent', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+  See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_account_balance_inquiry
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_transaction_history_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_fund_transfer_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_product_information_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_compliance_violation_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_unauthenticated_account_request
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_complex_multi_step_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_fraud_detection_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_memory_and_context_scenario
+FAILED tests/test_banking_scenarios.py::TestBankingScenarios::test_self_reflection_quality_assessment
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling
+============= 10 failed, 2 passed, 22 warnings, 6 errors in 6.62s ==============
+
+
+Performance Tests - ❌ FAILED
+------------------------------
+Duration: 10.26s
+STDOUT:
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-8.4.1, pluggy-1.6.0 -- /home/ubuntu/banking_ai_agent/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/banking_ai_agent
+plugins: anyio-4.9.0, langsmith-0.4.4, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance ERROR [ 33%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling ERROR [ 66%]
+tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization ERROR [100%]
+
+==================================== ERRORS ====================================
+___ ERROR at setup of TestPerformanceMetrics.test_response_time_performance ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 354
+      @pytest.mark.asyncio
+      async def test_response_time_performance(self, banking_agent):
+          """Test response time performance"""
+          query = "What's my account balance?"
+          customer_id = "CUST001"
+
+          start_time = datetime.now()
+          result = await banking_agent.process_query(
+              query=query,
+              customer_id=customer_id,
+              session_id="test_session"
+          )
+          end_time = datetime.now()
+
+          response_time = (end_time - start_time).total_seconds()
+
+          assert result['success'] is True
+          assert response_time < 30  # Should respond within 30 seconds
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:354
+__ ERROR at setup of TestPerformanceMetrics.test_concurrent_requests_handling __
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 373
+      def test_concurrent_requests_handling(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:373
+___ ERROR at setup of TestPerformanceMetrics.test_memory_usage_optimization ____
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 379
+      def test_memory_usage_optimization(self, banking_agent):
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:379
+=========================== short test summary info ============================
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_response_time_performance
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_concurrent_requests_handling
+ERROR tests/test_banking_scenarios.py::TestPerformanceMetrics::test_memory_usage_optimization
+============================== 3 errors in 6.45s ===============================
+
+
+Error Handling Tests - ❌ FAILED
+------------------------------
+Duration: 10.74s
+STDOUT:
+============================= test session starts ==============================
+platform linux -- Python 3.11.0rc1, pytest-8.4.1, pluggy-1.6.0 -- /home/ubuntu/banking_ai_agent/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/banking_ai_agent
+plugins: anyio-4.9.0, langsmith-0.4.4, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id ERROR [ 33%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery ERROR [ 66%]
+tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling ERROR [100%]
+
+==================================== ERRORS ====================================
+_________ ERROR at setup of TestErrorHandling.test_invalid_customer_id _________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 388
+      @pytest.mark.asyncio
+      async def test_invalid_customer_id(self, banking_agent):
+          """Test handling of invalid customer ID"""
+          query = "What's my account balance?"
+          customer_id = "INVALID_CUSTOMER"
+
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.return_value = {
+                  'success': False,
+                  'error': 'Customer not found',
+                  'error_code': 'CUSTOMER_NOT_FOUND'
+              }
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id=customer_id,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle gracefully even with invalid customer
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:388
+________ ERROR at setup of TestErrorHandling.test_system_error_recovery ________
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 410
+      @pytest.mark.asyncio
+      async def test_system_error_recovery(self, banking_agent):
+          """Test system error recovery"""
+          query = "What's my account balance?"
+
+          # Simulate system error
+          with patch.object(banking_agent.tools_manager, 'get_customer_accounts') as mock_accounts:
+              mock_accounts.side_effect = Exception("Database connection failed")
+
+              result = await banking_agent.process_query(
+                  query=query,
+                  customer_id="CUST001",
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should provide graceful error response
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:410
+______ ERROR at setup of TestErrorHandling.test_malformed_query_handling _______
+file /home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py, line 428
+      @pytest.mark.asyncio
+      async def test_malformed_query_handling(self, banking_agent):
+          """Test handling of malformed or unclear queries"""
+          malformed_queries = [
+              "",  # Empty query
+              "asdfghjkl",  # Random characters
+              "What is the meaning of life?",  # Non-banking query
+              "Transfer money to account number 1234567890123456789012345678901234567890"  # Extremely long
+          ]
+
+          for query in malformed_queries:
+              result = await banking_agent.process_query(
+                  query=query,
+                  session_id="test_session"
+              )
+
+              assert result['success'] is True
+              # Should handle all queries gracefully
+E       fixture 'banking_agent' not found
+>       available fixtures: _class_event_loop, _function_event_loop, _module_event_loop, _package_event_loop, _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/banking_ai_agent/tests/test_banking_scenarios.py:428
+=========================== short test summary info ============================
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_invalid_customer_id
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_system_error_recovery
+ERROR tests/test_banking_scenarios.py::TestErrorHandling::test_malformed_query_handling
+============================== 3 errors in 6.51s ===============================
+
