@@ -3,7 +3,8 @@
 Banking AI Agent - Gradio Demo Interface
 A clean and user-friendly demo interface for testing the Banking AI Agent
 """
-
+from dotenv import load_dotenv
+load_dotenv()
 import gradio as gr
 import asyncio
 import json
@@ -12,7 +13,21 @@ import os
 import sys
 from datetime import datetime
 from typing import List, Tuple, Optional
+from traceai_langchain import LangChainInstrumentor
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType, SpanAttributes, FiSpanKindValues
+from traceai_openai import OpenAIInstrumentor
 
+trace_provider = register(
+    project_type=ProjectType.OBSERVE,
+    project_name="banking_customer_agent",
+    set_global_tracer_provider=True
+)
+
+OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
+LangChainInstrumentor().instrument(tracer_provider=trace_provider)
+
+tracer = FITracer(trace_provider.get_tracer(__name__))
 # Add the src directory to the path to import our modules
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -33,157 +48,209 @@ class BankingAIGradioDemo:
         self._initialize_agent()
     
     def _initialize_agent(self):
-        """Initialize the Banking AI Agent"""
-        try:
-            # Load environment variables from .env file
-            from dotenv import load_dotenv
-            load_dotenv()
-            
-            # Load configuration
-            config = {
-                'openai_api_key': os.getenv('OPENAI_API_KEY'),
-                'model_name': 'gpt-4o',
-                'temperature': 0.1,
-                'max_tokens': 1000,
-                'chroma_db_path': './data/chroma_db',
-                'memory_db_path': './data/memory.db',
-                'log_level': 'INFO'
-            }
-            
-            if not config['openai_api_key']:
-                logger.error("OPENAI_API_KEY not found in environment variables")
-                return
-            
-            # Initialize agent
-            self.agent = BankingAIAgent(config)
-            
-            # The agent is already initialized with RAG system in the constructor
-            # No need for separate initialize_rag_system call
-            
-            # Generate new session ID
-            import uuid
-            self.current_session_id = str(uuid.uuid4())[:8]
-            
-            logger.info("Banking AI Agent initialized successfully for Gradio demo")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize Banking AI Agent: {str(e)}")
-            self.agent = None
+        with tracer.start_as_current_span("initialize_agent", 
+            attributes={
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.UNKNOWN.value,
+            }) as span:
+
+
+            """Initialize the Banking AI Agent"""
+            try:
+                # Load environment variables from .env file
+                from dotenv import load_dotenv
+                load_dotenv()
+                
+                # Load configuration
+                config = {
+                    'openai_api_key': os.getenv('OPENAI_API_KEY'),
+                    'model_name': 'gpt-4o',
+                    'temperature': 0.1,
+                    'max_tokens': 1000,
+                    'chroma_db_path': './data/chroma_db',
+                    'memory_db_path': './data/memory.db',
+                    'log_level': 'INFO'
+                }
+                config_span_input = {
+                    "model_name": 'gpt-4o',
+                    "temperature": 0.1,
+                    "max_tokens": 1000,
+                    "chroma_db_path": './data/chroma_db',
+                    "memory_db_path": './data/memory.db',
+                    "log_level": 'INFO'
+                }
+                span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(config_span_input))
+                
+                if not config['openai_api_key']:
+                    logger.error("OPENAI_API_KEY not found in environment variables")
+                    return
+                
+                # Initialize agent
+                self.agent = BankingAIAgent(config)
+                
+                # The agent is already initialized with RAG system in the constructor
+                # No need for separate initialize_rag_system call
+                
+                # Generate new session ID
+                import uuid
+                self.current_session_id = str(uuid.uuid4())[:8]
+                
+                logger.info("Banking AI Agent initialized successfully for Gradio demo")
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps({"status": "initialized", "session_id": self.current_session_id}))
+                
+            except Exception as e:
+                logger.error(f"Failed to initialize Banking AI Agent: {str(e)}")
+                self.agent = None
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps({"status": "error", "message": str(e)}))
     
     def process_message(self, message: str, history: List[Tuple[str, str]]) -> Tuple[str, List[Tuple[str, str]]]:
-        """Process user message and return response"""
-        if not self.agent:
-            error_msg = "❌ Banking AI Agent is not initialized. Please check the configuration."
-            history.append((message, error_msg))
-            return "", history
-        
-        if not message.strip():
-            return "", history
-        
-        try:
-            # Process query with the agent
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        span_input = {"message": message, "history": history}
+        with tracer.start_as_current_span("process_message", 
+            attributes={
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.AGENT.value,
+                SpanAttributes.INPUT_VALUE: json.dumps(span_input),
+            }) as span:
+
+            """Process user message and return response"""
+            if not self.agent:
+                error_msg = "❌ Banking AI Agent is not initialized. Please check the configuration."
+                history.append((message, error_msg))
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps((error_msg)))
+                return "", history
             
-            result = loop.run_until_complete(self.agent.process_query(
-                query=message,
-                customer_id=self.current_customer_id,
-                session_id=self.current_session_id,
-                context={}
-            ))
+            if not message.strip():
+                # span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(()))
+                return "", history
             
-            loop.close()
-            
-            # Format response with metadata
-            response = result.content
-            
-            # Add confidence and compliance info
-            metadata_info = []
-            if hasattr(result, 'confidence') and result.confidence:
-                confidence_pct = int(result.confidence * 100)
-                metadata_info.append(f"🎯 Confidence: {confidence_pct}%")
-            
-            if hasattr(result, 'compliance_status') and result.compliance_status:
-                if result.compliance_status == "compliant":
-                    metadata_info.append("✅ Compliant")
-                elif result.compliance_status == "warning":
-                    metadata_info.append("⚠️ Compliance Warning")
-                else:
-                    metadata_info.append("❌ Compliance Issue")
-            
-            if metadata_info:
-                response += f"\n\n*{' | '.join(metadata_info)}*"
-            
-            # Add to history
-            history.append((message, response))
-            
-            return "", history
-            
-        except Exception as e:
-            error_msg = f"❌ Error processing your request: {str(e)}"
-            logger.error(f"Error in process_message: {str(e)}")
-            history.append((message, error_msg))
-            return "", history
+            try:
+                # Process query with the agent
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                result = loop.run_until_complete(self.agent.process_query(
+                    query=message,
+                    customer_id=self.current_customer_id,
+                    session_id=self.current_session_id,
+                    context={}
+                ))
+                
+                loop.close()
+                
+                # Format response with metadata
+                response = result.content
+                
+                # Add confidence and compliance info
+                metadata_info = []
+                if hasattr(result, 'confidence') and result.confidence:
+                    confidence_pct = int(result.confidence * 100)
+                    metadata_info.append(f"🎯 Confidence: {confidence_pct}%")
+                
+                if hasattr(result, 'compliance_status') and result.compliance_status:
+                    if result.compliance_status == "compliant":
+                        metadata_info.append("✅ Compliant")
+                    elif result.compliance_status == "warning":
+                        metadata_info.append("⚠️ Compliance Warning")
+                    else:
+                        metadata_info.append("❌ Compliance Issue")
+                
+                if metadata_info:
+                    response += f"\n\n*{' | '.join(metadata_info)}*"
+                
+                # Add to history
+                history.append((message, response))
+                
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response))
+                return "", history
+                
+            except Exception as e:
+                error_msg = f"❌ Error processing your request: {str(e)}"
+                logger.error(f"Error in process_message: {str(e)}")
+                history.append((message, error_msg))
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(error_msg))
+                return "", history
     
     def get_account_balance(self, customer_id: str, account_id: str) -> str:
-        """Get account balance for demo purposes"""
-        if not self.agent:
-            return "❌ Banking AI Agent is not initialized."
-        
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        span_input = {"customer_id": customer_id, "account_id": account_id}
+        with tracer.start_as_current_span("get_account_balance", 
+            attributes={
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.TOOL.value,
+                SpanAttributes.INPUT_VALUE: json.dumps(span_input),
+            }) as span:
+
+            """Get account balance for demo purposes"""
+            if not self.agent:
+                output = "❌ Banking AI Agent is not initialized."
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(output))
+                return output
             
-            result = loop.run_until_complete(
-                self.agent.tools_manager.get_account_balance(customer_id, account_id)
-            )
-            
-            loop.close()
-            
-            if result.get('success'):
-                return f"""✅ **Account Balance Retrieved**
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
                 
-**Account ID:** {result['account_id']}
-**Account Type:** {result['account_type'].title()}
-**Balance:** ${result['balance']:,.2f} {result['currency']}
-**Available Balance:** ${result['available_balance']:,.2f} {result['currency']}
-**Status:** {result['status'].title()}
-**Last Transaction:** {result['last_transaction_date']}
-"""
-            else:
-                return f"❌ {result.get('error', 'Unknown error occurred')}"
+                result = loop.run_until_complete(
+                    self.agent.tools_manager.get_account_balance(customer_id, account_id)
+                )
                 
-        except Exception as e:
-            return f"❌ Error retrieving account balance: {str(e)}"
+                loop.close()
+                
+                if result.get('success'):
+                    output = f"""✅ **Account Balance Retrieved**
+                    
+                    **Account ID:** {result['account_id']}
+                    **Account Type:** {result['account_type'].title()}
+                    **Balance:** ${result['balance']:,.2f} {result['currency']}
+                    **Available Balance:** ${result['available_balance']:,.2f} {result['currency']}
+                    **Status:** {result['status'].title()}
+                    **Last Transaction:** {result['last_transaction_date']}
+                    """
+                else:
+                    output = f"❌ {result.get('error', 'Unknown error occurred')}"
+                
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(output))
+                return output
+                    
+            except Exception as e:
+                output = f"❌ Error retrieving account balance: {str(e)}"
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(output))
+                return output
     
     def get_system_status(self) -> str:
-        """Get system status for demo purposes"""
-        if not self.agent:
-            return "❌ Banking AI Agent is not initialized."
-        
-        try:
-            status = self.agent.get_health_status()
+        with tracer.start_as_current_span("get_system_status", 
+            attributes={
+                SpanAttributes.FI_SPAN_KIND: FiSpanKindValues.TOOL.value,
+                SpanAttributes.INPUT_VALUE: json.dumps({}),
+            }) as span:
+
+            """Get system status for demo purposes"""
+            if not self.agent:
+                output = "❌ Banking AI Agent is not initialized."
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(output))
+                return output
             
-            status_text = f"""🏦 **Banking AI Agent System Status**
+            try:
+                status = self.agent.get_health_status()
+                
+                status_text = f"""🏦 **Banking AI Agent System Status**
+                    **Overall Status:** {'✅ Healthy' if status['agent_status'] == 'healthy' else '❌ Issues Detected'}
+                    **Timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-**Overall Status:** {'✅ Healthy' if status['agent_status'] == 'healthy' else '❌ Issues Detected'}
-**Timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+                    **Core Modules:**
+                    • **Planning Module:** {'✅' if status['planning_module']['status'] == 'healthy' else '❌'} {status['planning_module']['status'].title()}
+                    • **RAG System:** {'✅' if status['rag_system']['status'] == 'healthy' else '❌'} {status['rag_system']['status'].title()}
+                    • **Memory System:** {'✅' if status['memory_system']['status'] == 'healthy' else '❌'} {status['memory_system']['status'].title()}
+                    • **Compliance Checker:** {'✅' if status['compliance_checker']['status'] == 'healthy' else '❌'} {status['compliance_checker']['status'].title()}
+                    • **Tools Manager:** {'✅' if status['tools_manager']['status'] == 'healthy' else '❌'} {status['tools_manager']['status'].title()}
 
-**Core Modules:**
-• **Planning Module:** {'✅' if status['planning_module']['status'] == 'healthy' else '❌'} {status['planning_module']['status'].title()}
-• **RAG System:** {'✅' if status['rag_system']['status'] == 'healthy' else '❌'} {status['rag_system']['status'].title()}
-• **Memory System:** {'✅' if status['memory_system']['status'] == 'healthy' else '❌'} {status['memory_system']['status'].title()}
-• **Compliance Checker:** {'✅' if status['compliance_checker']['status'] == 'healthy' else '❌'} {status['compliance_checker']['status'].title()}
-• **Tools Manager:** {'✅' if status['tools_manager']['status'] == 'healthy' else '❌'} {status['tools_manager']['status'].title()}
-
-**Knowledge Base:** {status['rag_system']['knowledge_base']['total_documents']} documents loaded
-**Active Sessions:** {status['memory_system']['statistics']['active_sessions']}
-**Total Customers:** {status['tools_manager']['statistics']['total_customers']}
-"""
-            return status_text
-            
-        except Exception as e:
-            return f"❌ Error retrieving system status: {str(e)}"
+                    **Knowledge Base:** {status['rag_system']['knowledge_base']['total_documents']} documents loaded
+                    **Active Sessions:** {status['memory_system']['statistics']['active_sessions']}
+                    **Total Customers:** {status['tools_manager']['statistics']['total_customers']}
+                    """
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(status_text))
+                return status_text
+                
+            except Exception as e:
+                output = f"❌ Error retrieving system status: {str(e)}"
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(output))
+                return output
     
     def clear_conversation(self) -> List[Tuple[str, str]]:
         """Clear conversation history"""
