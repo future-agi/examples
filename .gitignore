@@ -77,3 +77,6 @@ credentials.json
 */chroma_db/*
 
 */output/*
+vertex.json
+**/chroma.sqlite3
+**/*.db
