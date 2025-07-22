@@ -112,25 +112,55 @@ class Text2SQLAgentSQLite:
     def _initialize_knowledge_base(self):
         """Initialize the knowledge base with schemas and examples"""
         try:
-            # Check if knowledge base is already populated
-            stats = self.vector_store.get_collection_stats()
+            # Always try to load actual database schemas first
+            self.logger.info("Loading schemas from actual database...")
+            self._load_sqlite_schemas_directly()
             
-            if stats.get('schemas', 0) == 0:
-                self.logger.info("Initializing knowledge base...")
-                schema_loader = SchemaLoader(self.vector_store)
-                
-                # Load SQLite-specific retail schemas
-                self._load_sqlite_schemas(schema_loader)
-                schema_loader.load_sample_examples()
-                schema_loader.load_business_rules()
-                
-                self.logger.info("Knowledge base initialized")
+            # Then try to enhance with vector store if available
+            if hasattr(self, 'vector_store') and self.vector_store:
+                try:
+                    stats = self.vector_store.get_collection_stats()
+                    
+                    if stats.get('schemas', 0) == 0:
+                        self.logger.info("Initializing vector store knowledge base...")
+                        schema_loader = SchemaLoader(self.vector_store)
+                        
+                        # Load SQLite-specific retail schemas
+                        self._load_sqlite_schemas(schema_loader)
+                        schema_loader.load_sample_examples()
+                        schema_loader.load_business_rules()
+                        
+                        self.logger.info("Vector store knowledge base initialized")
+                    else:
+                        self.logger.info(f"Vector store knowledge base already populated: {stats}")
+                except Exception as e:
+                    self.logger.warning(f"Vector store knowledge base initialization failed: {str(e)}")
+                    self.logger.info("Continuing with direct database schema access")
             else:
-                self.logger.info(f"Knowledge base already populated: {stats}")
+                self.logger.info("Vector store not available, using direct database schema access only")
                 
         except Exception as e:
             self.logger.error(f"Error initializing knowledge base: {str(e)}")
             # Continue without knowledge base for basic functionality
+
+    def _load_sqlite_schemas_directly(self):
+        """Load schemas directly from SQLite database for immediate use"""
+        try:
+            tables = self.sqlite_client.list_tables()
+            self.logger.info(f"Found {len(tables)} tables in database: {tables}")
+            
+            # Store schemas for direct access
+            self.actual_schemas = self.sqlite_client.get_all_schemas()
+            self.logger.info(f"Loaded schemas for {len(self.actual_schemas)} tables")
+            
+            # Log schema details for debugging
+            for table_name, schema in self.actual_schemas.items():
+                column_names = [col['name'] for col in schema.columns]
+                self.logger.debug(f"Table {table_name}: {column_names}")
+                
+        except Exception as e:
+            self.logger.error(f"Error loading SQLite schemas directly: {str(e)}")
+            self.actual_schemas = {}
     
     def _load_sqlite_schemas(self, schema_loader: SchemaLoader):
         """Load SQLite-specific retail schemas"""
@@ -188,15 +218,33 @@ class Text2SQLAgentSQLite:
             self.logger.debug(f"Context retrieved - {len(context.schemas)} schemas, {len(context.examples)} examples")
             
             # Step 3: Generate SQL query with SQLite-specific context
+            # If vector store is empty, get schemas directly from database
+            if len(context.schemas) == 0:
+                self.logger.info("No schemas in vector store, using direct database schema inspection")
+                all_schemas = self.sqlite_client.get_all_schemas()
+                
+                # Convert SQLite schemas to the format expected by SQL generator
+                table_schemas = {}
+                for table_name, schema in all_schemas.items():
+                    table_schemas[table_name] = {
+                        'table_name': schema.table_name,
+                        'columns': schema.columns,
+                        'description': schema.description,
+                        'sample_data': schema.sample_data or []
+                    }
+            else:
+                table_schemas = {schema.table_name: asdict(schema) for schema in context.schemas}
+
             query_context = QueryContext(
-                table_schemas={schema.table_name: asdict(schema) for schema in context.schemas},
+                table_schemas=table_schemas,
                 sample_data={},  # Could be populated with actual sample data
                 business_rules=[rule.description for rule in context.rules],
                 similar_queries=[{"question": ex.question, "sql": ex.sql_query} for ex in context.examples],
                 metadata={
                     **context.metadata,
                     'database_type': 'sqlite',
-                    'available_tables': self.sqlite_client.list_tables()
+                    'available_tables': self.sqlite_client.list_tables(),
+                    'actual_schemas_used': len(table_schemas)
                 }
             )
             

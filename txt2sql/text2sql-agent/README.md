@@ -67,8 +67,8 @@ Query Execution → Response Generation → Natural Language Response
 ### Access Points
 
 - **Gradio Chat Interface**: http://localhost:7860
-- **Flask API**: http://localhost:5000
-- **API Health Check**: http://localhost:5000/api/health
+- **Flask API**: http://localhost:6001
+- **API Health Check**: http://localhost:6001/api/health
 
 ## 💻 Usage Examples
 
@@ -87,7 +87,7 @@ Ask questions in natural language:
 import requests
 
 # Query the API
-response = requests.post('http://localhost:5000/api/query', json={
+response = requests.post('http://localhost:6001/api/query', json={
     'question': 'What is the current price for UPC code "123456"?',
     'user_context': {'user_id': 'analyst1'}
 })
@@ -296,7 +296,7 @@ python src/main.py
 1. **Docker Deployment**
    ```bash
    docker build -t revionics-text2sql .
-   docker run -p 5000:5000 -p 7860:7860 revionics-text2sql
+   docker run -p 6001:6001 -p 7860:7860 revionics-text2sql
    ```
 
 2. **Cloud Deployment**

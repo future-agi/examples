@@ -118,30 +118,37 @@ class SQLValidator:
 class PromptTemplate:
     """Manages prompt templates for different types of queries"""
     
-    BASE_SYSTEM_PROMPT = """You are an expert SQL analyst specializing in retail analytics and pricing data for Revionics. 
-Your task is to convert natural language questions into precise BigQuery SQL queries.
+    BASE_SYSTEM_PROMPT = """You are an expert SQL analyst specializing in retail analytics and pricing data. 
+Your task is to convert natural language questions into precise SQLite SQL queries.
 
 IMPORTANT GUIDELINES:
 1. Generate ONLY SELECT queries - no INSERT, UPDATE, DELETE, or DDL operations
-2. Use proper BigQuery syntax and functions
+2. Use proper SQLite syntax and functions
 3. Include appropriate WHERE clauses for date filtering when dates are mentioned
 4. Use table aliases for readability
 5. Include LIMIT clauses for large result sets (default LIMIT 100 unless specified)
 6. Handle NULL values appropriately with COALESCE or IS NULL/IS NOT NULL
 7. Use proper aggregation functions (SUM, COUNT, AVG, etc.) when needed
-8. Format dates using BigQuery date functions like DATE() and EXTRACT()
+8. Format dates using SQLite date functions like date() and datetime()
 9. Use CASE statements for conditional logic
 10. Include proper JOINs when multiple tables are needed
+11. CRITICAL: Use the EXACT column names provided in the schema - do not assume column names
+12. Pay attention to the actual table structure provided in the context
 
 BUSINESS CONTEXT:
-- UPC codes are product identifiers
+- UPC codes are product identifiers (stored as 'upc_code' column)
+- Categories are hierarchical: category_level_1, category_level_2, category_level_3
 - Price families group related products
 - Zones represent different geographical or business areas
 - Elasticity measures price sensitivity (>1 = elastic, <1 = inelastic)
 - CPI = Competitive Price Index
 - CP Unit Price = Competitor Price Unit Price
-- PLG = Price Look-up Group
-- KVI = Key Value Item
+
+CRITICAL SCHEMA NOTES:
+- Product identifiers use 'upc_code' NOT 'upc'
+- Categories use 'category_level_1', 'category_level_2', 'category_level_3' NOT just 'category'
+- Always check the provided schema for exact column names
+- Join tables using the correct foreign key relationships
 
 RESPONSE FORMAT:
 Return a JSON object with:
@@ -309,27 +316,45 @@ class SQLGenerator:
         prompt_parts = [
             f"QUESTION: {question}",
             "",
-            "AVAILABLE TABLES AND SCHEMAS:"
+            "AVAILABLE TABLES AND SCHEMAS (USE EXACT COLUMN NAMES):"
         ]
         
-        # Add table schemas
+        # Add table schemas with detailed information
         for table_name, schema in context.table_schemas.items():
             prompt_parts.append(f"\nTable: {table_name}")
+            prompt_parts.append(f"Description: {schema.get('description', 'No description available')}")
+            
             if isinstance(schema, dict) and 'columns' in schema:
+                prompt_parts.append("Columns:")
                 for col in schema['columns']:
                     col_info = f"  - {col['name']} ({col['type']})"
                     if col.get('description'):
                         col_info += f": {col['description']}"
+                    # Add constraint information if available
+                    if col.get('primary_key'):
+                        col_info += " [PRIMARY KEY]"
+                    if col.get('nullable') is False:
+                        col_info += " [NOT NULL]"
                     prompt_parts.append(col_info)
+            
+            # Add sample data if available to show actual data patterns
+            if isinstance(schema, dict) and schema.get('sample_data'):
+                prompt_parts.append("Sample data (showing actual values):")
+                for i, row in enumerate(schema['sample_data'][:2]):  # Show 2 sample rows
+                    row_str = ", ".join([f"{k}='{v}'" for k, v in row.items() if v is not None])
+                    prompt_parts.append(f"  Sample {i+1}: {row_str}")
         
-        # Add sample data if available
-        if context.sample_data:
-            prompt_parts.append("\nSAMPLE DATA:")
-            for table_name, samples in context.sample_data.items():
-                if samples:
-                    prompt_parts.append(f"\n{table_name} (first few rows):")
-                    for i, row in enumerate(samples[:3]):
-                        prompt_parts.append(f"  Row {i+1}: {row}")
+        # Add database type context
+        if context.metadata.get('database_type') == 'sqlite':
+            prompt_parts.append("\nDATABASE: SQLite")
+            prompt_parts.append("- Use SQLite-specific syntax")
+            prompt_parts.append("- Date functions: date(), datetime(), strftime()")
+            prompt_parts.append("- String functions: UPPER(), LOWER(), SUBSTR()")
+        
+        # Add available tables list
+        if context.metadata.get('available_tables'):
+            tables_list = ", ".join(context.metadata['available_tables'])
+            prompt_parts.append(f"\nAvailable tables: {tables_list}")
         
         # Add business rules
         if context.business_rules:
@@ -344,6 +369,13 @@ class SQLGenerator:
                 prompt_parts.append(f"Q: {example.get('question', '')}")
                 prompt_parts.append(f"A: {example.get('sql', '')}")
                 prompt_parts.append("")
+        
+        # Add final reminders
+        prompt_parts.append("\nREMEMBER:")
+        prompt_parts.append("- Use EXACT column names as shown above")
+        prompt_parts.append("- Check table relationships carefully")
+        prompt_parts.append("- Use appropriate JOIN conditions")
+        prompt_parts.append("- Include reasonable LIMIT clauses")
         
         return "\n".join(prompt_parts)
     

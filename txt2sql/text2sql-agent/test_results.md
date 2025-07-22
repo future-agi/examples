@@ -3,7 +3,7 @@
 ## System Status
 
 ### ✅ Successfully Running Services
-- **Flask API Server**: Running on port 5000
+- **Flask API Server**: Running on port 6001
 - **Gradio Interface**: Running on port 7860
 - Both services are accessible and responding
 

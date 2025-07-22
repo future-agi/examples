@@ -210,13 +210,13 @@ Result: 0020282000000|Wonder Bread Classic White|2.49
 
 ### Current System URLs
 - **Gradio Interface**: http://localhost:7860
-- **Flask API**: http://localhost:5000
-- **Health Check**: http://localhost:5000/api/health
-- **API Examples**: http://localhost:5000/api/examples
+- **Flask API**: http://localhost:6001
+- **Health Check**: http://localhost:6001/api/health
+- **API Examples**: http://localhost:6001/api/examples
 
 ### Public Access (if exposed)
 - **Gradio Interface**: https://7860-iu5jdgsw62r51n6nwcfx1-678effc0.manusvm.computer
-- **Flask API**: https://5000-iu5jdgsw62r51n6nwcfx1-678effc0.manusvm.computer
+- **Flask API**: https://6001-iu5jdgsw62r51n6nwcfx1-678effc0.manusvm.computer
 
 ## 📋 Conclusion
 

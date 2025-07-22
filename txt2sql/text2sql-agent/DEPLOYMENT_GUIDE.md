@@ -114,16 +114,16 @@ python src/main.py
 
 ### 2. Access Points
 - **Gradio Interface**: http://localhost:7860
-- **Flask API**: http://localhost:5000
-- **Health Check**: http://localhost:5000/api/health
+- **Flask API**: http://localhost:6001
+- **Health Check**: http://localhost:6001/api/health
 
 ### 3. Verification
 ```bash
 # Test API health
-curl http://localhost:5000/api/health
+curl http://localhost:6001/api/health
 
 # Test query endpoint
-curl -X POST http://localhost:5000/api/query \
+curl -X POST http://localhost:6001/api/query \
   -H "Content-Type: application/json" \
   -d '{"question": "What is the current price for UPC code 123456?"}'
 ```
@@ -155,7 +155,7 @@ ENV PYTHONPATH=/app
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
 
 # Expose ports
-EXPOSE 5000 7860
+EXPOSE 6001 7860
 
 # Start application
 CMD ["python", "src/main.py"]
@@ -169,7 +169,7 @@ docker build -t revionics-text2sql .
 # Run container
 docker run -d \
   --name revionics-text2sql \
-  -p 5000:5000 \
+  -p 6001:6001 \
   -p 7860:7860 \
   -e OPENAI_API_KEY="your-api-key" \
   -e GOOGLE_CLOUD_PROJECT="revionics-text2sql" \
@@ -184,7 +184,7 @@ services:
   text2sql-agent:
     build: .
     ports:
-      - "5000:5000"
+      - "6001:6001"
       - "7860:7860"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -214,7 +214,7 @@ services:
      --platform managed \
      --region us-central1 \
      --allow-unauthenticated \
-     --port 5000 \
+     --port 6001 \
      --set-env-vars OPENAI_API_KEY="your-api-key" \
      --set-env-vars GOOGLE_CLOUD_PROJECT="revionics-text2sql" \
      --set-env-vars BIGQUERY_DATASET="retail_analytics" \
@@ -265,7 +265,7 @@ services:
      --resource-group revionics-rg \
      --name text2sql-agent \
      --image revionics-text2sql:latest \
-     --ports 5000 7860 \
+     --ports 6001 7860 \
      --environment-variables OPENAI_API_KEY="your-api-key" \
      --memory 4 \
      --cpu 2
@@ -336,7 +336,7 @@ if not app.debug:
 ### 2. Health Checks
 ```bash
 # Add health check endpoint monitoring
-curl -f http://localhost:5000/api/health || exit 1
+curl -f http://localhost:6001/api/health || exit 1
 ```
 
 ### 3. Performance Metrics
@@ -359,7 +359,7 @@ pip install --upgrade -r requirements.txt
 python scripts/update_knowledge_base.py
 
 # Clear caches
-curl -X POST http://localhost:5000/api/clear-cache
+curl -X POST http://localhost:6001/api/clear-cache
 ```
 
 ### 2. Backup Procedures
@@ -411,7 +411,7 @@ cp .env .env.backup.$(date +%Y%m%d)
 4. **Port Conflicts**
    ```bash
    # Check port usage
-   netstat -tlnp | grep :5000
+   netstat -tlnp | grep :6001
    
    # Use different ports
    export FLASK_PORT=5001
