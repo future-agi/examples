@@ -18,6 +18,19 @@ from .vector_store import VectorStore, ContextRetriever, SchemaLoader
 from .sqlite_client import SQLiteClient, QueryResult, create_sqlite_client
 from .response_generator import ResponseGenerator, ResponseContext, GeneratedResponse
 
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType
+from traceai_openai import OpenAIInstrumentor
+from opentelemetry import trace
+from fi.evals import Evaluator
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType
+)
+from opentelemetry import trace
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+
+tracer = FITracer(trace.get_tracer(__name__))
 
 @dataclass
 class AgentConfig:
@@ -108,7 +121,7 @@ class Text2SQLAgentSQLite:
             self.config.vector_store_path = "./chroma_db_fallback"
             if not os.path.exists(self.config.vector_store_path):
                 os.makedirs(self.config.vector_store_path)
-    
+
     def _initialize_knowledge_base(self):
         """Initialize the knowledge base with schemas and examples"""
         try:
@@ -189,128 +202,134 @@ class Text2SQLAgentSQLite:
             schema_loader.load_retail_schemas()
     
     def process_question(self, question: str, user_context: Optional[Dict] = None) -> AgentResponse:
-        """
-        Process a natural language question and return a complete response
-        
-        Args:
-            question: Natural language question
-            user_context: Optional user context (preferences, filters, etc.)
-            
-        Returns:
-            AgentResponse with complete results
-        """
-        start_time = time.time()
-        self.query_count += 1
-        
-        try:
-            self.logger.info(f"Processing question: {question}")
-            
-            # Step 1: Process the question
-            processed_question = self.question_processor.process_question(question)
-            self.logger.debug(f"Question processed - Intent: {processed_question.intent}")
-            
-            # Step 2: Retrieve relevant context
-            context = self.context_retriever.retrieve_context(
-                question=question,
-                intent=processed_question.intent,
-                entities=[e.value for e in processed_question.entities]
-            )
-            self.logger.debug(f"Context retrieved - {len(context.schemas)} schemas, {len(context.examples)} examples")
-            
-            # Step 3: Generate SQL query with SQLite-specific context
-            # If vector store is empty, get schemas directly from database
-            if len(context.schemas) == 0:
-                self.logger.info("No schemas in vector store, using direct database schema inspection")
-                all_schemas = self.sqlite_client.get_all_schemas()
-                
-                # Convert SQLite schemas to the format expected by SQL generator
-                table_schemas = {}
-                for table_name, schema in all_schemas.items():
-                    table_schemas[table_name] = {
-                        'table_name': schema.table_name,
-                        'columns': schema.columns,
-                        'description': schema.description,
-                        'sample_data': schema.sample_data or []
-                    }
-            else:
-                table_schemas = {schema.table_name: asdict(schema) for schema in context.schemas}
+        with tracer.start_as_current_span("process_question") as span:
+            span.set_attribute("process_question", "process_question")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+            span.set_attribute("input.value", question)
 
-            query_context = QueryContext(
-                table_schemas=table_schemas,
-                sample_data={},  # Could be populated with actual sample data
-                business_rules=[rule.description for rule in context.rules],
-                similar_queries=[{"question": ex.question, "sql": ex.sql_query} for ex in context.examples],
-                metadata={
-                    **context.metadata,
-                    'database_type': 'sqlite',
-                    'available_tables': self.sqlite_client.list_tables(),
-                    'actual_schemas_used': len(table_schemas)
-                }
-            )
+            """
+            Process a natural language question and return a complete response
             
-            generated_sql = self.sql_generator.generate_sql(question, query_context)
-            self.logger.debug(f"SQL generated - Confidence: {generated_sql.confidence_score}")
+            Args:
+                question: Natural language question
+                user_context: Optional user context (preferences, filters, etc.)
+                
+            Returns:
+                AgentResponse with complete results
+            """
+            start_time = time.time()
+            self.query_count += 1
             
-            if not generated_sql.sql_query or generated_sql.validation_errors:
-                return self._create_error_response(
-                    question, 
-                    "Failed to generate valid SQL query",
-                    generated_sql.validation_errors,
-                    start_time
+            try:
+                self.logger.info(f"Processing question: {question}")
+                
+                # Step 1: Process the question
+                processed_question = self.question_processor.process_question(question)
+                self.logger.debug(f"Question processed - Intent: {processed_question.intent}")
+                
+                # Step 2: Retrieve relevant context
+                context = self.context_retriever.retrieve_context(
+                    question=question,
+                    intent=processed_question.intent,
+                    entities=[e.value for e in processed_question.entities]
                 )
-            
-            # Step 4: Execute SQL query using SQLite
-            query_result = self.sqlite_client.execute_query(generated_sql.sql_query)
-            self.logger.debug(f"Query executed - Success: {query_result.success}, Rows: {query_result.row_count}")
-            
-            # Step 5: Generate natural language response
-            response_context = ResponseContext(
-                original_question=question,
-                sql_query=generated_sql.sql_query,
-                query_result=query_result,
-                intent=processed_question.intent,
-                entities=[e.value for e in processed_question.entities],
-                user_preferences=user_context or {}
-            )
-            
-            generated_response = self.response_generator.generate_response(response_context)
-            self.logger.debug("Natural language response generated")
-            
-            # Calculate execution time
-            execution_time = time.time() - start_time
-            self.total_execution_time += execution_time
-            
-            if query_result.success:
-                self.successful_queries += 1
-            
-            # Create final response
-            agent_response = AgentResponse(
-                success=query_result.success,
-                natural_language_response=generated_response.text_response,
-                sql_query=generated_sql.sql_query,
-                data_table=generated_response.data_table,
-                visualization=generated_response.visualization,
-                key_insights=generated_response.key_insights,
-                execution_time=execution_time,
-                row_count=query_result.row_count,
-                confidence_score=min(generated_sql.confidence_score, generated_response.confidence_score),
-                error_message=query_result.error_message,
-                metadata={
-                    'processed_question': asdict(processed_question),
-                    'generated_sql': asdict(generated_sql),
-                    'query_result_metadata': query_result.metadata,
-                    'response_metadata': generated_response.metadata,
-                    'agent_stats': self.get_stats(),
-                    'database_type': 'sqlite'
-                }
-            )
-            
-            self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
-            return agent_response
-            
-        except Exception as e:
-            self.logger.error(f"Error processing question: {str(e)}")
-            return self._create_error_response(question, str(e), [], start_time)
+                self.logger.debug(f"Context retrieved - {len(context.schemas)} schemas, {len(context.examples)} examples")
+                
+                # Step 3: Generate SQL query with SQLite-specific context
+                # If vector store is empty, get schemas directly from database
+                if len(context.schemas) == 0:
+                    self.logger.info("No schemas in vector store, using direct database schema inspection")
+                    all_schemas = self.sqlite_client.get_all_schemas()
+                    
+                    # Convert SQLite schemas to the format expected by SQL generator
+                    table_schemas = {}
+                    for table_name, schema in all_schemas.items():
+                        table_schemas[table_name] = {
+                            'table_name': schema.table_name,
+                            'columns': schema.columns,
+                            'description': schema.description,
+                            'sample_data': schema.sample_data or []
+                        }
+                else:
+                    table_schemas = {schema.table_name: asdict(schema) for schema in context.schemas}
+
+                query_context = QueryContext(
+                    table_schemas=table_schemas,
+                    sample_data={},  # Could be populated with actual sample data
+                    business_rules=[rule.description for rule in context.rules],
+                    similar_queries=[{"question": ex.question, "sql": ex.sql_query} for ex in context.examples],
+                    metadata={
+                        **context.metadata,
+                        'database_type': 'sqlite',
+                        'available_tables': self.sqlite_client.list_tables(),
+                        'actual_schemas_used': len(table_schemas)
+                    }
+                )
+                
+                generated_sql = self.sql_generator.generate_sql(question, query_context)
+                self.logger.debug(f"SQL generated - Confidence: {generated_sql.confidence_score}")
+                
+                if not generated_sql.sql_query or generated_sql.validation_errors:
+                    return self._create_error_response(
+                        question, 
+                        "Failed to generate valid SQL query",
+                        generated_sql.validation_errors,
+                        start_time
+                    )
+                
+                # Step 4: Execute SQL query using SQLite
+                query_result = self.sqlite_client.execute_query(generated_sql.sql_query)
+                self.logger.debug(f"Query executed - Success: {query_result.success}, Rows: {query_result.row_count}")
+                
+                # Step 5: Generate natural language response
+                response_context = ResponseContext(
+                    original_question=question,
+                    sql_query=generated_sql.sql_query,
+                    query_result=query_result,
+                    intent=processed_question.intent,
+                    entities=[e.value for e in processed_question.entities],
+                    user_preferences=user_context or {}
+                )
+                
+                generated_response = self.response_generator.generate_response(response_context)
+                self.logger.debug("Natural language response generated")
+                
+                # Calculate execution time
+                execution_time = time.time() - start_time
+                self.total_execution_time += execution_time
+                
+                if query_result.success:
+                    self.successful_queries += 1
+                
+                # Create final response
+                agent_response = AgentResponse(
+                    success=query_result.success,
+                    natural_language_response=generated_response.text_response,
+                    sql_query=generated_sql.sql_query,
+                    data_table=generated_response.data_table,
+                    visualization=generated_response.visualization,
+                    key_insights=generated_response.key_insights,
+                    execution_time=execution_time,
+                    row_count=query_result.row_count,
+                    confidence_score=min(generated_sql.confidence_score, generated_response.confidence_score),
+                    error_message=query_result.error_message,
+                    metadata={
+                        'processed_question': asdict(processed_question),
+                        'generated_sql': asdict(generated_sql),
+                        'query_result_metadata': query_result.metadata,
+                        'response_metadata': generated_response.metadata,
+                        'agent_stats': self.get_stats(),
+                        'database_type': 'sqlite'
+                    }
+                )
+                
+                self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
+                span.set_attribute("output.value", agent_response.natural_language_response)
+                return agent_response
+                
+            except Exception as e:
+                self.logger.error(f"Error processing question: {str(e)}")
+                return self._create_error_response(question, str(e), [], start_time)
     
     def _create_error_response(self, question: str, error_message: str, 
                              validation_errors: List[str], start_time: float) -> AgentResponse:
@@ -367,37 +386,49 @@ class Text2SQLAgentSQLite:
         }
     
     def get_schema_info(self, table_name: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Get schema information for available tables
-        
-        Args:
-            table_name: Specific table name (optional)
+        with tracer.start_as_current_span("get_schema_info") as span:
+            span.set_attribute("get_schema_info", "get_schema_info")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", "input")
+            span.set_attribute("output.value", "output")
+
+            """
+            Get schema information for available tables
             
-        Returns:
-            Schema information
-        """
-        if table_name:
-            schema = self.sqlite_client.get_table_schema(table_name)
-            return asdict(schema) if schema else {}
-        else:
-            tables = self.sqlite_client.list_tables()
-            schemas = self.sqlite_client.get_all_schemas()
-            return {
-                'available_tables': tables,
-                'table_schemas': {name: asdict(schema) for name, schema in schemas.items()}
-            }
-    
+            Args:
+                table_name: Specific table name (optional)
+                
+            Returns:
+                Schema information
+            """
+            if table_name:
+                schema = self.sqlite_client.get_table_schema(table_name)
+                return asdict(schema) if schema else {}
+            else:
+                tables = self.sqlite_client.list_tables()
+                schemas = self.sqlite_client.get_all_schemas()
+                return {
+                    'available_tables': tables,
+                    'table_schemas': {name: asdict(schema) for name, schema in schemas.items()}
+                }
+        
     def validate_sql(self, sql_query: str) -> Tuple[bool, Optional[str]]:
-        """
-        Validate SQL query without executing it
-        
-        Args:
-            sql_query: SQL query to validate
+        with tracer.start_as_current_span("validate_sql") as span:
+            span.set_attribute("validate_sql", "validate_sql")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", "input")
+            span.set_attribute("output.value", "output")
+
+            """
+            Validate SQL query without executing it
             
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        return self.sqlite_client.validate_query(sql_query)
+            Args:
+                sql_query: SQL query to validate
+                
+            Returns:
+                Tuple of (is_valid, error_message)
+            """
+            return self.sqlite_client.validate_query(sql_query)
     
     def clear_cache(self):
         """Clear all caches"""

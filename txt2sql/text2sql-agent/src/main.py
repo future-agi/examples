@@ -11,6 +11,7 @@ import sys
 import logging
 import threading
 import time
+import json
 from datetime import datetime
 import traceback
 from typing import Dict, Any, Optional, List, Tuple
@@ -32,6 +33,31 @@ except ImportError as e:
     logging.error(f"Import error: {e}")
     logging.error("Please ensure all required dependencies are installed")
     sys.exit(1)
+
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType
+from traceai_openai import OpenAIInstrumentor
+from opentelemetry import trace
+from fi.evals import Evaluator
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType
+)
+from fi.evals import Evaluator
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+
+trace_provider = register(
+    project_type=ProjectType.OBSERVE,
+    project_name="text2sql_agent",
+)
+
+evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
+
+OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
+
+trace.set_tracer_provider(trace_provider)
+tracer = FITracer(trace_provider.get_tracer(__name__))
+
 
 # Configure logging
 logging.basicConfig(
@@ -79,23 +105,30 @@ def check_rate_limit() -> bool:
         return False
 
 def validate_question(question: str) -> Tuple[bool, Optional[str]]:
-    """Validate user question"""
-    if not question or not question.strip():
-        return False, "Question cannot be empty"
-    
-    if len(question) > APP_CONFIG['max_query_length']:
-        return False, f"Question too long (max {APP_CONFIG['max_query_length']} characters)"
-    
-    # Basic content filtering
-    forbidden_keywords = ['drop', 'delete', 'truncate', 'alter', 'create', 'insert', 'update']
-    question_lower = question.lower()
-    for keyword in forbidden_keywords:
-        if keyword in question_lower:
-            return False, f"Question contains forbidden keyword: {keyword}"
-    
-    return True, None
+        with tracer.start_as_current_span("validate_question") as span:
+            span.set_attribute("question", question)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
+            span.set_attribute("input.value", question)
+            span.set_attribute("output.value", True)
+            
 
-def initialize_agent():
+        """Validate user question"""
+        if not question or not question.strip():
+            return False, "Question cannot be empty"
+        
+        if len(question) > APP_CONFIG['max_query_length']:
+            return False, f"Question too long (max {APP_CONFIG['max_query_length']} characters)"
+        
+        # Basic content filtering
+        forbidden_keywords = ['drop', 'delete', 'truncate', 'alter', 'create', 'insert', 'update']
+        question_lower = question.lower()
+        for keyword in forbidden_keywords:
+            if keyword in question_lower:
+                return False, f"Question contains forbidden keyword: {keyword}"
+        
+        return True, None
+
+def initialize_agent():  
     """Initialize the Text-to-SQL agent with SQLite backend"""
     global agent
     
@@ -165,22 +198,28 @@ def initialize_agent():
                     }
                 
                 def process_question(self, question, user_context=None):
-                    class BasicResponse:
-                        def __init__(self):
-                            self.success = False
-                            self.natural_language_response = "AI features are not available. Please set OPENAI_API_KEY environment variable to enable full functionality."
-                            self.sql_query = None
-                            self.data_table = None
-                            self.visualization = None
-                            self.key_insights = ["AI features disabled - set OPENAI_API_KEY to enable"]
-                            self.execution_time = 0.0
-                            self.row_count = 0
-                            self.confidence_score = 0.0
-                            self.error_message = "OpenAI API key not configured"
-                            self.metadata = {"fallback_mode": True}
+                    with tracer.start_as_current_span("process_question") as span:
+                        span.set_attribute("process_question", "process_question")
+                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+                        span.set_attribute("input.value", question)
+                        span.set_attribute("output.value", True)
+
+                        class BasicResponse:
+                            def __init__(self):
+                                self.success = False
+                                self.natural_language_response = "AI features are not available. Please set OPENAI_API_KEY environment variable to enable full functionality."
+                                self.sql_query = None
+                                self.data_table = None
+                                self.visualization = None
+                                self.key_insights = ["AI features disabled - set OPENAI_API_KEY to enable"]
+                                self.execution_time = 0.0
+                                self.row_count = 0
+                                self.confidence_score = 0.0
+                                self.error_message = "OpenAI API key not configured"
+                                self.metadata = {"fallback_mode": True}
+                        
+                        return BasicResponse()
                     
-                    return BasicResponse()
-                
                 def get_stats(self):
                     return {
                         'total_queries': 0,
@@ -194,44 +233,56 @@ def initialize_agent():
                     }
                 
                 def get_schema_info(self, table_name=None):
-                    try:
-                        # Get basic schema info from SQLite
-                        tables = []
-                        cursor = self.sqlite_client.connection.cursor()
-                        
-                        if table_name:
-                            cursor.execute(f"PRAGMA table_info({table_name})")
-                            columns = cursor.fetchall()
+                    with tracer.start_as_current_span("get_schema_info") as span:
+                        span.set_attribute("get_schema_info", "get_schema_info")
+                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+                        span.set_attribute("input.value", "input")
+                        span.set_attribute("output.value", "output")
+
+                        try:
+                            # Get basic schema info from SQLite
+                            tables = []
+                            cursor = self.sqlite_client.connection.cursor()
+                            
+                            if table_name:
+                                cursor.execute(f"PRAGMA table_info({table_name})")
+                                columns = cursor.fetchall()
+                                return {
+                                    'table': table_name,
+                                    'columns': [{'name': col[1], 'type': col[2]} for col in columns],
+                                    'fallback_mode': True
+                                }
+                            else:
+                                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                                tables = [row[0] for row in cursor.fetchall()]
+                                return {
+                                    'tables': tables,
+                                    'fallback_mode': True,
+                                    'message': 'Basic schema info only - AI features disabled'
+                                }
+                        except Exception as e:
                             return {
-                                'table': table_name,
-                                'columns': [{'name': col[1], 'type': col[2]} for col in columns],
+                                'error': str(e),
                                 'fallback_mode': True
                             }
-                        else:
-                            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                            tables = [row[0] for row in cursor.fetchall()]
-                            return {
-                                'tables': tables,
-                                'fallback_mode': True,
-                                'message': 'Basic schema info only - AI features disabled'
-                            }
-                    except Exception as e:
-                        return {
-                            'error': str(e),
-                            'fallback_mode': True
-                        }
-                
+                    
                 def validate_sql(self, sql_query):
-                    # Basic SQL validation
-                    forbidden_keywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE']
-                    upper_query = sql_query.upper()
+                    with tracer.start_as_current_span("validate_sql") as span:
+                        span.set_attribute("validate_sql", "validate_sql")
+                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+                        span.set_attribute("input.value", "input")
+                        span.set_attribute("output.value", "output")
+
+                        # Basic SQL validation
+                        forbidden_keywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE']
+                        upper_query = sql_query.upper()
+                        
+                        for keyword in forbidden_keywords:
+                            if keyword in upper_query:
+                                return False, f"Forbidden keyword '{keyword}' detected"
+                        
+                        return True, None
                     
-                    for keyword in forbidden_keywords:
-                        if keyword in upper_query:
-                            return False, f"Forbidden keyword '{keyword}' detected"
-                    
-                    return True, None
-                
                 def clear_cache(self):
                     pass  # No cache in fallback mode
             
@@ -245,7 +296,7 @@ def initialize_agent():
 
 # Flask API Routes
 @app.route('/')
-def index():
+def index():    
     """Main page with improved UI"""
     return render_template_string("""
     <!DOCTYPE html>
@@ -489,67 +540,115 @@ def health_check():
 
 @app.route('/api/query', methods=['POST'])
 def process_query():
-    """Process a natural language query"""
-    try:
-        if agent is None:
+    with tracer.start_as_current_span("process_query") as span:
+        span.set_attribute("process_query", "process_query")
+        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+        
+        """Process a natural language query"""
+        try:
+            if agent is None:
+                return jsonify({
+                    'success': False,
+                    'error': 'Agent not initialized'
+                }), 503
+            
+            # Check rate limit
+            if not check_rate_limit():
+                return jsonify({
+                    'success': False,
+                    'error': 'Rate limit exceeded. Please wait before making another request.'
+                }), 429
+            
+            data = request.get_json()
+            if not data or 'question' not in data:
+                return jsonify({
+                    'success': False,
+                    'error': 'Missing question in request'
+                }), 400
+            
+            question = data['question']
+            user_context = data.get('user_context', {})
+            
+            # Validate question
+            is_valid, validation_error = validate_question(question)
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'error': validation_error
+                }), 400
+            
+            logger.info(f"Processing query: {question}")
+            span.set_attribute("input.value", question)
+            # Process the question
+            response = agent.process_question(question, user_context)
+            # Convert response to JSON-serializable format
+            result = {
+                'success': response.success,
+                'response': response.natural_language_response,
+                'sql_query': response.sql_query,
+                'data_table': response.data_table,
+                'visualization': response.visualization,
+                'key_insights': response.key_insights,
+                'execution_time': response.execution_time,
+                'row_count': response.row_count,
+                'confidence_score': response.confidence_score,
+                'error_message': response.error_message,
+                'metadata': response.metadata
+            }
+            
+            span.set_attribute("output.value", response.natural_language_response)
+
+            config_completeness = {
+                "eval_templates" : "completeness",
+                "inputs" : {
+                    "input": question,
+                    "output": response.natural_language_response,
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result1 = evaluator.evaluate(
+                **config_completeness, 
+                custom_eval_name="completeness_check", 
+                trace_eval=True
+            )
+
+            config_task_completion = {
+                "eval_templates" : "task_completion",
+                "inputs" : {
+                    "input": question,
+                    "output": response.natural_language_response,
+                },
+                "model_name" : "turing_large"
+            }
+
+            eval_result2 = evaluator.evaluate(
+                **config_task_completion, 
+                custom_eval_name="task_completion_check", 
+                trace_eval=True
+            )
+
+            config_context_relevance = {
+                "eval_templates" : "context_relevance",
+                "inputs" : {
+                    "input": question,
+                    "context": response.data_table,
+                },
+            }   
+            eval_result3 = evaluator.evaluate(
+                **config_context_relevance, 
+                custom_eval_name="context_relevance_check", 
+                trace_eval=True
+            )  
+
+
+            return jsonify(result)
+            
+        except Exception as e:
+            logger.error(f"Query processing error: {str(e)}")
             return jsonify({
                 'success': False,
-                'error': 'Agent not initialized'
-            }), 503
-        
-        # Check rate limit
-        if not check_rate_limit():
-            return jsonify({
-                'success': False,
-                'error': 'Rate limit exceeded. Please wait before making another request.'
-            }), 429
-        
-        data = request.get_json()
-        if not data or 'question' not in data:
-            return jsonify({
-                'success': False,
-                'error': 'Missing question in request'
-            }), 400
-        
-        question = data['question']
-        user_context = data.get('user_context', {})
-        
-        # Validate question
-        is_valid, validation_error = validate_question(question)
-        if not is_valid:
-            return jsonify({
-                'success': False,
-                'error': validation_error
-            }), 400
-        
-        logger.info(f"Processing query: {question}")
-        
-        # Process the question
-        response = agent.process_question(question, user_context)
-        
-        # Convert response to JSON-serializable format
-        result = {
-            'success': response.success,
-            'response': response.natural_language_response,
-            'sql_query': response.sql_query,
-            'data_table': response.data_table,
-            'visualization': response.visualization,
-            'key_insights': response.key_insights,
-            'execution_time': response.execution_time,
-            'row_count': response.row_count,
-            'confidence_score': response.confidence_score,
-            'error_message': response.error_message,
-            'metadata': response.metadata
-        }
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"Query processing error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+                'error': str(e)
+            }), 500
 
 @app.route('/api/validate-sql', methods=['POST'])
 def validate_sql():
@@ -801,8 +900,8 @@ def simple_chat():
             
             <div class="input-container">
                 <input type="text" id="questionInput" class="question-input" 
-                       placeholder="Ask a question about your data..." 
-                       onkeypress="handleKeyPress(event)">
+                    placeholder="Ask a question about your data..." 
+                    onkeypress="handleKeyPress(event)">
                 <button id="sendButton" class="send-button" onclick="sendQuestion()">Send</button>
             </div>
         </div>
