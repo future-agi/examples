@@ -13,6 +13,10 @@ from dataclasses import dataclass
 import pandas as pd
 import numpy as np
 from openai import OpenAI
+
+# Configure matplotlib to use non-GUI backend to prevent macOS NSWindow errors
+import matplotlib
+matplotlib.use('Agg')  # Use Anti-Grain Geometry backend (no GUI)
 import matplotlib.pyplot as plt
 import seaborn as sns
 from io import BytesIO
