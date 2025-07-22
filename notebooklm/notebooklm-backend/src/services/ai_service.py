@@ -269,7 +269,7 @@ Guidelines:
         Generate specific types of content from sources
         
         Args:
-            content_type: Type of content (summary, faq, timeline, study_guide, briefing)
+            content_type: Type of content (summary, faq, timeline, study_guide, briefing, ai_summary, executive_summary, predictive_actions)
             sources: List of source chunks to use
             title: Optional title for the content
             custom_prompt: Custom prompt for generation
@@ -290,7 +290,54 @@ Guidelines:
                 
                 'study_guide': "Create a detailed study guide based on the provided documents. Include key concepts, definitions, important facts, and potential study questions. Organize by topics.",
                 
-                'briefing': "Create a concise briefing document that summarizes the most important information from the provided documents. Focus on key insights, decisions, and actionable items."
+                'briefing': "Create a concise briefing document that summarizes the most important information from the provided documents. Focus on key insights, decisions, and actionable items.",
+                
+                'ai_summary': """Create a comprehensive AI Summary of the provided documents. Focus on:
+- Key objectives and purposes of the document
+- Main regulations, requirements, or guidelines mentioned
+- Entities and stakeholders affected
+- Compliance requirements and timelines
+- Potential impacts and consequences of non-compliance
+- Strategic opportunities that may arise
+- Important dates, deadlines, or effective periods
+
+Structure the summary as flowing paragraphs that capture the essence and implications of the document content.""",
+                
+                'executive_summary': """Create a structured Executive Summary of the provided documents. Format with clear sections:
+- Primary objective and purpose of the document
+- Key amendments, requirements, or changes introduced
+- Specific entities, organizations, or stakeholders affected
+- Scope and applicability of the content
+- Important regulatory changes or new obligations
+- Compliance requirements and disclosure obligations
+- Timeline information and deadlines
+- Any exclusions or special considerations mentioned
+
+Present information in a clear, factual manner suitable for executive-level review.""",
+                
+                'predictive_actions': """Generate comprehensive Predictive Actions based on the provided documents, organized in three priority levels:
+
+**CRITICAL ACTIONS** (Must be completed immediately):
+- Essential compliance requirements with immediate deadlines
+- Actions required to avoid penalties or legal issues
+- Critical process changes needed for regulatory compliance
+
+**WARNING ACTIONS** (Should be completed soon):
+- Important process improvements and risk mitigation steps
+- Recommended compliance measures with moderate urgency
+- Actions to enhance transparency and operational efficiency
+
+**GOOD TO HAVE ACTIONS** (Can be scheduled for future):
+- Strategic opportunities for competitive advantage
+- Process optimizations and best practice implementations
+- Long-term planning and preparatory measures
+
+For each action, provide:
+- Clear, actionable description
+- Brief rationale based on the document content
+- Suggested timeline or urgency level
+
+Format each action as a distinct item with clear descriptions."""
             }
             
             if content_type not in prompts:

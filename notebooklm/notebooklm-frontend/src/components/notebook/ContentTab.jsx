@@ -16,7 +16,8 @@ import {
   Clock, 
   GraduationCap,
   ClipboardList,
-  Sparkles
+  Sparkles,
+  Target
 } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
@@ -50,6 +51,24 @@ const contentTypes = {
     description: 'Create a concise briefing document',
     icon: ClipboardList,
     color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300'
+  },
+  ai_summary: {
+    name: 'AI Summary',
+    description: 'Generate an AI-powered comprehensive summary with insights',
+    icon: Sparkles,
+    color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300'
+  },
+  executive_summary: {
+    name: 'Executive Summary',
+    description: 'Create a structured executive-level summary',
+    icon: BookOpen,
+    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+  },
+  predictive_actions: {
+    name: 'Predictive Actions',
+    description: 'Generate actionable recommendations with priority levels',
+    icon: Target,
+    color: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300'
   }
 }
 

@@ -111,7 +111,7 @@ def generate_content(notebook_id):
             }), 400
         
         # Validate content type
-        valid_types = ['summary', 'faq', 'timeline', 'study_guide', 'briefing']
+        valid_types = ['summary', 'faq', 'timeline', 'study_guide', 'briefing', 'ai_summary', 'executive_summary', 'predictive_actions']
         if content_type not in valid_types:
             return jsonify({
                 'success': False,

@@ -221,7 +221,7 @@ class GeneratedContent(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     notebook_id = db.Column(db.String(36), db.ForeignKey('notebooks.id'), nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # summary, faq, timeline, study_guide, briefing
+    type = db.Column(db.String(50), nullable=False)  # summary, faq, timeline, study_guide, briefing, ai_summary, executive_summary, predictive_actions
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)  # Markdown format
     source_ids = db.Column(db.Text)  # JSON array of source IDs
