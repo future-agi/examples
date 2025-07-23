@@ -49,6 +49,7 @@ from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
     project_name="text2sql_agent",
+    set_global_tracer_provider=True
 )
 
 evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
