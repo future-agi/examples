@@ -634,12 +634,45 @@ def process_query():
                     "input": question,
                     "context": response.data_table,
                 },
+                "model_name" : "turing_large"
             }   
             eval_result3 = evaluator.evaluate(
                 **config_context_relevance, 
                 custom_eval_name="context_relevance_check", 
                 trace_eval=True
             )  
+
+            config_answer_correctness_eval = {
+                "eval_templates" : "answer_correctness_eval",
+                "inputs" : {
+                    "question": question,
+                    "sql_result": response.data_table,
+                    "answer": response.natural_language_response,
+                },
+                "model_name" : "turing_large"
+            }   
+            eval_result4 = evaluator.evaluate(
+                **config_answer_correctness_eval, 
+                custom_eval_name="answer_correctness_eval", 
+                trace_eval=True
+            )
+
+            config_business_context_integration = {
+                "eval_templates" : "business_context_integration",
+                "inputs" : {
+                    "response": response.natural_language_response,
+                    "pricing_concepts": response.key_insights
+                },
+                "model_name" : "turing_large"
+            }   
+            eval_result5 = evaluator.evaluate(
+                **config_business_context_integration, 
+                custom_eval_name="business_context_integration", 
+                trace_eval=True
+            )
+
+            
+
 
 
             return jsonify(result)

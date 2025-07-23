@@ -30,6 +30,10 @@ from fi_instrumentation.fi_types import (
 from opentelemetry import trace
 from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
+
+
+evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
+
 tracer = FITracer(trace.get_tracer(__name__))
 
 @dataclass
@@ -325,6 +329,21 @@ class Text2SQLAgentSQLite:
                 
                 self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
                 span.set_attribute("output.value", agent_response.natural_language_response)
+                
+                eval_result1 = evaluator.evaluate(
+                    **config_completeness, 
+                    custom_eval_name="completeness_of_context", 
+                    trace_eval=True
+                )
+
+                config_completeness = {
+                    "eval_templates" : "completeness_of_context",
+                    "inputs" : {
+                        "question": question,
+                        "context": context.schemas,
+                    },
+                    "model_name" : "turing_large"
+                }
                 return agent_response
                 
             except Exception as e:

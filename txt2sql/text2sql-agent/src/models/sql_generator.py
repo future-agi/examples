@@ -368,7 +368,37 @@ class SQLGenerator:
                     trace_eval=True
                 )
 
+                config_sql_syntactic_correctness = {
+                    "eval_templates" : "sql_syntactic_correctness",
+                    "inputs" : {
+                        "sql_query": generated_sql.sql_query,
+                    },
+                    "model_name" : "turing_large"
+                }   
+                eval_result3 = evaluator.evaluate(
+                    **config_sql_syntactic_correctness, 
+                    custom_eval_name="sql_syntactic_correctness", 
+                    trace_eval=True
+                )
+
+                config_schema_adherence = {
+                    "eval_templates" : "schema_adherence",
+                    "inputs" : {
+                        "schema_details": context.table_schemas,
+                        "sql_query": generated_sql.sql_query,
+                    },
+                    "model_name" : "turing_large"
+                }
+                
+                eval_result4 = evaluator.evaluate(
+                    **config_schema_adherence,
+                    custom_eval_name="schema_adherence", 
+                    trace_eval=True
+                )
+
                 return generated_sql
+            
+
                 
             except Exception as e:
                 self.logger.error(f"Error generating SQL: {str(e)}")

@@ -27,6 +27,8 @@ from fi_instrumentation.fi_types import (
 )
 from opentelemetry import trace
 
+evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
+
 tracer = FITracer(trace.get_tracer(__name__))
 
 @dataclass
@@ -180,6 +182,7 @@ class SQLiteClient:
             """
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
             span.set_attribute("input.value", query)
+            span.set_attribute("function.name", "execute_query")
             start_time = time.time()
             self.query_count += 1
             
@@ -257,6 +260,7 @@ class SQLiteClient:
                 
                 self.logger.debug(f"Query executed successfully in {execution_time:.2f}s, {row_count} rows")
                 span.set_attribute("output.value", result.data.to_json(orient="records") if result.data is not None else "[]")
+
                 return result
                 
             except sqlite3.Error as e:
@@ -463,6 +467,7 @@ class SQLiteClient:
             
             schemas_dict = {k: asdict(v) for k, v in schemas.items()}
             span.set_attribute("output.value", json.dumps(schemas_dict))
+            
             return schemas
     
     def clear_cache(self):
