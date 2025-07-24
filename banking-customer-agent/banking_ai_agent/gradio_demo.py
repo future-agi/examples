@@ -143,7 +143,7 @@ class BankingAIGradioDemo:
                 return "", history
             
             # Input protection - check user input first
-            protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+            protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
             print(protection_result)
             
             if protection_result.get("status") == "failed":
@@ -191,7 +191,7 @@ class BankingAIGradioDemo:
                 history.append((message, response))
                 
                 # Final output protection
-                protected_result = self.protector.protect(inputs=response, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                protected_result = self.protector.protect(inputs=response, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                 print(protected_result)
                 if protected_result.get("status") == "failed":
                     response = "I am Sorry I can't assist with that query"

@@ -145,7 +145,7 @@ class AITradingAssistant:
             """Route the user message using LLM function calling when available."""
             try:
                 # Input protection - check user input first
-                protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                 print(protection_result)    
 
                 if protection_result.get("status") == "failed":
@@ -198,7 +198,7 @@ class AITradingAssistant:
                         span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
                         
                         # Final output protection
-                        protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                        protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                         print(protected_result)
                         if protected_result.get("status") == "failed":
                             result = "I am Sorry I can't assist with that query"
@@ -212,7 +212,7 @@ class AITradingAssistant:
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
                     
                     # Final output protection
-                    protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                    protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                     print(protected_result)
                     if protected_result.get("status") == "failed":
                         result = "I am Sorry I can't assist with that query"
@@ -232,7 +232,7 @@ class AITradingAssistant:
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
                 
                 # Final output protection
-                protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                 print(protected_result) 
                 if protected_result.get("status") == "failed":
                     result = "I am Sorry I can't assist with that query"
@@ -1125,7 +1125,7 @@ def main():
         interface = create_gradio_interface()
         interface.launch(
             share=True,
-            server_port=7860,
+            server_port=7861,
             server_name="0.0.0.0",
             show_error=True
         )
