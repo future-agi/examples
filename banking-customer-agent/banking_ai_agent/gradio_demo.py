@@ -17,6 +17,7 @@ from traceai_langchain import LangChainInstrumentor
 from fi_instrumentation import register, FITracer
 from fi_instrumentation.fi_types import ProjectType, SpanAttributes, FiSpanKindValues
 from traceai_openai import OpenAIInstrumentor
+from fi.evals import Protect
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
@@ -45,6 +46,26 @@ class BankingAIGradioDemo:
         self.conversation_history = []
         self.current_customer_id = "DEMO_USER"
         self.current_session_id = None
+        
+        # Initialize protection system
+        self.protector = Protect()
+        self.protect_rules = [
+            {
+                'metric': 'content_moderation',
+            },
+            {
+                'metric': 'data_privacy_compliance',
+            },
+            {
+                'metric': 'bias_detection',
+            },
+            {
+                'metric': 'security',
+            }
+        ]
+        self.action = "I am Sorry I can't assist with that query"
+        self.use_flash = False
+        
         self._initialize_agent()
     
     def _initialize_agent(self):
@@ -121,6 +142,17 @@ class BankingAIGradioDemo:
                 # span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(()))
                 return "", history
             
+            # Input protection - check user input first
+            protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+            print(protection_result)
+            
+            if protection_result.get("status") == "failed":
+                error_msg = protection_result.get("messages", "I cannot process this request")
+                logger.warning(f"Input protection failed: {protection_result.get('reason', 'Unknown reason')}")
+                history.append((message, error_msg))
+                span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(error_msg))
+                return "", history
+            
             try:
                 # Process query with the agent
                 loop = asyncio.new_event_loop()
@@ -157,6 +189,13 @@ class BankingAIGradioDemo:
                 
                 # Add to history
                 history.append((message, response))
+                
+                # Final output protection
+                protected_result = self.protector.protect(inputs=response, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash)
+                print(protected_result)
+                if protected_result.get("status") == "failed":
+                    response = "I am Sorry I can't assist with that query"
+                    history[-1] = (message, response)  # Update last message
                 
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(response))
                 return "", history
