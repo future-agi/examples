@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, asdict
 import time
 from datetime import datetime
+import json
 
 from .query_processor import QuestionProcessor, ProcessedQuestion
 from .sql_generator import SQLGenerator, QueryContext, GeneratedSQL
@@ -330,20 +331,21 @@ class Text2SQLAgentSQLite:
                 self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
                 span.set_attribute("output.value", agent_response.natural_language_response)
                 
-                eval_result1 = evaluator.evaluate(
-                    **config_completeness, 
-                    custom_eval_name="completeness_of_context", 
-                    trace_eval=True
-                )
 
-                config_completeness = {
+                config_completeness_of_context = {
                     "eval_templates" : "completeness_of_context",
                     "inputs" : {
-                        "question": question,
-                        "context": context.schemas,
+                        "question": json.dumps(question),
+                        "context": json.dumps(context.schemas),
                     },
                     "model_name" : "turing_large"
                 }
+
+                eval_result1 = evaluator.evaluate(
+                    **config_completeness_of_context, 
+                    custom_eval_name="completeness_of_context", 
+                    trace_eval=True
+                )
                 return agent_response
                 
             except Exception as e:

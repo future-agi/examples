@@ -343,8 +343,8 @@ class SQLGenerator:
                 config_text_to_sql = {
                     "eval_templates" : "text_to_sql",
                     "inputs" : {
-                        "input": question,
-                        "output": generated_sql.sql_query,
+                        "input": json.dumps(question),
+                        "output": json.dumps(generated_sql.sql_query),
                     },
                     "model_name" : "turing_large"
                 }
@@ -357,7 +357,7 @@ class SQLGenerator:
                 config_evaluate_function_calling = {
                     "eval_templates" : "evaluate_function_calling",
                     "inputs" : {
-                        "input": question,
+                        "input": json.dumps(question),
                         "output": json.dumps(generated_sql.tables_used),
                     },
                     "model_name" : "turing_large"
@@ -371,7 +371,7 @@ class SQLGenerator:
                 config_sql_syntactic_correctness = {
                     "eval_templates" : "sql_syntactic_correctness",
                     "inputs" : {
-                        "sql_query": generated_sql.sql_query,
+                        "sql_query": json.dumps(generated_sql.sql_query),
                     },
                     "model_name" : "turing_large"
                 }   
@@ -384,8 +384,8 @@ class SQLGenerator:
                 config_schema_adherence = {
                     "eval_templates" : "schema_adherence",
                     "inputs" : {
-                        "schema_details": context.table_schemas,
-                        "sql_query": generated_sql.sql_query,
+                        "schema_details": json.dumps(context.table_schemas),
+                        "sql_query": json.dumps(generated_sql.sql_query),
                     },
                     "model_name" : "turing_large"
                 }
