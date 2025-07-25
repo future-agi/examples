@@ -111,7 +111,7 @@ class VectorStore:
                 logging.info(f"Created new collection: {collection_name}")
             
             self.collections[collection_name] = collection
-            span.set_attribute("output.value", json.dumps(collection))
+            span.set_attribute("output.value", json.dumps({"name": collection.name}))
             return collection
     
     def add_document_chunks(self, notebook_id: str, source_id: str, chunks: List[Dict]) -> bool:
@@ -230,7 +230,7 @@ class VectorStore:
                 return formatted_results
                 
             except Exception as e:
-                logging.error(f"Error searching similar chunks: {e}")
+                logging.error(f"Error searching similar chunks: {str(e)}")
                 return []
     
     def delete_source_chunks(self, notebook_id: str, source_id: str) -> bool:
