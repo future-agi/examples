@@ -48,7 +48,7 @@ from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="text_to_sql_agent",
+    project_name="text2sql_agent",
     set_global_tracer_provider=True
 )
 
