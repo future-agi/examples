@@ -210,7 +210,7 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("process_question") as span:
             span.set_attribute("process_question", "process_question")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
-            span.set_attribute("input.value", question)
+            span.set_attribute("input.value", json.dumps(question))
 
             """
             Process a natural language question and return a complete response
@@ -329,7 +329,7 @@ class Text2SQLAgentSQLite:
                 )
                 
                 self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
-                span.set_attribute("output.value", agent_response.natural_language_response)
+                span.set_attribute("output.value", json.dumps(agent_response.natural_language_response))
                 
 
                 config_completeness_of_context = {
@@ -410,8 +410,7 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("get_schema_info") as span:
             span.set_attribute("get_schema_info", "get_schema_info")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-            span.set_attribute("input.value", "input")
-            span.set_attribute("output.value", "output")
+            span.set_attribute("input.value", json.dumps({"table_name": table_name}))
 
             """
             Get schema information for available tables
@@ -424,10 +423,12 @@ class Text2SQLAgentSQLite:
             """
             if table_name:
                 schema = self.sqlite_client.get_table_schema(table_name)
+                span.set_attribute("output.value", json.dumps(asdict(schema) if schema else {}))
                 return asdict(schema) if schema else {}
             else:
                 tables = self.sqlite_client.list_tables()
                 schemas = self.sqlite_client.get_all_schemas()
+                span.set_attribute("output.value", json.dumps({"table_schemas": {name: asdict(schema) for name, schema in schemas.items()}}))
                 return {
                     'available_tables': tables,
                     'table_schemas': {name: asdict(schema) for name, schema in schemas.items()}
@@ -437,8 +438,8 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("validate_sql") as span:
             span.set_attribute("validate_sql", "validate_sql")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-            span.set_attribute("input.value", "input")
-            span.set_attribute("output.value", "output")
+            span.set_attribute("input.value", json.dumps({"sql_query": sql_query}))
+            
 
             """
             Validate SQL query without executing it
@@ -449,6 +450,7 @@ class Text2SQLAgentSQLite:
             Returns:
                 Tuple of (is_valid, error_message)
             """
+            span.set_attribute("output.value", json.dumps(self.sqlite_client.validate_query(sql_query)))
             return self.sqlite_client.validate_query(sql_query)
     
     def clear_cache(self):
