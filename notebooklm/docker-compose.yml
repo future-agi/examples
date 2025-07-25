@@ -53,6 +53,9 @@ services:
       - TOKENIZERS_PARALLELISM=false
       - HF_HOME=/app/model_cache
       - TRANSFORMERS_CACHE=/app/model_cache
+      - FI_API_KEY=${FI_API_KEY}
+      - FI_SECRET_KEY=${FI_SECRET_KEY}
+      - FI_BASE_URL=${FI_BASE_URL}
     volumes:
       - backend_uploads:/app/uploads
       - backend_chroma:/app/chroma_db

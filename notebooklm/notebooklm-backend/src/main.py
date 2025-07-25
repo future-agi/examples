@@ -20,6 +20,29 @@ from src.routes.chat import chat_bp
 from src.routes.content import content_bp
 from src.routes.podcasts import podcasts_bp
 
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType
+from traceai_openai import OpenAIInstrumentor
+from opentelemetry import trace
+from fi.evals import Evaluator
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType
+)
+from fi.evals import Evaluator
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+
+trace_provider = register(
+    project_type=ProjectType.OBSERVE,
+    project_name="notebooklm",
+    set_global_tracer_provider=True
+)
+
+OpenAIInstrumentor().instrument(tracer_provider=trace_provider)
+trace.set_tracer_provider(trace_provider)
+
+tracer = FITracer(trace_provider.get_tracer(__name__))
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

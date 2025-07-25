@@ -15,6 +15,22 @@ from openai import OpenAI
 import sqlparse
 from sqlparse import sql, tokens
 
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType
+from traceai_openai import OpenAIInstrumentor
+from opentelemetry import trace
+from fi.evals import Evaluator
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType
+)
+from opentelemetry import trace
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+
+from fi.evals import Evaluator
+evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
+
+tracer = FITracer(trace.get_tracer(__name__))
 
 @dataclass
 class QueryContext:
@@ -56,63 +72,75 @@ class SQLValidator:
         self.logger = logging.getLogger(__name__)
     
     def validate_query(self, sql_query: str) -> Tuple[bool, List[str]]:
-        """
-        Validate SQL query for safety and correctness
-        
-        Args:
-            sql_query: The SQL query to validate
+        with tracer.start_as_current_span("validate_query") as span:
+            span.set_attribute("validate_query", "validate_query")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", sql_query)
+
+            """
+            Validate SQL query for safety and correctness
             
-        Returns:
-            Tuple of (is_valid, list_of_errors)
-        """
-        errors = []
-        
-        try:
-            # Parse the SQL query
-            parsed = sqlparse.parse(sql_query)
-            if not parsed:
-                errors.append("Unable to parse SQL query")
+            Args:
+                sql_query: The SQL query to validate
+                
+            Returns:
+                Tuple of (is_valid, list_of_errors)
+            """
+            errors = []
+            
+            try:
+                # Parse the SQL query
+                parsed = sqlparse.parse(sql_query)
+                if not parsed:
+                    errors.append("Unable to parse SQL query")
+                    return False, errors
+                
+                # Check for forbidden keywords
+                sql_upper = sql_query.upper()
+                for keyword in self.FORBIDDEN_KEYWORDS:
+                    if keyword in sql_upper:
+                        errors.append(f"Forbidden keyword detected: {keyword}")
+                
+                # Check for basic SQL injection patterns
+                injection_patterns = [
+                    r";\s*(DROP|DELETE|INSERT|UPDATE)",
+                    r"UNION\s+SELECT",
+                    r"--\s*$",
+                    r"/\*.*\*/"
+                ]
+                
+                for pattern in injection_patterns:
+                    if re.search(pattern, sql_upper):
+                        errors.append(f"Potential SQL injection pattern detected: {pattern}")
+                
+                # Validate query structure
+                statement = parsed[0]
+                if not self._is_select_query(statement):
+                    errors.append("Only SELECT queries are allowed")
+                
+                # Check for reasonable complexity (prevent overly complex queries)
+                if sql_query.count('(') > 10:
+                    errors.append("Query complexity exceeds maximum allowed nesting")
+                
+                span.set_attribute("output.value", len(errors)==0)
+                return len(errors) == 0, errors
+                
+            except Exception as e:
+                errors.append(f"SQL validation error: {str(e)}")
                 return False, errors
-            
-            # Check for forbidden keywords
-            sql_upper = sql_query.upper()
-            for keyword in self.FORBIDDEN_KEYWORDS:
-                if keyword in sql_upper:
-                    errors.append(f"Forbidden keyword detected: {keyword}")
-            
-            # Check for basic SQL injection patterns
-            injection_patterns = [
-                r";\s*(DROP|DELETE|INSERT|UPDATE)",
-                r"UNION\s+SELECT",
-                r"--\s*$",
-                r"/\*.*\*/"
-            ]
-            
-            for pattern in injection_patterns:
-                if re.search(pattern, sql_upper):
-                    errors.append(f"Potential SQL injection pattern detected: {pattern}")
-            
-            # Validate query structure
-            statement = parsed[0]
-            if not self._is_select_query(statement):
-                errors.append("Only SELECT queries are allowed")
-            
-            # Check for reasonable complexity (prevent overly complex queries)
-            if sql_query.count('(') > 10:
-                errors.append("Query complexity exceeds maximum allowed nesting")
-            
-            return len(errors) == 0, errors
-            
-        except Exception as e:
-            errors.append(f"SQL validation error: {str(e)}")
-            return False, errors
     
     def _is_select_query(self, statement) -> bool:
-        """Check if the statement is a SELECT query"""
-        for token in statement.flatten():
-            if token.ttype is tokens.Keyword.DML and token.value.upper() == 'SELECT':
-                return True
-        return False
+        with tracer.start_as_current_span("is_select_query") as span:
+            span.set_attribute("is_select_query", "is_select_query")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", statement.value)
+            span.set_attribute("output.value", True)
+
+            """Check if the statement is a SELECT query"""
+            for token in statement.flatten():
+                if token.ttype is tokens.Keyword.DML and token.value.upper() == 'SELECT':
+                    return True
+            return False
 
 
 class PromptTemplate:
@@ -232,84 +260,157 @@ class SQLGenerator:
         }
     
     def classify_query_type(self, question: str) -> str:
-        """Classify the type of query based on keywords"""
-        question_lower = question.lower()
+        with tracer.start_as_current_span("classify_query_type") as span:
+            span.set_attribute("classify_query_type", "classify_query_type")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", question)
+
+            """Classify the type of query based on keywords"""
+            question_lower = question.lower()
+            
+            scores = {}
+            for query_type, keywords in self.query_patterns.items():
+                score = sum(1 for keyword in keywords if keyword in question_lower)
+                if score > 0:
+                    scores[query_type] = score
+            
+            if scores:
+                span.set_attribute("output.value", max(scores, key=scores.get))
         
-        scores = {}
-        for query_type, keywords in self.query_patterns.items():
-            score = sum(1 for keyword in keywords if keyword in question_lower)
-            if score > 0:
-                scores[query_type] = score
-        
-        if scores:
-            return max(scores, key=scores.get)
-        return "general"
+            
+                return max(scores, key=scores.get)
+            return "general"
     
     def generate_sql(self, question: str, context: QueryContext) -> GeneratedSQL:
-        """
-        Generate SQL query from natural language question
-        
-        Args:
-            question: Natural language question
-            context: Query context with schema and metadata
+        with tracer.start_as_current_span("generate_sql") as span:
+            span.set_attribute("generate_sql", "generate_sql")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", question)
+
+            """
+            Generate SQL query from natural language question
             
-        Returns:
-            GeneratedSQL object with query and metadata
-        """
-        try:
-            # Classify query type
-            query_type = self.classify_query_type(question)
+            Args:
+                question: Natural language question
+                context: Query context with schema and metadata
+                
+            Returns:
+                GeneratedSQL object with query and metadata
+            """
+            try:
+                # Classify query type
+                query_type = self.classify_query_type(question)
+                
+                # Build context-aware prompt
+                system_prompt = self.prompt_template.get_system_prompt(query_type)
+                user_prompt = self._build_user_prompt(question, context)
+                
+                # Generate SQL using GPT-4o
+                response = self.client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.1,  # Low temperature for consistent SQL generation
+                    max_tokens=2000,
+                    response_format={"type": "json_object"}
+                )
+                
+                # Parse response
+                result = json.loads(response.choices[0].message.content)
+                
+                # Validate generated SQL
+                is_valid, validation_errors = self.validator.validate_query(result['sql_query'])
+                
+                # Create GeneratedSQL object
+                generated_sql = GeneratedSQL(
+                    sql_query=result['sql_query'],
+                    confidence_score=result.get('confidence', 0.8),
+                    explanation=result.get('explanation', ''),
+                    tables_used=result.get('tables_used', []),
+                    columns_used=result.get('columns_used', []),
+                    query_type=result.get('query_type', query_type),
+                    validation_errors=validation_errors
+                )
+                
+                if not is_valid:
+                    self.logger.warning(f"Generated SQL failed validation: {validation_errors}")
+                    generated_sql.confidence_score *= 0.5  # Reduce confidence for invalid queries
+                
+                span.set_attribute("output.value", generated_sql.sql_query)
+                span.set_attribute("tables_used.value", generated_sql.tables_used)
+                config_text_to_sql = {
+                    "eval_templates" : "text_to_sql",
+                    "inputs" : {
+                        "input": json.dumps(question),
+                        "output": json.dumps(generated_sql.sql_query),
+                    },
+                    "model_name" : "turing_large"
+                }
+                eval_result1 = evaluator.evaluate(
+                    **config_text_to_sql, 
+                    custom_eval_name="text_to_sql", 
+                    trace_eval=True
+                )
+
+                config_evaluate_function_calling = {
+                    "eval_templates" : "evaluate_function_calling",
+                    "inputs" : {
+                        "input": json.dumps(question),
+                        "output": json.dumps(generated_sql.tables_used),
+                    },
+                    "model_name" : "turing_large"
+                }
+                eval_result2 = evaluator.evaluate(
+                    **config_evaluate_function_calling, 
+                    custom_eval_name="evaluate_function_calling", 
+                    trace_eval=True
+                )
+
+                config_sql_syntactic_correctness = {
+                    "eval_templates" : "sql_syntactic_correctness",
+                    "inputs" : {
+                        "sql_query": json.dumps(generated_sql.sql_query),
+                    },
+                    "model_name" : "turing_large"
+                }   
+                eval_result3 = evaluator.evaluate(
+                    **config_sql_syntactic_correctness, 
+                    custom_eval_name="sql_syntactic_correctness", 
+                    trace_eval=True
+                )
+
+                config_schema_adherence = {
+                    "eval_templates" : "schema_adherence",
+                    "inputs" : {
+                        "schema_details": json.dumps(context.table_schemas),
+                        "sql_query": json.dumps(generated_sql.sql_query),
+                    },
+                    "model_name" : "turing_large"
+                }
+                
+                eval_result4 = evaluator.evaluate(
+                    **config_schema_adherence,
+                    custom_eval_name="schema_adherence", 
+                    trace_eval=True
+                )
+
+                return generated_sql
             
-            # Build context-aware prompt
-            system_prompt = self.prompt_template.get_system_prompt(query_type)
-            user_prompt = self._build_user_prompt(question, context)
-            
-            # Generate SQL using GPT-4o
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.1,  # Low temperature for consistent SQL generation
-                max_tokens=2000,
-                response_format={"type": "json_object"}
-            )
-            
-            # Parse response
-            result = json.loads(response.choices[0].message.content)
-            
-            # Validate generated SQL
-            is_valid, validation_errors = self.validator.validate_query(result['sql_query'])
-            
-            # Create GeneratedSQL object
-            generated_sql = GeneratedSQL(
-                sql_query=result['sql_query'],
-                confidence_score=result.get('confidence', 0.8),
-                explanation=result.get('explanation', ''),
-                tables_used=result.get('tables_used', []),
-                columns_used=result.get('columns_used', []),
-                query_type=result.get('query_type', query_type),
-                validation_errors=validation_errors
-            )
-            
-            if not is_valid:
-                self.logger.warning(f"Generated SQL failed validation: {validation_errors}")
-                generated_sql.confidence_score *= 0.5  # Reduce confidence for invalid queries
-            
-            return generated_sql
-            
-        except Exception as e:
-            self.logger.error(f"Error generating SQL: {str(e)}")
-            return GeneratedSQL(
-                sql_query="",
-                confidence_score=0.0,
-                explanation=f"Error generating SQL: {str(e)}",
-                tables_used=[],
-                columns_used=[],
-                query_type="error",
-                validation_errors=[str(e)]
-            )
+
+                
+            except Exception as e:
+                self.logger.error(f"Error generating SQL: {str(e)}")
+                return GeneratedSQL(
+                    sql_query="",
+                    confidence_score=0.0,
+                    explanation=f"Error generating SQL: {str(e)}",
+                    tables_used=[],
+                    columns_used=[],
+                    query_type="error",
+                    validation_errors=[str(e)]
+                )
     
     def _build_user_prompt(self, question: str, context: QueryContext) -> str:
         """Build user prompt with question and context"""
@@ -380,79 +481,85 @@ class SQLGenerator:
         return "\n".join(prompt_parts)
     
     def refine_sql(self, original_sql: str, feedback: str, context: QueryContext) -> GeneratedSQL:
-        """
-        Refine SQL query based on feedback
-        
-        Args:
-            original_sql: Original SQL query
-            feedback: User feedback or error message
-            context: Query context
-            
-        Returns:
-            Refined GeneratedSQL object
-        """
-        try:
-            system_prompt = """You are an expert SQL analyst. Your task is to refine and improve an existing SQL query based on feedback.
-            
-GUIDELINES:
-1. Analyze the feedback carefully
-2. Identify the specific issues with the original query
-3. Generate an improved version that addresses the feedback
-4. Maintain the original intent while fixing the problems
-5. Follow all the same safety and syntax rules as before
+        with tracer.start_as_current_span("refine_sql") as span:
+            span.set_attribute("refine_sql", "refine_sql")
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", "input")
+            span.set_attribute("output.value", "output")
 
-Return the same JSON format as before with the refined query."""
-
-            user_prompt = f"""
-ORIGINAL SQL QUERY:
-{original_sql}
-
-FEEDBACK/ISSUES:
-{feedback}
-
-CONTEXT:
-{self._build_user_prompt("Refine the above query", context)}
-
-Please provide a refined SQL query that addresses the feedback while maintaining the original intent.
-"""
-
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.1,
-                max_tokens=2000,
-                response_format={"type": "json_object"}
-            )
+            """
+            Refine SQL query based on feedback
             
-            result = json.loads(response.choices[0].message.content)
-            
-            # Validate refined SQL
-            is_valid, validation_errors = self.validator.validate_query(result['sql_query'])
-            
-            return GeneratedSQL(
-                sql_query=result['sql_query'],
-                confidence_score=result.get('confidence', 0.8),
-                explanation=result.get('explanation', ''),
-                tables_used=result.get('tables_used', []),
-                columns_used=result.get('columns_used', []),
-                query_type=result.get('query_type', 'refined'),
-                validation_errors=validation_errors
-            )
-            
-        except Exception as e:
-            self.logger.error(f"Error refining SQL: {str(e)}")
-            return GeneratedSQL(
-                sql_query=original_sql,  # Return original if refinement fails
-                confidence_score=0.3,
-                explanation=f"Error refining SQL: {str(e)}",
-                tables_used=[],
-                columns_used=[],
-                query_type="error",
-                validation_errors=[str(e)]
-            )
+            Args:
+                original_sql: Original SQL query
+                feedback: User feedback or error message
+                context: Query context
+                
+            Returns:
+                Refined GeneratedSQL object
+            """
+            try:
+                system_prompt = """You are an expert SQL analyst. Your task is to refine and improve an existing SQL query based on feedback.
+                
+    GUIDELINES:
+    1. Analyze the feedback carefully
+    2. Identify the specific issues with the original query
+    3. Generate an improved version that addresses the feedback
+    4. Maintain the original intent while fixing the problems
+    5. Follow all the same safety and syntax rules as before
+
+    Return the same JSON format as before with the refined query."""
+
+                user_prompt = f"""
+    ORIGINAL SQL QUERY:
+    {original_sql}
+
+    FEEDBACK/ISSUES:
+    {feedback}
+
+    CONTEXT:
+    {self._build_user_prompt("Refine the above query", context)}
+
+    Please provide a refined SQL query that addresses the feedback while maintaining the original intent.
+    """
+
+                response = self.client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.1,
+                    max_tokens=2000,
+                    response_format={"type": "json_object"}
+                )
+                
+                result = json.loads(response.choices[0].message.content)
+                
+                # Validate refined SQL
+                is_valid, validation_errors = self.validator.validate_query(result['sql_query'])
+                
+                return GeneratedSQL(
+                    sql_query=result['sql_query'],
+                    confidence_score=result.get('confidence', 0.8),
+                    explanation=result.get('explanation', ''),
+                    tables_used=result.get('tables_used', []),
+                    columns_used=result.get('columns_used', []),
+                    query_type=result.get('query_type', 'refined'),
+                    validation_errors=validation_errors
+                )
+                
+            except Exception as e:
+                self.logger.error(f"Error refining SQL: {str(e)}")
+                return GeneratedSQL(
+                    sql_query=original_sql,  # Return original if refinement fails
+                    confidence_score=0.3,
+                    explanation=f"Error refining SQL: {str(e)}",
+                    tables_used=[],
+                    columns_used=[],
+                    query_type="error",
+                    validation_errors=[str(e)]
+                )
 
 
 # Example usage and testing

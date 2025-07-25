@@ -16,7 +16,20 @@ from dataclasses import dataclass, asdict
 import pandas as pd
 from datetime import datetime, timedelta
 import threading
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import ProjectType
+from traceai_openai import OpenAIInstrumentor
+from opentelemetry import trace
+from fi.evals import Evaluator
+from fi_instrumentation import register, FITracer
+from fi_instrumentation.fi_types import (
+    ProjectType, FiSpanKindValues, SpanAttributes
+)
+from opentelemetry import trace
 
+evaluator = Evaluator(fi_api_key=os.getenv("FI_API_KEY"), fi_secret_key=os.getenv("FI_SECRET_KEY"))
+
+tracer = FITracer(trace.get_tracer(__name__))
 
 @dataclass
 class QueryResult:
@@ -156,104 +169,113 @@ class SQLiteClient:
             raise
     
     def execute_query(self, query: str, params: Optional[Tuple] = None) -> QueryResult:
-        """
-        Execute SQL query and return results
-        
-        Args:
-            query: SQL query string
-            params: Optional query parameters
+        with tracer.start_as_current_span("execute_query") as span:
+            """
+            Execute SQL query and return results
             
-        Returns:
-            QueryResult with execution details
-        """
-        start_time = time.time()
-        self.query_count += 1
-        
-        try:
-            # Check cache first
-            if self.cache:
-                cached_result = self.cache.get(query)
-                if cached_result:
-                    self.cache_hits += 1
-                    self.logger.debug(f"Cache hit for query: {query[:100]}...")
-                    return cached_result
+            Args:
+                query: SQL query string
+                params: Optional query parameters
+                
+            Returns:
+                QueryResult with execution details
+            """
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", query)
+            span.set_attribute("function.name", "execute_query")
+            start_time = time.time()
+            self.query_count += 1
             
-            # Validate query
-            is_valid, error_msg = self.validate_query(query)
-            if not is_valid:
-                return self._create_error_result(f"Invalid query: {error_msg}", start_time)
-            
-            # Execute query
-            with sqlite3.connect(self.database_path) as conn:
-                conn.row_factory = sqlite3.Row  # Enable column access by name
+            try:
+                # Check cache first
+                if self.cache:
+                    cached_result = self.cache.get(query)
+                    if cached_result:
+                        self.cache_hits += 1
+                        self.logger.debug(f"Cache hit for query: {query[:100]}...")
+                        span.set_attribute("output.value", cached_result.data.to_json(orient="records") if cached_result.data is not None else "[]")
+                        return cached_result
                 
-                # Set timeout and other pragmas
-                conn.execute("PRAGMA busy_timeout = 30000")  # 30 second timeout
+                # Validate query
+                is_valid, error_msg = self.validate_query(query)
+                if not is_valid:
+                    return self._create_error_result(f"Invalid query: {error_msg}", start_time)
                 
-                cursor = conn.execute(query, params or ())
-                
-                # Fetch results
-                if query.strip().upper().startswith(('SELECT', 'WITH')):
-                    rows = cursor.fetchall()
+                # Execute query
+                with sqlite3.connect(self.database_path) as conn:
+                    conn.row_factory = sqlite3.Row  # Enable column access by name
                     
-                    # Convert to DataFrame
-                    if rows:
-                        # Get column names
-                        columns = [description[0] for description in cursor.description]
+                    # Set timeout and other pragmas
+                    conn.execute("PRAGMA busy_timeout = 30000")  # 30 second timeout
+                    
+                    cursor = conn.execute(query, params or ())
+                    
+                    # Fetch results
+                    if query.strip().upper().startswith(('SELECT', 'WITH')):
+                        rows = cursor.fetchall()
                         
-                        # Convert rows to list of dicts
-                        data = [dict(row) for row in rows]
-                        
-                        # Limit results
-                        if len(data) > self.max_results:
-                            data = data[:self.max_results]
-                            self.logger.warning(f"Results limited to {self.max_results} rows")
-                        
-                        df = pd.DataFrame(data)
-                        row_count = len(df)
+                        # Convert to DataFrame
+                        if rows:
+                            # Get column names
+                            columns = [description[0] for description in cursor.description]
+                            
+                            # Convert rows to list of dicts
+                            data = [dict(row) for row in rows]
+                            
+                            # Limit results
+                            if len(data) > self.max_results:
+                                data = data[:self.max_results]
+                                self.logger.warning(f"Results limited to {self.max_results} rows")
+                            
+                            df = pd.DataFrame(data)
+                            row_count = len(df)
+                        else:
+                            df = pd.DataFrame()
+                            row_count = 0
                     else:
+                        # For non-SELECT queries (INSERT, UPDATE, DELETE)
+                        row_count = cursor.rowcount
                         df = pd.DataFrame()
-                        row_count = 0
-                else:
-                    # For non-SELECT queries (INSERT, UPDATE, DELETE)
-                    row_count = cursor.rowcount
-                    df = pd.DataFrame()
+                
+                execution_time = time.time() - start_time
+                self.total_execution_time += execution_time
+                
+                result = QueryResult(
+                    success=True,
+                    data=df,
+                    row_count=row_count,
+                    execution_time=execution_time,
+                    error_message=None,
+                    cache_hit=False,
+                    metadata={
+                        'query_type': self._get_query_type(query),
+                        'database_path': self.database_path,
+                        'limited_results': row_count == self.max_results
+                    }
+                )
+                
+                # Cache successful SELECT queries
+                if self.cache and query.strip().upper().startswith(('SELECT', 'WITH')):
+                    self.cache.set(query, result)
+                
+                self.logger.debug(f"Query executed successfully in {execution_time:.2f}s, {row_count} rows")
+                span.set_attribute("output.value", result.data.to_json(orient="records") if result.data is not None else "[]")
+
+                return result
+                
+            except sqlite3.Error as e:
+                self.error_count += 1
+                error_msg = f"SQLite error: {str(e)}"
+                self.logger.error(f"Query execution failed: {error_msg}")
+                span.set_attribute("output.value", error_msg)
+                return self._create_error_result(error_msg, start_time)
             
-            execution_time = time.time() - start_time
-            self.total_execution_time += execution_time
-            
-            result = QueryResult(
-                success=True,
-                data=df,
-                row_count=row_count,
-                execution_time=execution_time,
-                error_message=None,
-                cache_hit=False,
-                metadata={
-                    'query_type': self._get_query_type(query),
-                    'database_path': self.database_path,
-                    'limited_results': row_count == self.max_results
-                }
-            )
-            
-            # Cache successful SELECT queries
-            if self.cache and query.strip().upper().startswith(('SELECT', 'WITH')):
-                self.cache.set(query, result)
-            
-            self.logger.debug(f"Query executed successfully in {execution_time:.2f}s, {row_count} rows")
-            return result
-            
-        except sqlite3.Error as e:
-            self.error_count += 1
-            error_msg = f"SQLite error: {str(e)}"
-            self.logger.error(f"Query execution failed: {error_msg}")
-            return self._create_error_result(error_msg, start_time)
-        
-        except Exception as e:
-            self.error_count += 1
-            error_msg = f"Unexpected error: {str(e)}"
-            self.logger.error(f"Query execution failed: {error_msg}")
-            return self._create_error_result(error_msg, start_time)
+            except Exception as e:
+                self.error_count += 1
+                error_msg = f"Unexpected error: {str(e)}"
+                self.logger.error(f"Query execution failed: {error_msg}")
+                span.set_attribute("output.value", error_msg)
+                return self._create_error_result(error_msg, start_time)
     
     def _create_error_result(self, error_message: str, start_time: float) -> QueryResult:
         """Create error result"""
@@ -300,118 +322,153 @@ class SQLiteClient:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        try:
-            # Basic validation
-            if not query or not query.strip():
-                return False, "Empty query"
-            
-            # Check for dangerous operations
-            dangerous_keywords = ['DROP', 'DELETE', 'TRUNCATE', 'ALTER']
-            query_upper = query.upper()
-            
-            for keyword in dangerous_keywords:
-                if keyword in query_upper:
-                    # Allow DELETE with WHERE clause for data management
-                    if keyword == 'DELETE' and 'WHERE' in query_upper:
-                        continue
-                    return False, f"Dangerous operation '{keyword}' not allowed"
-            
-            # Try to parse the query using SQLite's EXPLAIN
-            with sqlite3.connect(self.database_path) as conn:
-                try:
-                    conn.execute(f"EXPLAIN QUERY PLAN {query}")
-                    return True, None
-                except sqlite3.Error as e:
-                    return False, str(e)
-                    
-        except Exception as e:
-            return False, f"Validation error: {str(e)}"
+        with tracer.start_as_current_span("validate_query") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", query)
+            output = {"is_valid": False, "error_message": ""}
+
+            try:
+                # Basic validation
+                if not query or not query.strip():
+                    output["error_message"] = "Empty query"
+                    span.set_attribute("output.value", json.dumps(output))
+                    return False, "Empty query"
+                
+                # Check for dangerous operations
+                dangerous_keywords = ['DROP', 'DELETE', 'TRUNCATE', 'ALTER']
+                query_upper = query.upper()
+                
+                for keyword in dangerous_keywords:
+                    if keyword in query_upper:
+                        # Allow DELETE with WHERE clause for data management
+                        if keyword == 'DELETE' and 'WHERE' in query_upper:
+                            continue
+                        
+                        output["error_message"] = f"Dangerous operation '{keyword}' not allowed"
+                        span.set_attribute("output.value", json.dumps(output))
+                        return False, output["error_message"]
+                
+                # Try to parse the query using SQLite's EXPLAIN
+                with sqlite3.connect(self.database_path) as conn:
+                    try:
+                        conn.execute(f"EXPLAIN QUERY PLAN {query}")
+                        output["is_valid"] = True
+                        span.set_attribute("output.value", json.dumps(output))
+                        return True, None
+                    except sqlite3.Error as e:
+                        output["error_message"] = str(e)
+                        span.set_attribute("output.value", json.dumps(output))
+                        return False, str(e)
+                        
+            except Exception as e:
+                output["error_message"] = f"Validation error: {str(e)}"
+                span.set_attribute("output.value", json.dumps(output))
+                return False, output["error_message"]
     
     def get_table_schema(self, table_name: str) -> Optional[TableSchema]:
-        """
-        Get schema information for a specific table
-        
-        Args:
-            table_name: Name of the table
+        with tracer.start_as_current_span("get_table_schema") as span:
+            """
+            Get schema information for a specific table
             
-        Returns:
-            TableSchema object or None if table doesn't exist
-        """
-        try:
-            with sqlite3.connect(self.database_path) as conn:
-                # Get table info
-                cursor = conn.execute(f"PRAGMA table_info({table_name})")
-                columns_info = cursor.fetchall()
+            Args:
+                table_name: Name of the table
                 
-                if not columns_info:
-                    return None
-                
-                # Format column information
-                columns = []
-                for col_info in columns_info:
-                    columns.append({
-                        'name': col_info[1],
-                        'type': col_info[2],
-                        'nullable': not col_info[3],
-                        'default': col_info[4],
-                        'primary_key': bool(col_info[5])
-                    })
-                
-                # Get sample data
-                sample_query = f"SELECT * FROM {table_name} LIMIT 3"
-                sample_result = self.execute_query(sample_query)
-                sample_data = None
-                if sample_result.success and sample_result.data is not None:
-                    sample_data = sample_result.data.to_dict('records')
-                
-                return TableSchema(
-                    table_name=table_name,
-                    columns=columns,
-                    description=f"Table: {table_name}",
-                    sample_data=sample_data
-                )
-                
-        except Exception as e:
-            self.logger.error(f"Error getting schema for table {table_name}: {str(e)}")
-            return None
+            Returns:
+                TableSchema object or None if table doesn't exist
+            """
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", table_name)
+            try:
+                with sqlite3.connect(self.database_path) as conn:
+                    # Get table info
+                    cursor = conn.execute(f"PRAGMA table_info({table_name})")
+                    columns_info = cursor.fetchall()
+                    
+                    if not columns_info:
+                        span.set_attribute("output.value", "null")
+                        return None
+                    
+                    # Format column information
+                    columns = []
+                    for col_info in columns_info:
+                        columns.append({
+                            'name': col_info[1],
+                            'type': col_info[2],
+                            'nullable': not col_info[3],
+                            'default': col_info[4],
+                            'primary_key': bool(col_info[5])
+                        })
+                    
+                    # Get sample data
+                    sample_query = f"SELECT * FROM {table_name} LIMIT 3"
+                    sample_result = self.execute_query(sample_query)
+                    sample_data = None
+                    if sample_result.success and sample_result.data is not None:
+                        sample_data = sample_result.data.to_dict('records')
+                    
+                    schema = TableSchema(
+                        table_name=table_name,
+                        columns=columns,
+                        description=f"Table: {table_name}",
+                        sample_data=sample_data
+                    )
+                    span.set_attribute("output.value", json.dumps(asdict(schema)))
+                    return schema
+                    
+            except Exception as e:
+                self.logger.error(f"Error getting schema for table {table_name}: {str(e)}")
+                span.set_attribute("output.value", f"Error getting schema for table {table_name}: {str(e)}")
+                return None
     
     def list_tables(self) -> List[str]:
-        """
-        Get list of all tables in the database
-        
-        Returns:
-            List of table names
-        """
-        try:
-            with sqlite3.connect(self.database_path) as conn:
-                cursor = conn.execute("""
-                    SELECT name FROM sqlite_master 
-                    WHERE type='table' AND name NOT LIKE 'sqlite_%'
-                    ORDER BY name
-                """)
-                tables = [row[0] for row in cursor.fetchall()]
-                return tables
-                
-        except Exception as e:
-            self.logger.error(f"Error listing tables: {str(e)}")
-            return []
+        with tracer.start_as_current_span("list_tables") as span:
+            """
+            Get list of all tables in the database
+            
+            Returns:
+                List of table names
+            """
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", self.database_path)
+            tables = []
+            try:
+                with sqlite3.connect(self.database_path) as conn:
+                    cursor = conn.execute("""
+                        SELECT name FROM sqlite_master 
+                        WHERE type='table' AND name NOT LIKE 'sqlite_%'
+                        ORDER BY name
+                    """)
+                    tables = [row[0] for row in cursor.fetchall()]
+                    span.set_attribute("output.value", json.dumps(tables))
+                    return tables
+                    
+            except Exception as e:
+                self.logger.error(f"Error listing tables: {str(e)}")
+                span.set_attribute("output.value", f"Error listing tables: {str(e)}")
+                return []
     
     def get_all_schemas(self) -> Dict[str, TableSchema]:
-        """
-        Get schema information for all tables
-        
-        Returns:
-            Dictionary mapping table names to TableSchema objects
-        """
-        schemas = {}
-        tables = self.list_tables()
-        
-        for table_name in tables:
-            schema = self.get_table_schema(table_name)
-            if schema:
-                schemas[table_name] = schema
-        
-        return schemas
+        with tracer.start_as_current_span("get_all_schemas") as span:
+            """
+            Get schema information for all tables
+            
+            Returns:
+                Dictionary mapping table names to TableSchema objects
+            """
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+            span.set_attribute("input.value", self.database_path)
+            schemas = {}
+            tables = self.list_tables()
+            
+            for table_name in tables:
+                schema = self.get_table_schema(table_name)
+                if schema:
+                    schemas[table_name] = schema
+            
+            schemas_dict = {k: asdict(v) for k, v in schemas.items()}
+            span.set_attribute("output.value", json.dumps(schemas_dict))
+            
+            return schemas
     
     def clear_cache(self):
         """Clear query result cache"""
@@ -420,24 +477,28 @@ class SQLiteClient:
             self.logger.info("Query cache cleared")
     
     def get_metrics_summary(self) -> Dict[str, Any]:
-        """Get performance metrics summary"""
-        cache_hit_rate = self.cache_hits / self.query_count if self.query_count > 0 else 0
-        avg_execution_time = self.total_execution_time / self.query_count if self.query_count > 0 else 0
+        with tracer.start_as_current_span("get_metrics_summary") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", self.database_path)
+            """Get performance metrics summary"""
+            cache_hit_rate = self.cache_hits / self.query_count if self.query_count > 0 else 0
+            avg_execution_time = self.total_execution_time / self.query_count if self.query_count > 0 else 0
+            
+            metrics = {
+                'total_queries': self.query_count,
+                'cache_hits': self.cache_hits,
+                'cache_hit_rate': cache_hit_rate,
+                'error_count': self.error_count,
+                'average_execution_time': avg_execution_time,
+                'total_execution_time': self.total_execution_time
+            }
+            
+            if self.cache:
+                metrics['cache_stats'] = self.cache.get_stats()
+            
+            span.set_attribute("output.value", json.dumps(metrics))
+            return metrics
         
-        metrics = {
-            'total_queries': self.query_count,
-            'cache_hits': self.cache_hits,
-            'cache_hit_rate': cache_hit_rate,
-            'error_count': self.error_count,
-            'average_execution_time': avg_execution_time,
-            'total_execution_time': self.total_execution_time
-        }
-        
-        if self.cache:
-            metrics['cache_stats'] = self.cache.get_stats()
-        
-        return metrics
-    
     def execute_script(self, script: str):
         """
         Execute multiple SQL statements from a script
