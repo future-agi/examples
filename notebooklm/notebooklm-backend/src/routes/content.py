@@ -20,7 +20,7 @@ from fi_instrumentation.fi_types import (
 )
 from opentelemetry import trace
 
-tracer = FITracer(trace.get_tracer(__name__))
+tracer = trace.get_tracer(__name__)
 
 content_bp = Blueprint('content', __name__)
 

@@ -61,3 +61,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 # Run the application
 CMD ["gunicorn", "--bind", "0.0.0.0:5050", "--workers", "1", "--worker-class", "sync", "--timeout", "120", "--preload", "src.main:app"]
 
+CMD ["python", "src/main.py"]

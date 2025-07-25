@@ -1,4 +1,10 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()   
+
+
+print(os.getenv('FI_API_KEY'))
+
 import sys
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))

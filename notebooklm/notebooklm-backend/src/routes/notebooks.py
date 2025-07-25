@@ -22,7 +22,7 @@ from fi_instrumentation.fi_types import (
 )
 from opentelemetry import trace
 
-tracer = FITracer(trace.get_tracer(__name__))
+tracer = trace.get_tracer(__name__)
 
 notebooks_bp = Blueprint('notebooks', __name__)
 
