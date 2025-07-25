@@ -116,7 +116,7 @@ class VectorStore:
     
     def add_document_chunks(self, notebook_id: str, source_id: str, chunks: List[Dict]) -> bool:
         with tracer.start_as_current_span("add_document_chunks") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.EMBEDDING.value)
             span.set_attribute("input.value", json.dumps({"notebook_id": notebook_id, "source_id": source_id, "chunks": chunks}))
             """
             Add document chunks to the vector store

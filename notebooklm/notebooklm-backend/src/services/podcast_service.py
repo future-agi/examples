@@ -114,7 +114,7 @@ Make it informative, well-structured, and easy to follow."""
                               title: str = None, duration_target: str = 'medium',
                               custom_instructions: str = None) -> Dict:
         with tracer.start_as_current_span("generate_podcast_script") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.LLM.value)
             span.set_attribute("input.value", json.dumps({"sources": sources, "style": style, "title": title, "duration_target": duration_target, "custom_instructions": custom_instructions}))
             """
             Generate a podcast script from document sources
@@ -241,7 +241,7 @@ Make it informative, well-structured, and easy to follow."""
     
     def _parse_script_segments(self, script: str, style: str) -> List[Dict]:
         with tracer.start_as_current_span("parse_script_segments") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
             span.set_attribute("input.value", json.dumps({"script": script, "style": style}))
             """Parse script into segments for audio generation"""
             segments = []

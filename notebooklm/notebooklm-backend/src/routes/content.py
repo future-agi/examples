@@ -124,7 +124,7 @@ def list_generated_content(notebook_id):
 def generate_content(notebook_id):
     """Generate new content from notebook sources"""
     with tracer.start_as_current_span("generate_content") as span:
-        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
         span.set_attribute("input.value", json.dumps({"notebook_id": notebook_id}))
 
         try:

@@ -97,7 +97,7 @@ class AIService:
     
     def get_provider_models(self, provider: str = None) -> Dict:
         with tracer.start_as_current_span("get_provider_models") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
             span.set_attribute("input.value", json.dumps({"provider": provider}))
         """Get available models for a provider"""
         if not provider:
@@ -425,7 +425,7 @@ Guidelines:
     
     def _extract_citations(self, sources: List[Dict]) -> List[Dict]:
         with tracer.start_as_current_span("extract_citations") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
             span.set_attribute("input.value", json.dumps({"sources": sources}))
             """Extract citation information from sources"""
             citations = []
@@ -449,7 +449,7 @@ Guidelines:
     def analyze_query_intent(self, query: str) -> Dict:
         print(f"Analyzing query intent: {query}")
         with tracer.start_as_current_span("analyze_query_intent") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
             span.set_attribute("input.value", json.dumps({"query": query}))
             """
             Analyze user query to determine intent and required context
@@ -511,7 +511,7 @@ Guidelines:
     
     def _extract_source_references(self, query: str) -> List[str]:
         with tracer.start_as_current_span("extract_source_references") as span:
-            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
             span.set_attribute("input.value", json.dumps({"query": query}))
             """Extract specific source references from query"""
             # Simple pattern matching for source references
