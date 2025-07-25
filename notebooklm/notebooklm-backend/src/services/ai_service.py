@@ -160,7 +160,18 @@ class AIService:
                     return self._handle_streaming_response(client, params)
                 else:
                     response = client.chat.completions.create(**params)
-                span.set_attribute("output.value", json.dumps(response))
+                span.set_attribute("output.value", json.dumps({
+                    'content': response.choices[0].message.content,
+                    'model': response.model,
+                    'usage': {
+                        'prompt_tokens': response.usage.prompt_tokens,
+                        'completion_tokens': response.usage.completion_tokens,
+                        'total_tokens': response.usage.total_tokens
+                    },
+                    'provider': provider,
+                    'timestamp': datetime.now().isoformat(),
+                    'sources_used': len(context_sources) if context_sources else 0
+                }))
                 return {
                     'content': response.choices[0].message.content,
                     'model': response.model,

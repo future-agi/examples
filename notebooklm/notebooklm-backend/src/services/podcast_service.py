@@ -8,6 +8,11 @@ import tempfile
 import subprocess
 
 from src.services.ai_service import AIService
+from fi_instrumentation import register, FITracer
+from opentelemetry import trace
+from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
+
+tracer = trace.get_tracer(__name__)
 
 class PodcastService:
     """
@@ -108,94 +113,114 @@ Make it informative, well-structured, and easy to follow."""
     def generate_podcast_script(self, sources: List[Dict], style: str = 'conversational',
                               title: str = None, duration_target: str = 'medium',
                               custom_instructions: str = None) -> Dict:
-        """
-        Generate a podcast script from document sources
-        
-        Args:
-            sources: List of document chunks to use as source material
-            style: Podcast style (conversational, interview, narrative, educational)
-            title: Optional title for the podcast
-            duration_target: Target duration (short: 5-10min, medium: 15-20min, long: 25-30min)
-            custom_instructions: Custom instructions for script generation
+        with tracer.start_as_current_span("generate_podcast_script") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", json.dumps({"sources": sources, "style": style, "title": title, "duration_target": duration_target, "custom_instructions": custom_instructions}))
+            """
+            Generate a podcast script from document sources
             
-        Returns:
-            Dict with generated script and metadata
-        """
-        try:
-            if style not in self.script_templates:
-                raise ValueError(f"Unsupported podcast style: {style}")
-            
-            # Prepare content from sources
-            content_text = self._prepare_source_content(sources)
-            
-            if not content_text:
-                raise ValueError("No content available for podcast generation")
-            
-            # Build the prompt
-            template = self.script_templates[style]
-            
-            # Add duration guidance
-            duration_guidance = {
-                'short': "Create a concise 5-10 minute podcast (approximately 750-1500 words).",
-                'medium': "Create a 15-20 minute podcast (approximately 2250-3000 words).",
-                'long': "Create a comprehensive 25-30 minute podcast (approximately 3750-4500 words)."
-            }
-            
-            duration_instruction = duration_guidance.get(duration_target, duration_guidance['medium'])
-            
-            # Combine instructions
-            full_prompt = f"""
-{duration_instruction}
-
-{template}
-
-{custom_instructions or ''}
-
-Source Content:
-{content_text}
-
-Generate an engaging podcast script based on this content."""
-            
-            # Generate script using AI service
-            messages = [{"role": "user", "content": full_prompt}]
-            
-            response = self.ai_service.chat_completion(
-                messages=messages,
-                context_sources=[],  # Context already included in prompt
-                model='gpt-4' if style in ['interview', 'narrative'] else 'gpt-3.5-turbo'  # Use better model for complex styles
-            )
-            
-            if response.get('error'):
-                raise Exception(f"Script generation failed: {response.get('error')}")
-            
-            script_content = response.get('content', '')
-            
-            # Parse script into segments
-            segments = self._parse_script_segments(script_content, style)
-            
-            return {
-                'script': script_content,
-                'segments': segments,
-                'style': style,
-                'title': title or f"Generated {style.title()} Podcast",
-                'duration_target': duration_target,
-                'estimated_duration': self._estimate_duration(script_content),
-                'word_count': len(script_content.split()),
-                'sources_used': len(sources),
-                'generation_metadata': {
-                    'model': response.get('model'),
-                    'provider': response.get('provider'),
-                    'usage': response.get('usage'),
-                    'timestamp': response.get('timestamp')
+            Args:
+                sources: List of document chunks to use as source material
+                style: Podcast style (conversational, interview, narrative, educational)
+                title: Optional title for the podcast
+                duration_target: Target duration (short: 5-10min, medium: 15-20min, long: 25-30min)
+                custom_instructions: Custom instructions for script generation
+                
+            Returns:
+                Dict with generated script and metadata
+            """
+            try:
+                if style not in self.script_templates:
+                    raise ValueError(f"Unsupported podcast style: {style}")
+                
+                # Prepare content from sources
+                content_text = self._prepare_source_content(sources)
+                
+                if not content_text:
+                    raise ValueError("No content available for podcast generation")
+                
+                # Build the prompt
+                template = self.script_templates[style]
+                
+                # Add duration guidance
+                duration_guidance = {
+                    'short': "Create a concise 5-10 minute podcast (approximately 750-1500 words).",
+                    'medium': "Create a 15-20 minute podcast (approximately 2250-3000 words).",
+                    'long': "Create a comprehensive 25-30 minute podcast (approximately 3750-4500 words)."
                 }
-            }
-            
-        except Exception as e:
-            logging.error(f"Podcast script generation error: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
-            }
+                
+                duration_instruction = duration_guidance.get(duration_target, duration_guidance['medium'])
+                
+                # Combine instructions
+                full_prompt = f"""
+    {duration_instruction}
+
+    {template}
+
+    {custom_instructions or ''}
+
+    Source Content:
+    {content_text}
+
+    Generate an engaging podcast script based on this content."""
+                
+                # Generate script using AI service
+                messages = [{"role": "user", "content": full_prompt}]
+                
+                response = self.ai_service.chat_completion(
+                    messages=messages,
+                    context_sources=[],  # Context already included in prompt
+                    model='gpt-4' if style in ['interview', 'narrative'] else 'gpt-3.5-turbo'  # Use better model for complex styles
+                )
+                
+                if response.get('error'):
+                    raise Exception(f"Script generation failed: {response.get('error')}")
+                
+                script_content = response.get('content', '')
+                
+                # Parse script into segments
+                segments = self._parse_script_segments(script_content, style)
+
+                span.set_attribute("output.value", json.dumps({
+                    'script': script_content,
+                    'segments': segments,
+                    'style': style,
+                    'title': title or f"Generated {style.title()} Podcast",
+                    'duration_target': duration_target,
+                    'estimated_duration': self._estimate_duration(script_content),
+                    'word_count': len(script_content.split()),
+                    'sources_used': len(sources),
+                    'generation_metadata': {
+                        'model': response.get('model'),
+                        'provider': response.get('provider'),
+                        'usage': response.get('usage'),
+                        'timestamp': response.get('timestamp')
+                    }
+                }))
+                
+                return {
+                    'script': script_content,
+                    'segments': segments,
+                    'style': style,
+                    'title': title or f"Generated {style.title()} Podcast",
+                    'duration_target': duration_target,
+                    'estimated_duration': self._estimate_duration(script_content),
+                    'word_count': len(script_content.split()),
+                    'sources_used': len(sources),
+                    'generation_metadata': {
+                        'model': response.get('model'),
+                        'provider': response.get('provider'),
+                        'usage': response.get('usage'),
+                        'timestamp': response.get('timestamp')
+                    }
+                }
+                
+            except Exception as e:
+                logging.error(f"Podcast script generation error: {e}")
+                return {
+                    'error': str(e),
+                    'timestamp': datetime.now().isoformat()
+                }
     
     def _prepare_source_content(self, sources: List[Dict]) -> str:
         """Prepare and format source content for script generation"""
@@ -215,78 +240,85 @@ Generate an engaging podcast script based on this content."""
         return "\\n".join(content_parts)
     
     def _parse_script_segments(self, script: str, style: str) -> List[Dict]:
-        """Parse script into segments for audio generation"""
-        segments = []
-        
-        # Define speaker patterns based on style
-        patterns = {
-            'conversational': ['[HOST A]:', '[HOST B]:'],
-            'interview': ['[INTERVIEWER]:', '[EXPERT]:'],
-            'narrative': ['[NARRATOR]:'],
-            'educational': ['[INSTRUCTOR]:']
-        }
-        
-        style_patterns = patterns.get(style, ['[SPEAKER]:'])
-        
-        # Split script by speaker patterns
-        lines = script.split('\\n')
-        current_speaker = None
-        current_content = []
-        
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
+        with tracer.start_as_current_span("parse_script_segments") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", json.dumps({"script": script, "style": style}))
+            """Parse script into segments for audio generation"""
+            segments = []
             
-            # Check if line starts with a speaker pattern
-            speaker_found = None
-            for pattern in style_patterns:
-                if line.startswith(pattern):
-                    speaker_found = pattern.replace('[', '').replace(']:', '').lower()
-                    break
+            # Define speaker patterns based on style
+            patterns = {
+                'conversational': ['[HOST A]:', '[HOST B]:'],
+                'interview': ['[INTERVIEWER]:', '[EXPERT]:'],
+                'narrative': ['[NARRATOR]:'],
+                'educational': ['[INSTRUCTOR]:']
+            }
             
-            if speaker_found:
-                # Save previous segment
-                if current_speaker and current_content:
-                    segments.append({
-                        'speaker': current_speaker,
-                        'content': ' '.join(current_content).strip(),
-                        'voice_type': self._get_voice_for_speaker(current_speaker),
-                        'duration_estimate': self._estimate_segment_duration(' '.join(current_content))
-                    })
+            style_patterns = patterns.get(style, ['[SPEAKER]:'])
+            
+            # Split script by speaker patterns
+            lines = script.split('\\n')
+            current_speaker = None
+            current_content = []
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
                 
-                # Start new segment
-                current_speaker = speaker_found
-                current_content = [line.replace(f'[{speaker_found.upper()}]:', '').strip()]
-            else:
-                # Continue current segment
-                if current_content:
-                    current_content.append(line)
-        
-        # Add final segment
-        if current_speaker and current_content:
-            segments.append({
-                'speaker': current_speaker,
-                'content': ' '.join(current_content).strip(),
-                'voice_type': self._get_voice_for_speaker(current_speaker),
-                'duration_estimate': self._estimate_segment_duration(' '.join(current_content))
-            })
-        
-        return segments
+                # Check if line starts with a speaker pattern
+                speaker_found = None
+                for pattern in style_patterns:
+                    if line.startswith(pattern):
+                        speaker_found = pattern.replace('[', '').replace(']:', '').lower()
+                        break
+                
+                if speaker_found:
+                    # Save previous segment
+                    if current_speaker and current_content:
+                        segments.append({
+                            'speaker': current_speaker,
+                            'content': ' '.join(current_content).strip(),
+                            'voice_type': self._get_voice_for_speaker(current_speaker),
+                            'duration_estimate': self._estimate_segment_duration(' '.join(current_content))
+                        })
+                    
+                    # Start new segment
+                    current_speaker = speaker_found
+                    current_content = [line.replace(f'[{speaker_found.upper()}]:', '').strip()]
+                else:
+                    # Continue current segment
+                    if current_content:
+                        current_content.append(line)
+            
+            # Add final segment
+            if current_speaker and current_content:
+                segments.append({
+                    'speaker': current_speaker,
+                    'content': ' '.join(current_content).strip(),
+                    'voice_type': self._get_voice_for_speaker(current_speaker),
+                    'duration_estimate': self._estimate_segment_duration(' '.join(current_content))
+                })
+            
+            span.set_attribute("output.value", json.dumps(segments))
+            return segments
     
     def _get_voice_for_speaker(self, speaker: str) -> str:
-        """Assign voice type to speaker"""
-        # Simple voice assignment logic
-        voice_mapping = {
-            'host a': 'female_voice',
-            'host b': 'male_voice',
-            'interviewer': 'female_voice',
-            'expert': 'male_voice',
-            'narrator': 'male_voice',
-            'instructor': 'female_voice'
-        }
-        
-        return voice_mapping.get(speaker.lower(), 'male_voice')
+        with tracer.start_as_current_span("get_voice_for_speaker") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", json.dumps({"speaker": speaker}))
+            """Assign voice type to speaker"""
+            # Simple voice assignment logic
+            voice_mapping = {
+                'host a': 'female_voice',
+                'host b': 'male_voice',
+                'interviewer': 'female_voice',
+                'expert': 'male_voice',
+                'narrator': 'male_voice',
+                'instructor': 'female_voice'
+            }
+            span.set_attribute("output.value", json.dumps(voice_mapping.get(speaker.lower(), 'male_voice')))
+            return voice_mapping.get(speaker.lower(), 'male_voice')
     
     def _estimate_duration(self, text: str) -> float:
         """Estimate audio duration in minutes based on text length"""
@@ -300,87 +332,105 @@ Generate an engaging podcast script based on this content."""
         return round(word_count / 150 * 60, 1)  # Return in seconds
     
     def generate_audio_from_script(self, script_data: Dict, output_path: str = None) -> Dict:
-        """
-        Generate audio from podcast script using text-to-speech
-        
-        Args:
-            script_data: Script data with segments
-            output_path: Optional output path for audio file
+        with tracer.start_as_current_span("generate_audio_from_script") as span:
+            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+            span.set_attribute("input.value", json.dumps({"script_data": script_data, "output_path": output_path}))
+            """
+            Generate audio from podcast script using text-to-speech
             
-        Returns:
-            Dict with audio file information and metadata
-        """
-        try:
-            segments = script_data.get('segments', [])
-            if not segments:
-                raise ValueError("No script segments available for audio generation")
-            
-            # Generate output path if not provided
-            if not output_path:
-                podcast_id = str(uuid.uuid4())
-                output_path = os.path.join(self.temp_dir, f"podcast_{podcast_id}.wav")
-            
-            # Generate audio for each segment
-            segment_files = []
-            total_duration = 0
-            
-            for i, segment in enumerate(segments):
-                segment_file = os.path.join(self.temp_dir, f"segment_{i}_{uuid.uuid4().hex[:8]}.wav")
+            Args:
+                script_data: Script data with segments
+                output_path: Optional output path for audio file
                 
-                # Generate TTS for segment
-                success = self._generate_tts_segment(
-                    text=segment['content'],
-                    voice_type=segment['voice_type'],
-                    output_file=segment_file
-                )
+            Returns:
+                Dict with audio file information and metadata
+            """
+            try:
+                segments = script_data.get('segments', [])
+                if not segments:
+                    raise ValueError("No script segments available for audio generation")
                 
-                if success:
-                    segment_files.append(segment_file)
-                    total_duration += segment.get('duration_estimate', 0)
-                else:
-                    logging.warning(f"Failed to generate audio for segment {i}")
-            
-            if not segment_files:
-                raise Exception("No audio segments were generated successfully")
-            
-            # Combine segments into final audio file
-            success = self._combine_audio_segments(segment_files, output_path)
-            
-            # Clean up temporary segment files
-            for file_path in segment_files:
-                try:
-                    os.remove(file_path)
-                except:
-                    pass
-            
-            if not success:
-                raise Exception("Failed to combine audio segments")
-            
-            # Get file information
-            file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
-            
-            return {
-                'audio_file': {
-                    'path': output_path,
-                    'size': file_size,
-                    'format': 'wav',
-                    'sample_rate': self.tts_config['sample_rate']
-                },
-                'duration': total_duration,
-                'segments_count': len(segments),
-                'generation_metadata': {
-                    'timestamp': datetime.now().isoformat(),
-                    'segments_generated': len(segment_files),
-                    'total_segments': len(segments)
+                # Generate output path if not provided
+                if not output_path:
+                    podcast_id = str(uuid.uuid4())
+                    output_path = os.path.join(self.temp_dir, f"podcast_{podcast_id}.wav")
+                
+                # Generate audio for each segment
+                segment_files = []
+                total_duration = 0
+                
+                for i, segment in enumerate(segments):
+                    segment_file = os.path.join(self.temp_dir, f"segment_{i}_{uuid.uuid4().hex[:8]}.wav")
+                    
+                    # Generate TTS for segment
+                    success = self._generate_tts_segment(
+                        text=segment['content'],
+                        voice_type=segment['voice_type'],
+                        output_file=segment_file
+                    )
+                    
+                    if success:
+                        segment_files.append(segment_file)
+                        total_duration += segment.get('duration_estimate', 0)
+                    else:
+                        logging.warning(f"Failed to generate audio for segment {i}")
+                
+                if not segment_files:
+                    raise Exception("No audio segments were generated successfully")
+                
+                # Combine segments into final audio file
+                success = self._combine_audio_segments(segment_files, output_path)
+                
+                # Clean up temporary segment files
+                for file_path in segment_files:
+                    try:
+                        os.remove(file_path)
+                    except:
+                        pass
+                
+                if not success:
+                    raise Exception("Failed to combine audio segments")
+                
+                # Get file information
+                file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+                span.set_attribute("output.value", json.dumps({
+                    'audio_file': {
+                        'path': output_path,
+                        'size': file_size,
+                        'format': 'wav',
+                        'sample_rate': self.tts_config['sample_rate']
+                    },
+                    'duration': total_duration,
+                    'segments_count': len(segments),
+                    'generation_metadata': {
+                        'timestamp': datetime.now().isoformat(),
+                        'segments_generated': len(segment_files),
+                        'total_segments': len(segments)
+                    }
+                }))
+                
+                return {
+                    'audio_file': {
+                        'path': output_path,
+                        'size': file_size,
+                        'format': 'wav',
+                        'sample_rate': self.tts_config['sample_rate']
+                    },
+                    'duration': total_duration,
+                    'segments_count': len(segments),
+                    'generation_metadata': {
+                        'timestamp': datetime.now().isoformat(),
+                        'segments_generated': len(segment_files),
+                        'total_segments': len(segments)
+                    }
                 }
-            }
-            
-        except Exception as e:
-            logging.error(f"Audio generation error: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
-            }
+                
+            except Exception as e:
+                logging.error(f"Audio generation error: {e}")
+                return {
+                    'error': str(e),
+                    'timestamp': datetime.now().isoformat()
+                }
     
     def _generate_tts_segment(self, text: str, voice_type: str, output_file: str) -> bool:
         """
