@@ -744,6 +744,24 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("multi_step_query_resolution")
+            print(json.dumps(response.sql_query))
+            print(json.dumps(response.data_table))
+            print("#########################")
+            config_multi_step_query_resolution = {
+                "eval_templates" : "multi_step_query_resolution_3",
+                "inputs" : {
+                    "sql_query": json.dumps(response.sql_query),
+                    "result_data": json.dumps(response.data_table if response.data_table is not None else "[]"),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result8 = evaluator.evaluate(
+                **config_multi_step_query_resolution, 
+                custom_eval_name="multi_step_query_resolution", 
+                trace_eval=True
+            )
             
 
 
