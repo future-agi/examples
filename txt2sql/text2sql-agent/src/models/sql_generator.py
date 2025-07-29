@@ -340,6 +340,13 @@ class SQLGenerator:
                 
                 span.set_attribute("output.value", generated_sql.sql_query)
                 span.set_attribute("tables_used.value", generated_sql.tables_used)
+
+
+                print("#########################")
+                print("text_to_sql")
+                print(json.dumps(question))
+                print(json.dumps(generated_sql.sql_query))
+                print("#########################")
                 config_text_to_sql = {
                     "eval_templates" : "text_to_sql",
                     "inputs" : {
@@ -354,6 +361,11 @@ class SQLGenerator:
                     trace_eval=True
                 )
 
+                print("#########################")
+                print("evaluate_function_calling")
+                print(json.dumps(question))
+                print(json.dumps(generated_sql.tables_used))
+                print("#########################")
                 config_evaluate_function_calling = {
                     "eval_templates" : "evaluate_function_calling",
                     "inputs" : {
@@ -368,6 +380,10 @@ class SQLGenerator:
                     trace_eval=True
                 )
 
+                print("#########################")
+                print("sql_syntactic_correctness")
+                print(json.dumps(generated_sql.sql_query))
+                print("#########################")
                 config_sql_syntactic_correctness = {
                     "eval_templates" : "sql_syntactic_correctness",
                     "inputs" : {
@@ -381,6 +397,11 @@ class SQLGenerator:
                     trace_eval=True
                 )
 
+                print("#########################")
+                print("schema_adherence")
+                print(json.dumps(context.table_schemas))
+                print(json.dumps(generated_sql.sql_query))
+                print("#########################")
                 config_schema_adherence = {
                     "eval_templates" : "schema_adherence",
                     "inputs" : {
