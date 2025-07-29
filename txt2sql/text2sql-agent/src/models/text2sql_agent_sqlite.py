@@ -331,12 +331,16 @@ class Text2SQLAgentSQLite:
                 self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
                 span.set_attribute("output.value", json.dumps(agent_response.natural_language_response))
                 
-
+                print("#########################")
+                print("completeness_of_context")
+                print(json.dumps(question))
+                print(json.dumps(table_schemas))
+                print("#########################")
                 config_completeness_of_context = {
                     "eval_templates" : "completeness_of_context",
                     "inputs" : {
                         "question": json.dumps(question),
-                        "context": json.dumps(context.schemas),
+                        "context": json.dumps(table_schemas),
                     },
                     "model_name" : "turing_large"
                 }
@@ -344,6 +348,44 @@ class Text2SQLAgentSQLite:
                 eval_result1 = evaluator.evaluate(
                     **config_completeness_of_context, 
                     custom_eval_name="completeness_of_context", 
+                    trace_eval=True
+                )
+
+                print("#########################")
+                print("pricing_logic_correctness")
+                print(json.dumps(agent_response.natural_language_response))
+                print("#########################")
+                config_pricing_logic_correctness = {
+                    "eval_templates" : "pricing_logic_correctness_2",
+                    "inputs" : {
+                        "agent_response": json.dumps(agent_response.natural_language_response),
+                    },
+                    "model_name" : "turing_large"
+                }
+
+                eval_result2 = evaluator.evaluate(
+                    **config_pricing_logic_correctness, 
+                    custom_eval_name="pricing_logic_correctness", 
+                    trace_eval=True
+                )
+
+                print("#########################")
+                print("ambiguity_resolution")
+                print(json.dumps(question))
+                print(json.dumps(agent_response.natural_language_response))
+                print("#########################")
+                config_ambiguity_resolution = {
+                    "eval_templates" : "ambiguity_resolution_2",
+                    "inputs" : {
+                        "question": json.dumps(question),
+                        "agent_response": json.dumps(agent_response.natural_language_response),
+                    },
+                    "model_name" : "turing_large"
+                }
+
+                eval_result3 = evaluator.evaluate(
+                    **config_ambiguity_resolution, 
+                    custom_eval_name="ambiguity_resolution", 
                     trace_eval=True
                 )
                 return agent_response

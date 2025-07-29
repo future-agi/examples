@@ -48,7 +48,7 @@ from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="text2sql_agent",
+    project_name="agent_text_to_sql",
     set_global_tracer_provider=True
 )
 
@@ -610,6 +610,11 @@ def process_query():
             
             span.set_attribute("output.value", response.natural_language_response)
 
+            print("#########################")
+            print("completeness")
+            print(json.dumps(question))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_completeness = {
                 "eval_templates" : "completeness",
                 "inputs" : {
@@ -624,6 +629,11 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("task_completion")
+            print(json.dumps(question))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_task_completion = {
                 "eval_templates" : "task_completion",
                 "inputs" : {
@@ -639,6 +649,11 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("context_relevance")
+            print(json.dumps(question))
+            print(json.dumps(response.data_table))
+            print("#########################")
             config_context_relevance = {
                 "eval_templates" : "context_relevance",
                 "inputs" : {
@@ -653,6 +668,12 @@ def process_query():
                 trace_eval=True
             )  
 
+            print("#########################")
+            print("answer_correctness")
+            print(json.dumps(question))
+            print(json.dumps(response.data_table))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_answer_correctness_eval = {
                 "eval_templates" : "answer_correctness_eval",
                 "inputs" : {
@@ -668,6 +689,11 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("business_context_integration")
+            print(json.dumps(response.natural_language_response))
+            print(json.dumps(response.key_insights))
+            print("#########################")
             config_business_context_integration = {
                 "eval_templates" : "business_context_integration",
                 "inputs" : {
@@ -681,6 +707,45 @@ def process_query():
                 custom_eval_name="business_context_integration", 
                 trace_eval=True
             )
+
+            print("#########################")
+            print("temporal_logic_handling_eval")
+            print(json.dumps(question))
+            print(json.dumps(response.sql_query))
+            print("#########################")
+            config_temporal_logic_handling_eval = {
+                "eval_templates" : "temporal_logic_handling_eval",
+                "inputs" : {
+                    "question": json.dumps(question),
+                    "sql_query": json.dumps(response.sql_query),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result6 = evaluator.evaluate(
+                **config_temporal_logic_handling_eval, 
+                custom_eval_name="temporal_logic_handling_eval", 
+                trace_eval=True
+            )
+
+            print("#########################")
+            print("query_optimization")
+            print(json.dumps(response.sql_query))
+            print("#########################")
+            config_query_optimization = {
+                "eval_templates" : "query_optimization_2",
+                "inputs" : {
+                    "input": json.dumps(response.sql_query),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result7 = evaluator.evaluate(
+                **config_query_optimization, 
+                custom_eval_name="query_optimization", 
+                trace_eval=True
+            )
+
+            
+
 
             return jsonify(result)
             

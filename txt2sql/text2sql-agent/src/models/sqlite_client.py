@@ -254,12 +254,34 @@ class SQLiteClient:
                     }
                 )
                 
+                
+                
                 # Cache successful SELECT queries
                 if self.cache and query.strip().upper().startswith(('SELECT', 'WITH')):
                     self.cache.set(query, result)
                 
                 self.logger.debug(f"Query executed successfully in {execution_time:.2f}s, {row_count} rows")
                 span.set_attribute("output.value", result.data.to_json(orient="records") if result.data is not None else "[]")
+
+                print("#########################")
+                print("multi_step_query_resolution")
+                print(json.dumps(query))
+                print(json.dumps(result.data.to_dict()))
+                print("#########################")
+                config_multi_step_query_resolution = {
+                    "eval_templates" : "multi_step_query_resolution_3",
+                    "inputs" : {
+                        "sql_query": json.dumps(query),
+                        "result_data": json.dumps(result.data.to_dict()),
+                    },
+                    "model_name" : "turing_large"
+                }
+                eval_result = evaluator.evaluate(
+                    **config_multi_step_query_resolution, 
+                    custom_eval_name="multi_step_query_resolution_3", 
+                    trace_eval=True
+                )
+                
 
                 return result
                 
@@ -276,6 +298,7 @@ class SQLiteClient:
                 self.logger.error(f"Query execution failed: {error_msg}")
                 span.set_attribute("output.value", error_msg)
                 return self._create_error_result(error_msg, start_time)
+            
     
     def _create_error_result(self, error_message: str, start_time: float) -> QueryResult:
         """Create error result"""
