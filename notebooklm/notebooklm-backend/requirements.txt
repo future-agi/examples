@@ -1,0 +1,79 @@
+
+
+
+# Core Flask dependencies
+Flask
+Flask-SQLAlchemy
+Flask-CORS
+Flask-JWT-Extended
+
+# Database
+SQLAlchemy
+
+# Environment and configuration
+python-dotenv
+
+# Document processing
+PyPDF2
+python-docx
+python-pptx
+openpyxl
+markdown
+beautifulsoup4
+lxml
+
+# AI and ML
+openai[datalib]
+anthropic
+google-generativeai
+cohere
+
+# Vector database and embeddings
+chromadb
+sentence-transformers
+numpy
+scikit-learn
+
+# Text processing
+nltk
+spacy
+tiktoken
+
+# Audio processing and TTS
+pydub
+elevenlabs
+gTTS
+openai-whisper
+SpeechRecognition
+
+# HTTP requests
+requests
+httpx
+
+# Utilities
+python-magic
+Pillow
+python-dateutil
+pytz
+
+# Development and testing
+pytest
+pytest-flask
+black
+flake8
+
+# Production server
+gunicorn
+gevent
+
+# Monitoring and logging
+structlog
+
+# YouTube integration
+youtube_transcript_api
+
+ai-evaluation
+fi-instrumentation-otel
+futureagi
+
+traceAI-openai
