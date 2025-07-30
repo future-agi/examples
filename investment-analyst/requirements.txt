@@ -1,0 +1,5 @@
+crewai
+futureagi
+traceAI-crewai
+crewai-tools
+python-dotenv
