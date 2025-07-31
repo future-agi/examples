@@ -275,6 +275,65 @@ class Text2SQLAgentSQLite:
                 self.logger.debug(f"SQL generated - Confidence: {generated_sql.confidence_score}")
                 
                 if not generated_sql.sql_query or generated_sql.validation_errors:
+
+                    #########################################################
+                    print("#########################")
+                    print("completeness_of_context")
+                    print(json.dumps(question))
+                    print(json.dumps(table_schemas))
+                    print("#########################")
+                    config_completeness_of_context = {
+                        "eval_templates" : "completeness_of_context",
+                        "inputs" : {
+                            "question": json.dumps(question),
+                            "context": json.dumps(table_schemas),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result1 = evaluator.evaluate(
+                        **config_completeness_of_context, 
+                        custom_eval_name="completeness_of_context", 
+                        trace_eval=True
+                    )
+
+                    print("#########################")
+                    print("pricing_logic_correctness")
+                    print("None")
+                    print("#########################")
+                    config_pricing_logic_correctness = {
+                        "eval_templates" : "pricing_logic_correctness_2",
+                        "inputs" : {
+                            "agent_response": json.dumps("None"),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result2 = evaluator.evaluate(
+                        **config_pricing_logic_correctness, 
+                        custom_eval_name="pricing_logic_correctness", 
+                        trace_eval=True
+                    )
+
+                    print("#########################")
+                    print("ambiguity_resolution")
+                    print(json.dumps(question))
+                    print(json.dumps("None"))
+                    print("#########################")
+                    config_ambiguity_resolution = {
+                        "eval_templates" : "ambiguity_resolution_2",
+                        "inputs" : {
+                            "question": json.dumps(question),
+                            "agent_response": json.dumps("None"),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result3 = evaluator.evaluate(
+                        **config_ambiguity_resolution, 
+                        custom_eval_name="ambiguity_resolution", 
+                        trace_eval=True
+                    )
                     return self._create_error_response(
                         question, 
                         "Failed to generate valid SQL query",
@@ -345,7 +404,7 @@ class Text2SQLAgentSQLite:
                     "model_name" : "turing_large"
                 }
 
-                eval_result1 = evaluator.evaluate(
+                eval_result4 = evaluator.evaluate(
                     **config_completeness_of_context, 
                     custom_eval_name="completeness_of_context", 
                     trace_eval=True
@@ -353,17 +412,17 @@ class Text2SQLAgentSQLite:
 
                 print("#########################")
                 print("pricing_logic_correctness")
-                print(json.dumps(agent_response.natural_language_response))
+                print(json.dumps(agent_response.natural_language_response if agent_response.natural_language_response is not None else "None"))
                 print("#########################")
                 config_pricing_logic_correctness = {
                     "eval_templates" : "pricing_logic_correctness_2",
                     "inputs" : {
-                        "agent_response": json.dumps(agent_response.natural_language_response),
+                        "agent_response": json.dumps(agent_response.natural_language_response if agent_response.natural_language_response is not None else "None"),
                     },
                     "model_name" : "turing_large"
                 }
 
-                eval_result2 = evaluator.evaluate(
+                eval_result5 = evaluator.evaluate(
                     **config_pricing_logic_correctness, 
                     custom_eval_name="pricing_logic_correctness", 
                     trace_eval=True
@@ -383,7 +442,7 @@ class Text2SQLAgentSQLite:
                     "model_name" : "turing_large"
                 }
 
-                eval_result3 = evaluator.evaluate(
+                eval_result6 = evaluator.evaluate(
                     **config_ambiguity_resolution, 
                     custom_eval_name="ambiguity_resolution", 
                     trace_eval=True
