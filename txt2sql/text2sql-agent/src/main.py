@@ -48,7 +48,7 @@ from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="agent_text_to_sql",
+    project_name="text_to_sql",
     set_global_tracer_provider=True
 )
 
@@ -77,7 +77,7 @@ CORS(app)  # Enable CORS for all routes
 # Configuration
 APP_CONFIG = {
     'flask_host': '0.0.0.0',
-    'flask_port': 6001,
+    'flask_port': 6010,
     'gradio_host': '0.0.0.0',
     'gradio_port': 7860,
     'database_path': 'retail_analytics.db',
@@ -727,14 +727,14 @@ def process_query():
                 trace_eval=True
             )
 
-            print("#########################")
+            print("######################x###")
             print("query_optimization")
             print(json.dumps(response.sql_query))
             print("#########################")
             config_query_optimization = {
                 "eval_templates" : "query_optimization_2",
                 "inputs" : {
-                    "input": json.dumps(response.sql_query),
+                    "sql_query": json.dumps(response.sql_query),
                 },
                 "model_name" : "turing_large"
             }
