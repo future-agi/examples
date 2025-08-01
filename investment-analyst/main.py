@@ -1,15 +1,24 @@
 import os
-from google.colab import userdata
+from dotenv import load_dotenv
+from getpass import getpass
 from fi_instrumentation import register
 from fi_instrumentation.fi_types import ProjectType
 from traceai_crewai import CrewAIInstrumentor
 from IPython.display import display, Markdown
 
-# --- API Key Setup for Google Colab ---
-os.environ["OPENAI_API_KEY"] = userdata.get('OPENAI_API_KEY')
-os.environ["FI_API_KEY"] = userdata.get('FI_API_KEY')
-os.environ["FI_SECRET_KEY"] = userdata.get('FI_SECRET_KEY')
-os.environ["SERPER_API_KEY"] = userdata.get('SERPER_API_KEY')
+# --- API Key Setup for Local System ---
+load_dotenv()  # Loads variables from .env file
+
+# Prompt for FI API keys if not set in environment
+if not os.getenv('FI_API_KEY'):
+    os.environ["FI_API_KEY"] = getpass("Enter your FI API Key: ")
+if not os.getenv('FI_SECRET_KEY'):
+    os.environ["FI_SECRET_KEY"] = getpass("Enter your FI Secret Key: ")
+
+os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_API_KEY')
+os.environ["FI_API_KEY"] = os.getenv('FI_API_KEY')
+os.environ["FI_SECRET_KEY"] = os.getenv('FI_SECRET_KEY')
+os.environ["SERPER_API_KEY"] = os.getenv('SERPER_API_KEY')
 
 # --- FutureAGI Tracing Setup ---
 trace_provider = register(
