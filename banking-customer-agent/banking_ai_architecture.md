@@ -1,7 +1,7 @@
 # Banking AI Agent System Architecture
 
 ## Overview
-This document outlines the architecture for a comprehensive AI agent designed for retail banking chatbots, suitable for major banks like JP Morgan, Capital One, and ABSA.
+This document outlines the architecture for a comprehensive AI agent designed for retail banking chatbots, suitable for major banks.
 
 ## Core Components
 
@@ -135,4 +135,3 @@ Response Validation → Security Check → Customer Response → Feedback Loop
 - **Third-party APIs**: Additional financial services integration
 
 This architecture provides a robust foundation for building a sophisticated banking AI agent that can handle complex customer interactions while maintaining the highest standards of security and compliance required in the financial services industry.
-

@@ -1,12 +1,12 @@
 """
-Banking AI Agent - Main Flask Application
+Banking AI Agent - Main Application
 """
-
 import os
 import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
+from getpass import getpass
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -17,6 +17,12 @@ from core.agent import BankingAIAgent
 
 # Load environment variables
 load_dotenv()
+
+if not os.getenv("FI_API_KEY"):
+    os.environ["FI_API_KEY"] = getpass("Enter your FI_API_KEY: ")
+
+if not os.getenv("FI_SECRET_KEY"):
+    os.environ["FI_SECRET_KEY"] = getpass("Enter your FI_SECRET_KEY: ")
 
 # Configure logging
 logging.basicConfig(
@@ -488,4 +494,3 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"Failed to start application: {str(e)}")
         exit(1)
-

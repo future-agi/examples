@@ -116,7 +116,7 @@ class BankingAIAgent:
     
     def _create_system_prompt(self) -> str:
         """Create comprehensive system prompt for banking AI agent"""
-        return """You are a sophisticated AI agent for retail banking, designed to assist customers of major banks like JP Morgan, Capital One, and ABSA. You have the following capabilities:
+        return """You are a sophisticated AI agent for retail banking, designed to assist customers of major banks. You have the following capabilities:
 
 CORE CAPABILITIES:
 1. Planning: Break down complex banking queries into manageable steps
@@ -394,4 +394,3 @@ Remember: You are representing a trusted financial institution. Maintain the hig
             }
             span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(status))
             return status
-

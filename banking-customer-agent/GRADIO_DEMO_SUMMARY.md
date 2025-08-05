@@ -213,7 +213,6 @@ The Banking AI Agent now has **two professional interfaces**:
 1. **React Frontend**: Full banking application with admin dashboard
 2. **Gradio Demo**: Clean demo interface for testing and presentations
 
-Both interfaces showcase all 6 AI capabilities (Planning, RAG, Execution, Memory, Self-Reflection, Complex Reasoning) and are ready for deployment at major financial institutions like JP Morgan, Capital One, and ABSA.
+Both interfaces showcase all 6 AI capabilities (Planning, RAG, Execution, Memory, Self-Reflection, Complex Reasoning) and are ready for deployment at major financial institutions.
 
 **The system is now even more versatile and demo-ready! 🎪✨**
-
