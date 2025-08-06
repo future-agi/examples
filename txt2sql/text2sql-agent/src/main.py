@@ -48,7 +48,7 @@ from fi_instrumentation.fi_types import SpanAttributes, FiSpanKindValues
 
 trace_provider = register(
     project_type=ProjectType.OBSERVE,
-    project_name="text2sql_agent",
+    project_name="text_to_sql",
     set_global_tracer_provider=True
 )
 
@@ -77,7 +77,7 @@ CORS(app)  # Enable CORS for all routes
 # Configuration
 APP_CONFIG = {
     'flask_host': '0.0.0.0',
-    'flask_port': 6001,
+    'flask_port': 6010,
     'gradio_host': '0.0.0.0',
     'gradio_port': 7860,
     'database_path': 'retail_analytics.db',
@@ -109,8 +109,8 @@ def validate_question(question: str) -> Tuple[bool, Optional[str]]:
         with tracer.start_as_current_span("validate_question") as span:
             span.set_attribute("question", question)
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.CHAIN.value)
-            span.set_attribute("input.value", question)
-            span.set_attribute("output.value", True)
+            span.set_attribute("input.value", json.dumps({"question": question}))
+            span.set_attribute("output.value", json.dumps({"valid": True}))
             
 
         """Validate user question"""
@@ -131,169 +131,180 @@ def validate_question(question: str) -> Tuple[bool, Optional[str]]:
 
 def initialize_agent():  
     """Initialize the Text-to-SQL agent with SQLite backend"""
-    global agent
-    
-    try:
-        logger.info("Initializing Text-to-SQL Agent with SQLite...")
+    with tracer.start_as_current_span("initialize_agent") as span:
+        span.set_attribute("initialize_agent", "initialize_agent")
+        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+        span.set_attribute("input.value", json.dumps({"initializing agent": True}))
+        span.set_attribute("output.value", json.dumps({"success": True}))
+
+        global agent
         
-        # Get OpenAI API key from environment
-        openai_api_key = os.getenv('OPENAI_API_KEY')
-        if not openai_api_key:
-            logger.warning("OPENAI_API_KEY not found in environment.")
-            logger.warning("Using fallback mode with limited functionality.")
-            # Use a placeholder key for fallback mode
-            openai_api_key = "sk-fallback-mode-no-ai-features"
-        else:
-            logger.info(f"Found OpenAI API key: {openai_api_key[:20]}..." if len(openai_api_key) > 20 else openai_api_key[:10] + "...")
-        
-        # Create agent configuration
-        config = AgentConfig(
-            openai_api_key=openai_api_key,
-            database_path=APP_CONFIG['database_path'],
-            vector_store_path=APP_CONFIG['vector_store_path'],
-            enable_cache=True,
-            max_results=1000,
-            enable_visualization=True,
-            log_level="INFO"
-        )
-        
-        # Create agent
-        agent = Text2SQLAgentSQLite(config)
-        
-        if openai_api_key.startswith("sk-fallback"):
-            logger.info("Text-to-SQL Agent initialized in FALLBACK MODE (limited functionality)")
-            logger.info("To enable full AI features, set OPENAI_API_KEY environment variable")
-        else:
-            logger.info("Text-to-SQL Agent initialized successfully with full AI features")
-        
-        return True
-        
-    except Exception as e:
-        traceback.print_exc()
-        logger.error(f"Error initializing agent: {str(e)}")
-        logger.info("Attempting to create basic fallback agent...")
-        
-        # Try to create a minimal fallback agent
         try:
-            from models.sqlite_client import create_sqlite_client
+            logger.info("Initializing Text-to-SQL Agent with SQLite...")
             
-            # Create a basic SQLite client for direct queries
-            sqlite_client = create_sqlite_client(APP_CONFIG['database_path'])
+            # Get OpenAI API key from environment
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            if not openai_api_key:
+                logger.warning("OPENAI_API_KEY not found in environment.")
+                logger.warning("Using fallback mode with limited functionality.")
+                # Use a placeholder key for fallback mode
+                openai_api_key = "sk-fallback-mode-no-ai-features"
+            else:
+                logger.info(f"Found OpenAI API key: {openai_api_key[:20]}..." if len(openai_api_key) > 20 else openai_api_key[:10] + "...")
             
-            # Create a minimal agent wrapper
-            class FallbackAgent:
-                def __init__(self, sqlite_client):
-                    self.sqlite_client = sqlite_client
-                    self.fallback_mode = True
-                    
-                def health_check(self):
-                    return {
-                        'overall_status': 'degraded',
-                        'message': 'Running in fallback mode - AI features disabled',
-                        'components': {
-                            'database': 'healthy',
-                            'openai': 'unavailable',
-                            'vector_store': 'unavailable'
-                        },
-                        'timestamp': datetime.now().isoformat()
-                    }
-                
-                def process_question(self, question, user_context=None):
-                    with tracer.start_as_current_span("process_question") as span:
-                        span.set_attribute("process_question", "process_question")
-                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
-                        span.set_attribute("input.value", question)
-                        span.set_attribute("output.value", True)
-
-                        class BasicResponse:
-                            def __init__(self):
-                                self.success = False
-                                self.natural_language_response = "AI features are not available. Please set OPENAI_API_KEY environment variable to enable full functionality."
-                                self.sql_query = None
-                                self.data_table = None
-                                self.visualization = None
-                                self.key_insights = ["AI features disabled - set OPENAI_API_KEY to enable"]
-                                self.execution_time = 0.0
-                                self.row_count = 0
-                                self.confidence_score = 0.0
-                                self.error_message = "OpenAI API key not configured"
-                                self.metadata = {"fallback_mode": True}
-                        
-                        return BasicResponse()
-                    
-                def get_stats(self):
-                    return {
-                        'total_queries': 0,
-                        'success_rate': 0.0,
-                        'average_execution_time': 0.0,
-                        'sqlite_stats': {
-                            'total_queries': 0,
-                            'cache_hit_rate': 0.0
-                        },
-                        'fallback_mode': True
-                    }
-                
-                def get_schema_info(self, table_name=None):
-                    with tracer.start_as_current_span("get_schema_info") as span:
-                        span.set_attribute("get_schema_info", "get_schema_info")
-                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-                        span.set_attribute("input.value", "input")
-                        span.set_attribute("output.value", "output")
-
-                        try:
-                            # Get basic schema info from SQLite
-                            tables = []
-                            cursor = self.sqlite_client.connection.cursor()
-                            
-                            if table_name:
-                                cursor.execute(f"PRAGMA table_info({table_name})")
-                                columns = cursor.fetchall()
-                                return {
-                                    'table': table_name,
-                                    'columns': [{'name': col[1], 'type': col[2]} for col in columns],
-                                    'fallback_mode': True
-                                }
-                            else:
-                                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                                tables = [row[0] for row in cursor.fetchall()]
-                                return {
-                                    'tables': tables,
-                                    'fallback_mode': True,
-                                    'message': 'Basic schema info only - AI features disabled'
-                                }
-                        except Exception as e:
-                            return {
-                                'error': str(e),
-                                'fallback_mode': True
-                            }
-                    
-                def validate_sql(self, sql_query):
-                    with tracer.start_as_current_span("validate_sql") as span:
-                        span.set_attribute("validate_sql", "validate_sql")
-                        span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-                        span.set_attribute("input.value", "input")
-                        span.set_attribute("output.value", "output")
-
-                        # Basic SQL validation
-                        forbidden_keywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE']
-                        upper_query = sql_query.upper()
-                        
-                        for keyword in forbidden_keywords:
-                            if keyword in upper_query:
-                                return False, f"Forbidden keyword '{keyword}' detected"
-                        
-                        return True, None
-                    
-                def clear_cache(self):
-                    pass  # No cache in fallback mode
+            # Create agent configuration
+            config = AgentConfig(
+                openai_api_key=openai_api_key,
+                database_path=APP_CONFIG['database_path'],
+                vector_store_path=APP_CONFIG['vector_store_path'],
+                enable_cache=True,
+                max_results=1000,
+                enable_visualization=True,
+                log_level="INFO"
+            )
             
-            agent = FallbackAgent(sqlite_client)
-            logger.info("Fallback agent created successfully")
+            # Create agent
+            agent = Text2SQLAgentSQLite(config)
+            
+            if openai_api_key.startswith("sk-fallback"):
+                logger.info("Text-to-SQL Agent initialized in FALLBACK MODE (limited functionality)")
+                logger.info("To enable full AI features, set OPENAI_API_KEY environment variable")
+            else:
+                logger.info("Text-to-SQL Agent initialized successfully with full AI features")
+            
             return True
             
-        except Exception as fallback_error:
-            logger.error(f"Failed to create fallback agent: {str(fallback_error)}")
-            return False
+        except Exception as e:
+            traceback.print_exc()
+            logger.error(f"Error initializing agent: {str(e)}")
+            logger.info("Attempting to create basic fallback agent...")
+            
+            # Try to create a minimal fallback agent
+            try:
+                from models.sqlite_client import create_sqlite_client
+                
+                # Create a basic SQLite client for direct queries
+                sqlite_client = create_sqlite_client(APP_CONFIG['database_path'])
+                
+                # Create a minimal agent wrapper
+                class FallbackAgent:
+                    def __init__(self, sqlite_client):
+                        self.sqlite_client = sqlite_client
+                        self.fallback_mode = True
+                        
+                    def health_check(self):
+                        return {
+                            'overall_status': 'degraded',
+                            'message': 'Running in fallback mode - AI features disabled',
+                            'components': {
+                                'database': 'healthy',
+                                'openai': 'unavailable',
+                                'vector_store': 'unavailable'
+                            },
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    
+                    def process_question(self, question, user_context=None):
+                        with tracer.start_as_current_span("process_question") as span:
+                            span.set_attribute("process_question", "process_question")
+                            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
+                            span.set_attribute("input.value", json.dumps({"question": question}))
+                            span.set_attribute("output.value", json.dumps({"success": False}))
+
+                            class BasicResponse:
+                                def __init__(self):
+                                    self.success = False
+                                    self.natural_language_response = "AI features are not available. Please set OPENAI_API_KEY environment variable to enable full functionality."
+                                    self.sql_query = None
+                                    self.data_table = None
+                                    self.visualization = None
+                                    self.key_insights = ["AI features disabled - set OPENAI_API_KEY to enable"]
+                                    self.execution_time = 0.0
+                                    self.row_count = 0
+                                    self.confidence_score = 0.0
+                                    self.error_message = "OpenAI API key not configured"
+                                    self.metadata = {"fallback_mode": True}
+                            
+                            return BasicResponse()
+                        
+                    def get_stats(self):
+                        return {
+                            'total_queries': 0,
+                            'success_rate': 0.0,
+                            'average_execution_time': 0.0,
+                            'sqlite_stats': {
+                                'total_queries': 0,
+                                'cache_hit_rate': 0.0
+                            },
+                            'fallback_mode': True
+                        }
+                    
+                    def get_schema_info(self, table_name=None):
+                        with tracer.start_as_current_span("get_schema_info") as span:
+                            span.set_attribute("get_schema_info", "get_schema_info")
+                            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+                            span.set_attribute("input.value", json.dumps({"table_name": table_name}))
+
+                            try:
+                                # Get basic schema info from SQLite
+                                tables = []
+                                cursor = self.sqlite_client.connection.cursor()
+                                
+                                if table_name:
+                                    cursor.execute(f"PRAGMA table_info({table_name})")
+                                    columns = cursor.fetchall()
+                                    span.set_attribute("output.value", json.dumps({"table": table_name, "columns": [{'name': col[1], 'type': col[2]} for col in columns]}))
+                                    return {
+                                        'table': table_name,
+                                        'columns': [{'name': col[1], 'type': col[2]} for col in columns],
+                                        'fallback_mode': True
+                                    }
+                                else:
+                                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                                    tables = [row[0] for row in cursor.fetchall()]
+                                    span.set_attribute("output.value", json.dumps({"tables": tables}))
+                                    return {
+                                        'tables': tables,
+                                        'fallback_mode': True,
+                                        'message': 'Basic schema info only - AI features disabled'
+                                    }
+                            except Exception as e:
+                                span.set_attribute("output.value", json.dumps({"error": str(e)}))
+                                return {
+                                    'error': str(e),
+                                    'fallback_mode': True
+                                }
+                        
+                    def validate_sql(self, sql_query):
+                        with tracer.start_as_current_span("validate_sql") as span:
+                            span.set_attribute("validate_sql", "validate_sql")
+                            span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
+                            span.set_attribute("input.value", json.dumps({"sql_query": sql_query}))
+
+                            # Basic SQL validation
+                            forbidden_keywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE']
+                            upper_query = sql_query.upper()
+                            
+                            for keyword in forbidden_keywords:
+                                if keyword in upper_query:
+                                    span.set_attribute("output.value", json.dumps({"valid": False, "error": f"Forbidden keyword '{keyword}' detected"}))
+                                    return False, f"Forbidden keyword '{keyword}' detected"
+                            
+                            span.set_attribute("output.value", json.dumps({"valid": True}))
+                            return True, None
+                        
+                    def clear_cache(self):
+                        pass  # No cache in fallback mode
+                
+                agent = FallbackAgent(sqlite_client)
+                logger.info("Fallback agent created successfully")
+                span.set_attribute("output.value", json.dumps({"success": True}))
+                return True
+                
+            except Exception as fallback_error:
+                logger.error(f"Failed to create fallback agent: {str(fallback_error)}")
+                span.set_attribute("output.value", json.dumps({"success": False, "error": str(fallback_error)}))
+                return False
 
 # Flask API Routes
 @app.route('/')
@@ -599,11 +610,16 @@ def process_query():
             
             span.set_attribute("output.value", response.natural_language_response)
 
+            print("#########################")
+            print("completeness")
+            print(json.dumps(question))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_completeness = {
                 "eval_templates" : "completeness",
                 "inputs" : {
-                    "input": question,
-                    "output": response.natural_language_response,
+                    "input": json.dumps(question),
+                    "output": json.dumps(response.natural_language_response),
                 },
                 "model_name" : "turing_large"
             }
@@ -613,11 +629,16 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("task_completion")
+            print(json.dumps(question))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_task_completion = {
                 "eval_templates" : "task_completion",
                 "inputs" : {
-                    "input": question,
-                    "output": response.natural_language_response,
+                    "input": json.dumps(question),
+                    "output": json.dumps(response.natural_language_response),
                 },
                 "model_name" : "turing_large"
             }
@@ -628,11 +649,16 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("context_relevance")
+            print(json.dumps(question))
+            print(json.dumps(response.data_table))
+            print("#########################")
             config_context_relevance = {
                 "eval_templates" : "context_relevance",
                 "inputs" : {
-                    "input": question,
-                    "context": response.data_table,
+                    "input": json.dumps(question),
+                    "context": json.dumps(response.data_table),
                 },
                 "model_name" : "turing_large"
             }   
@@ -642,12 +668,18 @@ def process_query():
                 trace_eval=True
             )  
 
+            print("#########################")
+            print("answer_correctness")
+            print(json.dumps(question))
+            print(json.dumps(response.data_table))
+            print(json.dumps(response.natural_language_response))
+            print("#########################")
             config_answer_correctness_eval = {
                 "eval_templates" : "answer_correctness_eval",
                 "inputs" : {
-                    "question": question,
-                    "sql_result": response.data_table,
-                    "answer": response.natural_language_response,
+                    "question": json.dumps(question),
+                    "sql_result": json.dumps(response.data_table),
+                    "answer": json.dumps(response.natural_language_response),
                 },
                 "model_name" : "turing_large"
             }   
@@ -657,11 +689,16 @@ def process_query():
                 trace_eval=True
             )
 
+            print("#########################")
+            print("business_context_integration")
+            print(json.dumps(response.natural_language_response))
+            print(json.dumps(response.key_insights))
+            print("#########################")
             config_business_context_integration = {
                 "eval_templates" : "business_context_integration",
                 "inputs" : {
-                    "response": response.natural_language_response,
-                    "pricing_concepts": response.key_insights
+                    "response": json.dumps(response.natural_language_response),
+                    "pricing_concepts": json.dumps(response.key_insights)
                 },
                 "model_name" : "turing_large"
             }   
@@ -671,8 +708,61 @@ def process_query():
                 trace_eval=True
             )
 
-            
+            print("#########################")
+            print("temporal_logic_handling_eval")
+            print(json.dumps(question))
+            print(json.dumps(response.sql_query))
+            print("#########################")
+            config_temporal_logic_handling_eval = {
+                "eval_templates" : "temporal_logic_handling_eval",
+                "inputs" : {
+                    "question": json.dumps(question),
+                    "sql_query": json.dumps(response.sql_query),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result6 = evaluator.evaluate(
+                **config_temporal_logic_handling_eval, 
+                custom_eval_name="temporal_logic_handling_eval", 
+                trace_eval=True
+            )
 
+            print("######################x###")
+            print("query_optimization")
+            print(json.dumps(response.sql_query))
+            print("#########################")
+            config_query_optimization = {
+                "eval_templates" : "query_optimization_2",
+                "inputs" : {
+                    "sql_query": json.dumps(response.sql_query),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result7 = evaluator.evaluate(
+                **config_query_optimization, 
+                custom_eval_name="query_optimization", 
+                trace_eval=True
+            )
+
+            print("#########################")
+            print("multi_step_query_resolution")
+            print(json.dumps(response.sql_query))
+            print(json.dumps(response.data_table))
+            print("#########################")
+            config_multi_step_query_resolution = {
+                "eval_templates" : "multi_step_query_resolution_3",
+                "inputs" : {
+                    "sql_query": json.dumps(response.sql_query),
+                    "result_data": json.dumps(response.data_table if response.data_table is not None else "[]"),
+                },
+                "model_name" : "turing_large"
+            }
+            eval_result8 = evaluator.evaluate(
+                **config_multi_step_query_resolution, 
+                custom_eval_name="multi_step_query_resolution", 
+                trace_eval=True
+            )
+            
 
 
             return jsonify(result)

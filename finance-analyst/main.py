@@ -15,6 +15,9 @@ import random
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from fi.evals import Protect 
+from load_dotenv import load_dotenv
+
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, 'src')
@@ -104,11 +107,21 @@ class AITradingAssistant:
 
         self.protector = Protect()
         self.protect_rules = [
-                                {
-                                    "metric": "Toxicity"
-                                }
+        {
+            'metric': 'content_moderation',
+        },
+        {
+            'metric': 'data_privacy_compliance',
+        },
+        {
+            'metric': 'bias_detection',
+        },
+        {
+            'metric': 'security',
+        }
                             ]
         self.action = "I am Sorry I can't assist with that query"
+        self.use_flash = False
         
         # Initialize OpenAI client if available
         self.openai_client = None
@@ -132,7 +145,7 @@ class AITradingAssistant:
             """Route the user message using LLM function calling when available."""
             try:
                 # Input protection - check user input first
-                protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action)
+                protection_result = self.protector.protect(inputs=message, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
                 print(protection_result)    
 
                 if protection_result.get("status") == "failed":
@@ -179,33 +192,32 @@ class AITradingAssistant:
                         elif fn.name == "explain_concept":
                             topic = args.get("topic", message)
                             result = await self._handle_general_query(topic)
-
-                            protected_result = self.protector.protect(inputs= result, protect_rules=self.protect_rules, 
-                                                                    action= self.action)
-                            
-                            print(protected_result)
-
-                            if protected_result.get("status") == "failed":
-                                result = "I am Sorry I can't assist with that query"
-                            else:
-                                result = result
                         
                         # Add assistant response to history
                         self.chat_history.append({"role": "assistant", "content": result})
                         span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
+                        
+                        # Final output protection
+                        protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
+                        print(protected_result)
+                        if protected_result.get("status") == "failed":
+                            result = "I am Sorry I can't assist with that query"
+                            self.chat_history[-1] = {"role": "assistant", "content": result}  # Update last message
+                        
                         return result
                         
                     # If no function_call, return the assistant content directly
                     result = choice.message.content
-                    protected_result = self.protector.protect(inputs= result, protect_rules=self.protect_rules, 
-                                                                    action= self.action)
-                    print(protected_result) 
-                    if protected_result.get("status") == "failed":
-                        result = "I am Sorry I can't assist with that query"
-                    else:
-                        result = result
                     self.chat_history.append({"role": "assistant", "content": result})
                     span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
+                    
+                    # Final output protection
+                    protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
+                    print(protected_result)
+                    if protected_result.get("status") == "failed":
+                        result = "I am Sorry I can't assist with that query"
+                        self.chat_history[-1] = {"role": "assistant", "content": result}  # Update last message
+                    
                     return result
 
                 # Fallback path (no OpenAI client)
@@ -215,17 +227,17 @@ class AITradingAssistant:
                 else:
                     result = await self._handle_general_query(message)
                 
-                protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, 
-                                                                    action= self.action)
-                print(protected_result) 
-                if protected_result.get("status") == "failed":
-                    result = "I am Sorry I can't assist with that query"
-                else:
-                    result = result
-                
                 # Add assistant response to history
                 self.chat_history.append({"role": "assistant", "content": result})
                 span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
+                
+                # Final output protection
+                protected_result = self.protector.protect(inputs=result, protect_rules=self.protect_rules, action=self.action, use_flash=self.use_flash, reason=True)
+                print(protected_result) 
+                if protected_result.get("status") == "failed":
+                    result = "I am Sorry I can't assist with that query"
+                    self.chat_history[-1] = {"role": "assistant", "content": result}  # Update last message
+                
                 return result
 
             except Exception as e:
@@ -1113,7 +1125,7 @@ def main():
         interface = create_gradio_interface()
         interface.launch(
             share=True,
-            server_port=7860,
+            server_port=7861,
             server_name="0.0.0.0",
             show_error=True
         )

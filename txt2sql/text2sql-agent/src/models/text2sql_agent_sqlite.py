@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, asdict
 import time
 from datetime import datetime
+import json
 
 from .query_processor import QuestionProcessor, ProcessedQuestion
 from .sql_generator import SQLGenerator, QueryContext, GeneratedSQL
@@ -209,7 +210,7 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("process_question") as span:
             span.set_attribute("process_question", "process_question")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.AGENT.value)
-            span.set_attribute("input.value", question)
+            span.set_attribute("input.value", json.dumps(question))
 
             """
             Process a natural language question and return a complete response
@@ -274,6 +275,65 @@ class Text2SQLAgentSQLite:
                 self.logger.debug(f"SQL generated - Confidence: {generated_sql.confidence_score}")
                 
                 if not generated_sql.sql_query or generated_sql.validation_errors:
+
+                    #########################################################
+                    print("#########################")
+                    print("completeness_of_context")
+                    print(json.dumps(question))
+                    print(json.dumps(table_schemas))
+                    print("#########################")
+                    config_completeness_of_context = {
+                        "eval_templates" : "completeness_of_context",
+                        "inputs" : {
+                            "question": json.dumps(question),
+                            "context": json.dumps(table_schemas),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result1 = evaluator.evaluate(
+                        **config_completeness_of_context, 
+                        custom_eval_name="completeness_of_context", 
+                        trace_eval=True
+                    )
+
+                    print("#########################")
+                    print("pricing_logic_correctness")
+                    print("None")
+                    print("#########################")
+                    config_pricing_logic_correctness = {
+                        "eval_templates" : "pricing_logic_correctness_2",
+                        "inputs" : {
+                            "agent_response": json.dumps("None"),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result2 = evaluator.evaluate(
+                        **config_pricing_logic_correctness, 
+                        custom_eval_name="pricing_logic_correctness", 
+                        trace_eval=True
+                    )
+
+                    print("#########################")
+                    print("ambiguity_resolution")
+                    print(json.dumps(question))
+                    print(json.dumps("None"))
+                    print("#########################")
+                    config_ambiguity_resolution = {
+                        "eval_templates" : "ambiguity_resolution_2",
+                        "inputs" : {
+                            "question": json.dumps(question),
+                            "agent_response": json.dumps("None"),
+                        },
+                        "model_name" : "turing_large"
+                    }
+
+                    eval_result3 = evaluator.evaluate(
+                        **config_ambiguity_resolution, 
+                        custom_eval_name="ambiguity_resolution", 
+                        trace_eval=True
+                    )
                     return self._create_error_response(
                         question, 
                         "Failed to generate valid SQL query",
@@ -328,22 +388,65 @@ class Text2SQLAgentSQLite:
                 )
                 
                 self.logger.info(f"Question processed successfully in {execution_time:.2f}s")
-                span.set_attribute("output.value", agent_response.natural_language_response)
+                span.set_attribute("output.value", json.dumps(agent_response.natural_language_response))
                 
-                eval_result1 = evaluator.evaluate(
-                    **config_completeness, 
+                print("#########################")
+                print("completeness_of_context")
+                print(json.dumps(question))
+                print(json.dumps(table_schemas))
+                print("#########################")
+                config_completeness_of_context = {
+                    "eval_templates" : "completeness_of_context",
+                    "inputs" : {
+                        "question": json.dumps(question),
+                        "context": json.dumps(table_schemas),
+                    },
+                    "model_name" : "turing_large"
+                }
+
+                eval_result4 = evaluator.evaluate(
+                    **config_completeness_of_context, 
                     custom_eval_name="completeness_of_context", 
                     trace_eval=True
                 )
 
-                config_completeness = {
-                    "eval_templates" : "completeness_of_context",
+                print("#########################")
+                print("pricing_logic_correctness")
+                print(json.dumps(agent_response.natural_language_response if agent_response.natural_language_response is not None else "None"))
+                print("#########################")
+                config_pricing_logic_correctness = {
+                    "eval_templates" : "pricing_logic_correctness_2",
                     "inputs" : {
-                        "question": question,
-                        "context": context.schemas,
+                        "agent_response": json.dumps(agent_response.natural_language_response if agent_response.natural_language_response is not None else "None"),
                     },
                     "model_name" : "turing_large"
                 }
+
+                eval_result5 = evaluator.evaluate(
+                    **config_pricing_logic_correctness, 
+                    custom_eval_name="pricing_logic_correctness", 
+                    trace_eval=True
+                )
+
+                print("#########################")
+                print("ambiguity_resolution")
+                print(json.dumps(question))
+                print(json.dumps(agent_response.natural_language_response))
+                print("#########################")
+                config_ambiguity_resolution = {
+                    "eval_templates" : "ambiguity_resolution_2",
+                    "inputs" : {
+                        "question": json.dumps(question),
+                        "agent_response": json.dumps(agent_response.natural_language_response),
+                    },
+                    "model_name" : "turing_large"
+                }
+
+                eval_result6 = evaluator.evaluate(
+                    **config_ambiguity_resolution, 
+                    custom_eval_name="ambiguity_resolution", 
+                    trace_eval=True
+                )
                 return agent_response
                 
             except Exception as e:
@@ -408,8 +511,7 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("get_schema_info") as span:
             span.set_attribute("get_schema_info", "get_schema_info")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-            span.set_attribute("input.value", "input")
-            span.set_attribute("output.value", "output")
+            span.set_attribute("input.value", json.dumps({"table_name": table_name}))
 
             """
             Get schema information for available tables
@@ -422,10 +524,12 @@ class Text2SQLAgentSQLite:
             """
             if table_name:
                 schema = self.sqlite_client.get_table_schema(table_name)
+                span.set_attribute("output.value", json.dumps(asdict(schema) if schema else {}))
                 return asdict(schema) if schema else {}
             else:
                 tables = self.sqlite_client.list_tables()
                 schemas = self.sqlite_client.get_all_schemas()
+                span.set_attribute("output.value", json.dumps({"table_schemas": {name: asdict(schema) for name, schema in schemas.items()}}))
                 return {
                     'available_tables': tables,
                     'table_schemas': {name: asdict(schema) for name, schema in schemas.items()}
@@ -435,8 +539,8 @@ class Text2SQLAgentSQLite:
         with tracer.start_as_current_span("validate_sql") as span:
             span.set_attribute("validate_sql", "validate_sql")
             span.set_attribute(SpanAttributes.FI_SPAN_KIND, FiSpanKindValues.TOOL.value)
-            span.set_attribute("input.value", "input")
-            span.set_attribute("output.value", "output")
+            span.set_attribute("input.value", json.dumps({"sql_query": sql_query}))
+            
 
             """
             Validate SQL query without executing it
@@ -447,6 +551,7 @@ class Text2SQLAgentSQLite:
             Returns:
                 Tuple of (is_valid, error_message)
             """
+            span.set_attribute("output.value", json.dumps(self.sqlite_client.validate_query(sql_query)))
             return self.sqlite_client.validate_query(sql_query)
     
     def clear_cache(self):

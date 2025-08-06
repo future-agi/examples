@@ -254,12 +254,15 @@ class SQLiteClient:
                     }
                 )
                 
+                
+                
                 # Cache successful SELECT queries
                 if self.cache and query.strip().upper().startswith(('SELECT', 'WITH')):
                     self.cache.set(query, result)
                 
                 self.logger.debug(f"Query executed successfully in {execution_time:.2f}s, {row_count} rows")
                 span.set_attribute("output.value", result.data.to_json(orient="records") if result.data is not None else "[]")
+                
 
                 return result
                 
@@ -276,6 +279,7 @@ class SQLiteClient:
                 self.logger.error(f"Query execution failed: {error_msg}")
                 span.set_attribute("output.value", error_msg)
                 return self._create_error_result(error_msg, start_time)
+            
     
     def _create_error_result(self, error_message: str, start_time: float) -> QueryResult:
         """Create error result"""
