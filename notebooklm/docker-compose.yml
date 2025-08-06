@@ -42,20 +42,18 @@ services:
       context: ./notebooklm-backend
       dockerfile: Dockerfile
     container_name: notebooklm-backend
+    env_file:
+      - ../.env
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://notebooklm:notebooklm_password@postgres:5432/notebooklm
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=your-production-secret-key-here
       - JWT_SECRET_KEY=your-production-jwt-secret-here
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - CORS_ORIGINS=http://localhost:3000,http://localhost:4000
       - TOKENIZERS_PARALLELISM=false
       - HF_HOME=/app/model_cache
       - TRANSFORMERS_CACHE=/app/model_cache
-      - FI_API_KEY=${FI_API_KEY}
-      - FI_SECRET_KEY=${FI_SECRET_KEY}
-      - FI_BASE_URL=${FI_BASE_URL}
     volumes:
       - backend_uploads:/app/uploads
       - backend_chroma:/app/chroma_db
