@@ -1,0 +1,9 @@
+ai-evaluation==0.1.5
+fi-instrumentation-otel==0.1.6
+flask
+flask-cors
+gradio
+sentence_transformers
+tokenizers>=0.21,<0.22
+traceai_langchain==0.1.10
+traceai_openai==0.1.8

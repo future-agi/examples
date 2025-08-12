@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Banking AI Agent is a comprehensive artificial intelligence system designed specifically for retail banking institutions such as JP Morgan, Capital One, and ABSA. This advanced platform combines cutting-edge AI capabilities with robust banking compliance frameworks to deliver intelligent customer service experiences while maintaining the highest standards of regulatory compliance and security.
+The Banking AI Agent is a comprehensive artificial intelligence system designed specifically for retail banking institutions. This advanced platform combines cutting-edge AI capabilities with robust banking compliance frameworks to deliver intelligent customer service experiences while maintaining the highest standards of regulatory compliance and security.
 
 ## Key Features
 
@@ -448,4 +448,3 @@ python gradio_demo.py
 - 🎪 Perfect for stakeholder demos and user testing
 
 See [GRADIO_DEMO_GUIDE.md](GRADIO_DEMO_GUIDE.md) for detailed usage instructions.
-

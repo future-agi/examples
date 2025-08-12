@@ -316,10 +316,14 @@ class BankingAIGradioDemo:
         }
         .demo-info {
             background: #f8f9fa;
+            color: #222;
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid #2a5298;
             margin-bottom: 20px;
+        }
+        .demo-info * {
+         color: #222 !important;
         }
         .status-box {
             background: #e8f4fd;
@@ -446,4 +450,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
