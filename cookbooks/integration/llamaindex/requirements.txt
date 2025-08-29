@@ -1,0 +1,7 @@
+openai==1.101.0
+python-dotenv==1.1.1
+traceAI-llamaindex==0.1.8
+llama-index==0.12.41
+fi-instrumentation-otel==0.1.14
+gradio==5.43.1
+pypdf==5.9.0
