@@ -1,0 +1,10 @@
+gradio
+langchain
+langchain-community
+langchain-openai
+openai
+pymongo
+python-dotenv
+fi-instrumentation
+traceai-langchain
+pypdf
